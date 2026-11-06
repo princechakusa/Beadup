@@ -1,57 +1,35 @@
-// Demo data until the database (Supabase) is connected.
+// Fallback data for running the web app without Supabase (env vars unset).
+// Mirrors supabase/seed.sql.
+import type { Detailer } from "./booking-types";
 
-export type VehicleSize = "sedan" | "suv" | "truck";
-
-export type Service = {
-  id: string;
-  name: string;
-  description: string;
-  durationMin: number;
-  priceCents: Record<VehicleSize, number>;
-};
-
-export type AddOn = { id: string; name: string; priceCents: number };
-
-export type Detailer = {
-  handle: string;
-  businessName: string;
-  initials: string;
-  tagline: string;
-  rating: number;
-  reviewCount: number;
-  serviceArea: string;
-  services: Service[];
-  addOns: AddOn[];
-  /** Open slots per day offset from today, 24h "HH:MM". */
-  slots: string[];
-};
+const WEEKDAY_SLOTS = ["08:00", "09:30", "12:00", "14:30", "16:00"];
 
 const DETAILERS: Record<string, Detailer> = {
   marcus: {
     handle: "marcus",
     businessName: "Marcus Shine Co.",
-    initials: "MS",
     tagline: "Mobile detailing · we come to you",
-    rating: 4.9,
-    reviewCount: 212,
     serviceArea: "Austin, TX · 25 mi",
+    timezone: "America/Chicago",
+    rating: 4.7,
+    reviewCount: 3,
     services: [
       {
-        id: "express",
+        id: "a0000000-0000-4000-8000-000000000001",
         name: "Express wash",
         description: "Hand wash, wheels, tires, glass",
         durationMin: 60,
         priceCents: { sedan: 6000, suv: 7000, truck: 8000 },
       },
       {
-        id: "full",
+        id: "a0000000-0000-4000-8000-000000000002",
         name: "Full detail",
         description: "Inside and out, hand wax, interior deep clean",
         durationMin: 180,
         priceCents: { sedan: 18000, suv: 21000, truck: 23000 },
       },
       {
-        id: "ceramic",
+        id: "a0000000-0000-4000-8000-000000000003",
         name: "Ceramic coating",
         description: "Paint correction + 2-year ceramic protection",
         durationMin: 360,
@@ -63,15 +41,11 @@ const DETAILERS: Record<string, Detailer> = {
       { id: "odor", name: "Odor treatment", priceCents: 3500 },
       { id: "engine", name: "Engine bay clean", priceCents: 3000 },
     ],
-    slots: ["08:00", "09:30", "12:00", "14:30", "16:00"],
+    weeklySlots: { "1": WEEKDAY_SLOTS, "2": WEEKDAY_SLOTS, "3": WEEKDAY_SLOTS, "4": WEEKDAY_SLOTS, "5": WEEKDAY_SLOTS, "6": WEEKDAY_SLOTS },
   },
 };
 
-export function getDetailer(handle: string): Detailer | null {
+export function getDemoDetailer(handle: string): Detailer | null {
   const key = handle.toLowerCase();
   return Object.hasOwn(DETAILERS, key) ? DETAILERS[key] : null;
-}
-
-export function demoHandles(): string[] {
-  return Object.keys(DETAILERS);
 }

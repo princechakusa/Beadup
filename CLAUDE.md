@@ -32,9 +32,9 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] Rename add-on to "Pet hair removal (seats and carpets)"
 - [ ] Premium pass: Skia-style glass bead on web (SVG/WebGL refraction), haptic-like micro-interactions, sound on "booked" (respect reduced motion)
 ### M2: Backend
-- [ ] Supabase schema as SQL migrations in `supabase/migrations`: detailers, services, add_ons, availability, bookings, clients, payments, quotes, audit_log. **RLS default-deny on every table** + tests proving tenant isolation
+- [x] Supabase schema as SQL migrations in `supabase/migrations`: detailers, services, add_ons, availability, bookings, clients, payments, quotes, audit_log. **RLS default-deny on every table** + tests proving tenant isolation
 - [ ] 🔑 Connect a real Supabase project (owner: free account → URL + anon key + service role key)
-- [ ] Replace `src/lib/demo.ts` with DB reads. Proper 404 status for unknown handles
+- [x] Replace `src/lib/demo.ts` with DB reads. Proper 404 status for unknown handles
 - [ ] Server-side booking creation (Zod-validated server action), slot double-booking protection, rate limiting, Turnstile
 ### M3: Payments
 - [ ] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy
@@ -68,5 +68,9 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 
 ## Notes
 - `apps/web` uses Next.js 16 with Cache Components. Read `node_modules/next/dist/docs/` before using Next APIs.
-- Unknown handles render not-found but return HTTP 200 under streaming. Revisit when the DB lands.
+- Local DB: `npx supabase start` (Docker), `npx supabase db reset` (migrations + seed), `npx supabase test db` (RLS tests). Every new table needs RLS, explicit grants and tests in `supabase/tests/database/`.
+- anon has no table privileges. The public booking page reads only through `get_booking_page(handle)` (security definer). Money, plan, consent, review and audit writes go through server code with the service role.
+- Web falls back to `src/lib/demo.ts` when Supabase env vars are unset (dev only; production throws). Booking page data is cached with tag `booking-page:<handle>`; revalidate it when a detailer edits their catalog.
+- Real 404s for unknown handles come from `src/proxy.ts` (calls `booking_page_exists`), because a `notFound()` inside the streamed page can only send 200. Any new top-level route must still work with that matcher.
+- Bookings are not yet filtered out of open slots. Do that with the Stripe checkout step (the partial unique index already blocks double-booking).
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

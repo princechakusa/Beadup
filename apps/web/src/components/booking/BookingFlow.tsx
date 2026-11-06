@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
-import type { Detailer, VehicleSize } from "@/lib/demo";
+import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
 import { BookedCelebration } from "./BookedCelebration";
 
@@ -30,19 +30,29 @@ type Details = { name: string; phone: string; address: string; smsConsent: boole
 
 const spring = { type: "spring", stiffness: 420, damping: 34 } as const;
 
-function nextDays(count: number) {
-  const out: { key: string; dow: string; day: number; label: string }[] = [];
+/** The next `count` days (from tomorrow, looking up to 3 weeks out) that have open start times. */
+function nextOpenDays(weeklySlots: Detailer["weeklySlots"], count: number) {
+  const out: { key: string; dow: string; day: number; label: string; slots: string[] }[] = [];
   const now = new Date();
-  for (let i = 1; i <= count; i++) {
+  for (let i = 1; i <= 21 && out.length < count; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const slots = weeklySlots[String(d.getDay()) as keyof typeof weeklySlots] ?? [];
+    if (slots.length === 0) continue;
+    const pad = (n: number) => n.toString().padStart(2, "0");
     out.push({
-      key: d.toISOString().slice(0, 10),
+      slots,
+      key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
       dow: d.toLocaleDateString("en-US", { weekday: "short" }),
       day: d.getDate(),
       label: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
     });
   }
   return out;
+}
+
+function initials(name: string) {
+  const words = name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean);
+  return words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "B";
 }
 
 function to12h(hhmm: string) {
@@ -58,11 +68,15 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
   const [serviceId, setServiceId] = useState(detailer.services[1]?.id ?? detailer.services[0].id);
   const [size, setSize] = useState<VehicleSize>("suv");
   const [addOns, setAddOns] = useState<string[]>([]);
-  // Recomputed in the visitor's browser (memo values are not serialized from the server).
-  // Dates only render from step 3 on, which never appears in server HTML.
-  const days = useMemo(() => nextDays(7), []);
+  // Computed only once the visitor reaches the time step, so the current date
+  // is read in their browser and never during the server prerender.
+  const showDays = step >= 2;
+  const days = useMemo(
+    () => (showDays ? nextOpenDays(detailer.weeklySlots, 7) : []),
+    [showDays, detailer.weeklySlots],
+  );
   const [pickedDay, setDayKey] = useState<string | null>(null);
-  const dayKey = pickedDay ?? days[0].key;
+  const dayKey = pickedDay ?? days[0]?.key ?? null;
   const [slot, setSlot] = useState<string | null>(null);
   const [details, setDetails] = useState<Details>({ name: "", phone: "", address: "", smsConsent: false });
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({});
@@ -134,7 +148,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
       {/* Header */}
       <header className="flex items-center gap-3.5">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-paint font-display text-xl font-extrabold text-midnight">
-          {detailer.initials}
+          {initials(detailer.businessName)}
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[19px] font-bold">{detailer.businessName}</h1>
@@ -144,8 +158,14 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFB547" strokeWidth="2.4" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 3.5l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.1l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" />
           </svg>
-          {detailer.rating}
-          <span className="font-medium text-steel">({detailer.reviewCount})</span>
+          {detailer.rating === null ? (
+            <span className="font-medium text-steel">New</span>
+          ) : (
+            <>
+              {detailer.rating.toFixed(1)}
+              <span className="font-medium text-steel">({detailer.reviewCount})</span>
+            </>
+          )}
         </div>
       </header>
 
@@ -291,7 +311,10 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         role="radio"
                         aria-checked={active}
                         aria-label={d.label}
-                        onClick={() => setDayKey(d.key)}
+                        onClick={() => {
+                          setDayKey(d.key);
+                          if (slot && !d.slots.includes(slot)) setSlot(null);
+                        }}
                         className={`relative flex h-[72px] w-[60px] shrink-0 flex-col items-center justify-center rounded-[20px] border ${active ? "border-transparent text-bead-ink" : "border-line bg-gunmetal"}`}
                       >
                         {active && <motion.span layoutId="day-pill" transition={spring} className="absolute inset-0 rounded-[20px] bg-bead" />}
@@ -302,7 +325,12 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                   })}
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Time">
-                  {detailer.slots.map((s) => {
+                  {days.length === 0 && (
+                    <p className="col-span-3 rounded-2xl border border-line bg-gunmetal p-4 text-sm text-steel">
+                      No open times in the next few weeks. Check back soon.
+                    </p>
+                  )}
+                  {(day?.slots ?? []).map((s) => {
                     const active = s === slot;
                     return (
                       <motion.button

@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BookingFlow } from "@/components/booking/BookingFlow";
-import { demoHandles, getDetailer } from "@/lib/demo";
+import { getBookingPage } from "@/lib/booking-page";
 
-const HANDLE_RE = /^[a-z0-9][a-z0-9-]{1,39}$/i;
-
+// Cache Components needs at least one param. "marcus" is the seeded demo
+// detailer used for App Review; other handles render on first visit.
 export function generateStaticParams() {
-  return demoHandles().map((handle) => ({ handle }));
+  return [{ handle: "marcus" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/[handle]">): Promise<Metadata> {
   const { handle } = await params;
-  const d = HANDLE_RE.test(handle) ? getDetailer(handle) : null;
+  const d = await getBookingPage(handle);
   if (!d) return { title: "Not found" };
   return { title: `Book ${d.businessName}`, description: `${d.tagline}. Book and pay a deposit in under a minute.` };
 }
 
 export default async function BookingPage({ params }: PageProps<"/[handle]">) {
   const { handle } = await params;
-  if (!HANDLE_RE.test(handle)) notFound();
-  const detailer = getDetailer(handle);
-  if (!detailer) notFound();
+  const detailer = await getBookingPage(handle);
+  // A detailer with no active services has nothing to book yet.
+  if (!detailer || detailer.services.length === 0) notFound();
   return <BookingFlow detailer={detailer} />;
 }
