@@ -42,7 +42,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] Balance payment link after job, automatic receipts (email + SMS)
 ### M4: Detailer mobile app (`apps/mobile`, Expo)
 - [ ] Theme + design tokens, Sora/Inter, dark glass components, Skia liquid bead logo (wobble, tilt reflections), haptics
-- [ ] Auth: Sign in with Apple + email magic link, secure session storage
+- [ ] Auth: Sign in with Apple + email magic link + Google sign-in (recommended for Android; needs a free Google Cloud OAuth client; Apple 4.8 is satisfied by Sign in with Apple), secure session storage
 - [ ] Screens from the design canvas: Today, Calendar, New quote (AI photo), Clients, Money, Paid + review, Settings (services/prices/availability, booking link share, **account deletion**)
 - [ ] Push notifications (optional, works without), offline schedule cache
 - [ ] Onboarding: business name, handle, services, prices, Stripe Connect onboarding link
