@@ -54,7 +54,8 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] 🔑 Twilio account + 10DLC registration
 ### M7: Business pages and subscriptions
 - [ ] Marketing landing page (premium, animated), pricing, privacy policy, terms, support, `/delete-account`
-- [ ] Pro subscription ($19/mo) on the web via Stripe Billing. Free plan limit of 5 bookings/month
+- [ ] Pro subscription ($19/mo) via **in-app purchase on both stores** (Apple IAP + Google Play Billing, same price, via RevenueCat). OWNER DECISION 2026-11-07: no web checkout or "buy on web" links in the app. Free plan limit of 5 bookings/month. Paywall shows price, period, features, cancel info, Restore Purchases, Terms/Privacy links (Apple 3.1.2)
+- [ ] 🔑 App Store Connect + Play Console: create the `beadup_pro_monthly` subscription products. Bundle ID / package `com.beadup.app` is FINAL (owner approved 2026-11-07)
 ### M8: Launch
 - [ ] Security review against rules.md section 7 (OWASP ASVS/MASVS), CSP nonces, dependency audit
 - [ ] E2E tests (Playwright) for the booking + payment flow

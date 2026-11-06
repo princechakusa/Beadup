@@ -15,8 +15,8 @@ Re-check these pages before each store submission. The policies change.
 | Money flow | Rule | What we do |
 |---|---|---|
 | Customer pays the detailer for a detail | Apple 3.1.3(e): physical services consumed outside the app **must not** use in-app purchase. Google Play exempts physical services (it names "cleaning services"). | Card / Apple Pay / Google Pay through the payment processor. Never IAP. |
-| Detailer pays Beadup for Pro | Apple 3.1.1 and 3.1.2: SaaS subscriptions sold in the app need IAP. Google Play: business software needs Play Billing unless an exception applies. | **Option A (default):** the app has no purchase screen. Detailers subscribe on beadup.app (web). On the **US storefront only**, Apple 3.1.3 allows linking to an outside purchase method. **Option B:** offer IAP too, priced the same. If web purchases unlock features in the app, Apple 3.1.3(b) requires the same subscription to be buyable as IAP. |
-| Android, Pro subscription | Google may not allow steering to web. | Android app ships with Play Billing for Pro, or as a free companion with sign-in only (no "buy" link or text). Decide before the Android submission. |
+| Detailer pays Beadup for Pro | Apple 3.1.1 and 3.1.2: SaaS subscriptions sold in the app need IAP. Google Play: business software needs Play Billing unless an exception applies. | **DECIDED (owner, 2026-11-07): Pro is bought in the app via in-app purchase on both stores** (Apple IAP, Google Play Billing), same price. Do not add web checkout, "buy on our website" links or price comparisons inside the app (steering is restricted). If a web purchase is added later, Apple 3.1.3(b) requires the same subscription to stay buyable as IAP. |
+| Android, Pro subscription | Google requires Play Billing for in-app digital subscriptions. | Play Billing, same plan and price as iOS. |
 
 - Subscriptions must last at least 7 days and work on all of the user's devices (3.1.2(a)).
 - Before the purchase, state clearly what the user gets for the price (3.1.2(c)).

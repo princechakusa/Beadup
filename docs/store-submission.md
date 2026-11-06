@@ -109,7 +109,7 @@ PAYMENTS (guideline 3.1.3(e))
 Clients pay detailers for physical services consumed outside the app, so those payments use card/Apple Pay through Stripe, not in-app purchase. The client pays a small card-processing fee at checkout.
 
 DETAILER SUBSCRIPTION
-[Choose one before submitting. See section 5 of docs/store-submission.md.]
+Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test the purchase and Restore Purchases. Client payments for detailing services are separate (physical services, guideline 3.1.3(e)).
 
 ACCOUNT DELETION (5.1.1(v))
 Settings › Delete account removes the account and its data in the app. Web: https://[DOMAIN]/delete-account
@@ -190,10 +190,9 @@ New personal developer accounts must run a **closed test with enough testers for
 ## 4. Before pressing Submit
 Run the checklist in `rules.md` section 8. Also confirm: Stripe is out of test mode for the production build, demo accounts work, `/privacy`, `/terms`, `/support` and `/delete-account` are live, screenshots come from the real build, and the privacy answers above still match what the app actually collects.
 
-## 5. Decision still needed: Pro subscription
-Apple treats SaaS subscriptions as digital goods that need in-app purchase (3.1.1, 3.1.2). The US storefront currently allows linking out to a web purchase (3.1.3). Google may not allow steering to web checkout. Options:
-1. **iOS (US only): app shows no price and no buy button.** Detailers subscribe on the website. Re-verify Apple's current US external-link rules before submitting.
-2. **Offer IAP on both stores** at the same price. Simplest for review, costs the store commission.
-3. **Android:** if the web path is not allowed, use Play Billing, or ship Android free with sign-in only and no mention of paying.
+## 5. Decided: Pro subscription is in-app purchase on both stores
+Owner decision 2026-11-07. Apple treats SaaS subscriptions as digital goods that need in-app purchase (3.1.1, 3.1.2) and Google requires Play Billing, so Pro ($19/month) is sold with **Apple IAP and Google Play Billing at the same price**. This is the lowest review risk. The stores take a commission (small developers are eligible for reduced rates: apply for Apple's App Store Small Business Program and check Google's current service-fee tiers).
 
-Pick before the first submission and update the review notes above.
+Implementation: one auto-renewing subscription `beadup_pro_monthly` in each store, managed through RevenueCat (free at small revenue) so entitlements work across devices (3.1.2(a)). The Free plan (5 bookings a month) needs no purchase. Show the price, billing period, what is included and how to cancel before the purchase button (3.1.2(c)), plus Restore Purchases and links to Terms and Privacy.
+
+Paste into the review notes in section 1: `DETAILER SUBSCRIPTION: Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test. Client payments for detailing services are separate (physical services, guideline 3.1.3(e)).`
