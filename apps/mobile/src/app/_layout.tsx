@@ -54,7 +54,14 @@ function RootNavigator() {
         <Stack.Screen name="sign-in" />
       </Stack.Protected>
       <Stack.Protected guard={signedIn} redirectTo="/sign-in">
-        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="quote" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="settings/services" />
+        <Stack.Screen name="settings/availability" />
+        <Stack.Screen name="settings/delete-account" />
+        <Stack.Screen name="booking/[id]" />
+        <Stack.Screen name="client/[id]" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" options={{ animation: 'fade' }} />
     </Stack>
