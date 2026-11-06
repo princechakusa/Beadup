@@ -13,6 +13,7 @@ const receiptSchema = z.object({
   bookingId: z.uuid(),
   status: z.string(),
   paymentStatus: z.string(),
+  kind: z.enum(["deposit", "balance", "refund"]).default("deposit"),
   businessName: z.string(),
   serviceName: z.string(),
   timezone: z.string(),
@@ -56,6 +57,19 @@ async function Receipt({ searchParams }: { searchParams: PageProps<"/[handle]/bo
       <Shell>
         <h1 className="font-display text-3xl font-extrabold">Payment not finished</h1>
         <p className="mt-3 text-steel">We haven&apos;t received your deposit yet. Your time is held for 30 minutes.</p>
+      </Shell>
+    );
+  }
+
+  if (receipt.kind === "balance") {
+    return (
+      <Shell>
+        <h1 className="font-display text-[40px] font-extrabold leading-none tracking-[-0.03em]">Paid in full</h1>
+        <p className="mt-3 text-[15px] text-steel">
+          {receipt.serviceName} with {receipt.businessName}
+        </p>
+        <p className="mt-6 font-display text-2xl font-bold text-gold">{formatUsd(receipt.paidCents)}</p>
+        <p className="mt-6 text-[13px] text-steel">Thank you. Your receipt is on its way by email.</p>
       </Shell>
     );
   }

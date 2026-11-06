@@ -39,7 +39,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 ### M3: Payments
 - [x] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy (built and tested with signed local events; run one real test-mode checkout once keys exist)
 - [ ] 🔑 Stripe test keys from owner
-- [ ] Balance payment link after job, automatic receipts (email + SMS)
+- [x] Balance payment link after job, automatic receipts (email + SMS) (email via Stripe receipts; SMS via outbox, sends once Twilio keys exist)
 ### M4: Detailer mobile app (`apps/mobile`, Expo)
 - [ ] Theme + design tokens, Sora/Inter, dark glass components, Skia liquid bead logo (wobble, tilt reflections), haptics
 - [ ] Auth: Sign in with Apple + email magic link (no Google sign-in, owner's decision), secure session storage
@@ -76,4 +76,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Real 404s for unknown handles come from `src/proxy.ts` (calls `booking_page_exists`), because a `notFound()` inside the streamed page can only send 200. Any new top-level route must still work with that matcher.
 - Bookings: `createBooking` server action (`src/app/[handle]/actions.ts`) → Zod → Turnstile → Postgres rate limit → `create_booking()` (service role). Unpaid holds expire after 30 min. Pricing lives in both `pricing.ts` and SQL (`deposit_cents`, `booking_fee_cents`), same integer math, tested. Turnstile is skipped in dev without keys and fails closed in production.
 - Stripe: direct charges on the detailer's Express account (`controller.fees.payer=account`, `losses.payments=stripe`), hosted Checkout, no application fee. Webhook `/api/stripe/webhook` accepts the platform and Connect endpoint secrets; effects + idempotency run in `apply_stripe_event()`. Policy lives in `cancel_booking()`. Failed refunds are logged as `refund.failed` in `audit_log`; add a retry job before launch. Detailer API routes authenticate with `Authorization: Bearer <supabase access token>` (`src/lib/auth.ts`).
+- Customer texts go through the `messages` outbox: the DB queues them in the same transaction as the payment, `deliverQueued()` (`src/lib/messages.ts`) sends right after the webhook and from `/api/cron/messages` (Bearer `CRON_SECRET`). It checks consent and opt-out at send time and every text ends with "Reply STOP to opt out." Without Twilio env vars messages are recorded as `skipped`. Email receipts are Stripe's (`receipt_email` set after payment).
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

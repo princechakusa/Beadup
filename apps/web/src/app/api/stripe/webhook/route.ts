@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import type Stripe from "stripe";
+import { deliverQueued } from "@/lib/messages";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -73,5 +75,29 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
+  if (outcome === "applied" && (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded")) {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const bookingId = session.metadata?.booking_id;
+    after(async () => {
+      await emailReceipt(s, session, event.account);
+      if (bookingId) await deliverQueued(bookingId);
+    });
+  }
+
   return Response.json({ received: true, outcome });
+}
+
+/**
+ * Stripe emails the receipt (no separate email provider). Setting
+ * receipt_email on a succeeded payment makes Stripe send it once; replays of
+ * this event return "duplicate" above, so it is never sent twice.
+ */
+async function emailReceipt(s: Stripe, session: Stripe.Checkout.Session, account: string | undefined) {
+  const email = session.customer_details?.email;
+  if (!email || !account || typeof session.payment_intent !== "string" || session.payment_status !== "paid") return;
+  try {
+    await s.paymentIntents.update(session.payment_intent, { receipt_email: email }, { stripeAccount: account });
+  } catch (e) {
+    console.error("receipt email failed", session.id, e instanceof Error ? e.message : e);
+  }
 }
