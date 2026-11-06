@@ -3,7 +3,23 @@
 Ready-to-paste answers for **App Store Connect** and **Google Play Console**. Written against `rules.md`.
 Items in `[BRACKETS]` need a real value before submitting. Re-check Apple's and Google's current forms on submission day: the questions change.
 
-**Status:** answers prepared. Nothing is submitted. Both consoles need a paid developer account in the owner's name (Apple $99/yr, Google $25 once), so the owner must create them and sign the agreements.
+**Status (2026-11-07):** Apple developer account exists (owner is signed in to App Store Connect). **Nothing is submitted.** Google Play account not yet created.
+
+### App Store Connect progress
+Done in the owner's account:
+- [x] Bundle ID `com.beadup.app` registered (capabilities: In-App Purchase, Sign In with Apple)
+- [x] App record "Beadup" created (Apple ID 6831768099, SKU `beadup-ios-001`, English U.S., iOS)
+- [x] Version 1.0: description, keywords, promotional text entered and saved
+- [x] App Information: subtitle, categories Business + Productivity, Content Rights = no third-party content
+- [x] Age rating questionnaire: all "None/No" → **4+**
+- [ ] App Privacy labels (section 1 table) and Privacy Policy URL: needs the live domain
+- [ ] Support URL, Marketing URL, Copyright: needs domain and legal name
+- [ ] App Review info: demo account, contact, review notes (section 1)
+- [ ] Pricing and availability: Free, United States first
+- [ ] Screenshots (6.9" iPhone): from the real build
+- [ ] In-App Purchase: create subscription `beadup_pro_monthly`. **Price is set only here (and per country) and must never be hardcoded in the app**
+- [ ] 🔑 Apple banner: the **Account Holder must accept the updated Apple Developer Program License Agreement** before new apps can be submitted. Also the EU trader status declaration if distributing in the EU
+- [ ] Upload a build (EAS) and submit for review
 
 ---
 
