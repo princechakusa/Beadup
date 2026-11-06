@@ -1,98 +1,71 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { LiquidBead } from '@/components/bead/LiquidBead';
+import { Button } from '@/components/ui/Button';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { Text } from '@/components/ui/Text';
+import { haptic } from '@/lib/haptics';
+import { colors, space } from '@/theme/tokens';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+// Design system preview. Replaced by the Today dashboard in the screens step
+// of M4; kept small so the theme can be checked on a device in Expo.
+export default function DesignPreview() {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <View style={styles.root}>
+      <LinearGradient
+        colors={['rgba(77,216,255,0.16)', 'rgba(10,12,16,0)']}
+        style={styles.aurora}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.6, y: 1 }}
+      />
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.hero}>
+            <LiquidBead size={132} />
+            <Text variant="eyebrow" tone="bead" style={{ marginTop: space.xl }}>
+              Beadup
+            </Text>
+            <Text variant="hero" style={{ textAlign: 'center', marginTop: space.sm }}>
+              Quote, book{'\n'}and get paid
+            </Text>
+            <Text variant="body" tone="steel" style={{ textAlign: 'center', marginTop: space.md }}>
+              Tilt your phone and watch the light move. Tap the bead.
+            </Text>
+          </View>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+          <GlassCard glowing>
+            <Text variant="eyebrow">Today</Text>
+            <Text variant="money" style={{ marginTop: space.sm }}>
+              $1,240
+            </Text>
+            <Text variant="caption" style={{ marginTop: space.xs }}>
+              4 jobs · next at 9:30 AM
+            </Text>
+          </GlassCard>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+          <GlassCard>
+            <Text variant="heading">Full detail · SUV</Text>
+            <Text variant="caption" style={{ marginTop: space.xs }}>
+              Dana R. · 1200 Barton Springs Rd
+            </Text>
+          </GlassCard>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
+          <View style={{ gap: space.md }}>
+            <Button label="New quote" onPress={() => haptic.success()} />
+            <Button label="Share booking link" variant="glass" onPress={() => {}} />
+            <Button label="Cancel booking" variant="danger" onPress={() => haptic.warning()} />
+          </View>
+        </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  root: { flex: 1, backgroundColor: colors.midnight },
+  aurora: { position: 'absolute', top: 0, left: 0, right: 0, height: 420 },
+  content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxxl },
+  hero: { alignItems: 'center', paddingVertical: space.xl },
 });

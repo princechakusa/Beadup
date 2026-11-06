@@ -41,7 +41,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] 🔑 Stripe test keys from owner
 - [x] Balance payment link after job, automatic receipts (email + SMS) (email via Stripe receipts; SMS via outbox, sends once Twilio keys exist)
 ### M4: Detailer mobile app (`apps/mobile`, Expo)
-- [ ] Theme + design tokens, Sora/Inter, dark glass components, Skia liquid bead logo (wobble, tilt reflections), haptics
+- [x] Theme + design tokens, Sora/Inter, dark glass components, Skia liquid bead logo (wobble, tilt reflections), haptics
 - [ ] Auth: Sign in with Apple + email magic link (no Google sign-in, owner's decision), secure session storage
 - [ ] Screens from the design canvas: Today, Calendar, New quote (AI photo), Clients, Money, Paid + review, Settings (services/prices/availability, booking link share, **account deletion**)
 - [ ] Push notifications (optional, works without), offline schedule cache
@@ -77,4 +77,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Bookings: `createBooking` server action (`src/app/[handle]/actions.ts`) → Zod → Turnstile → Postgres rate limit → `create_booking()` (service role). Unpaid holds expire after 30 min. Pricing lives in both `pricing.ts` and SQL (`deposit_cents`, `booking_fee_cents`), same integer math, tested. Turnstile is skipped in dev without keys and fails closed in production.
 - Stripe: direct charges on the detailer's Express account (`controller.fees.payer=account`, `losses.payments=stripe`), hosted Checkout, no application fee. Webhook `/api/stripe/webhook` accepts the platform and Connect endpoint secrets; effects + idempotency run in `apply_stripe_event()`. Policy lives in `cancel_booking()`. Failed refunds are logged as `refund.failed` in `audit_log`; add a retry job before launch. Detailer API routes authenticate with `Authorization: Bearer <supabase access token>` (`src/lib/auth.ts`).
 - Customer texts go through the `messages` outbox: the DB queues them in the same transaction as the payment, `deliverQueued()` (`src/lib/messages.ts`) sends right after the webhook and from `/api/cron/messages` (Bearer `CRON_SECRET`). It checks consent and opt-out at send time and every text ends with "Reply STOP to opt out." Without Twilio env vars messages are recorded as `skipped`. Email receipts are Stripe's (`receipt_email` set after payment).
+- Mobile: tokens in `src/theme/tokens.ts`, UI primitives in `src/components/ui` (Text, GlassCard, Button), `LiquidBead` (Skia, gravity-sensor tilt, Reduce Motion aware), `src/lib/haptics.ts`. React Compiler is on: write Reanimated shared values with `.set()` / read with `.get()`, never `.value`. Lint with `npm run lint` (eslint). Verify JS bundles with `npx expo export --platform ios --no-bytecode` (hermesc crashes on this Windows PC; real builds use EAS).
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.
