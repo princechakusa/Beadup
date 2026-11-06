@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
 import type { Detailer, VehicleSize } from "@/lib/booking-types";
-import { haptic, playBookedChime, primeAudio } from "@/lib/feedback";
+import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
@@ -19,6 +19,7 @@ const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string>
   slot_taken: "That time was just booked by someone else. Please pick another time.",
   slot_unavailable: "That time is no longer available. Please pick another time.",
   unavailable: "Booking is temporarily unavailable. Please try again shortly.",
+  payments_not_ready: "This detailer isn't taking online payments yet. Please contact them directly to book.",
 };
 
 const STEPS = ["Service", "Vehicle", "Time", "Details", "Review"] as const;
@@ -155,11 +156,14 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
         turnstileToken: turnstileToken ?? undefined,
       })
         .then((res) => {
+          if (res.ok && res.checkoutUrl) {
+            // Pay on Stripe's hosted page; Stripe sends them back to /<handle>/booked.
+            window.location.assign(res.checkoutUrl);
+            return new Promise<never>(() => {}); // keep the spinner until the page unloads
+          }
           if (res.ok) {
             setPaidCents(res.depositCents + res.bookingFeeCents);
             setBooked(true);
-            haptic("success");
-            playBookedChime();
             return;
           }
           setBookError(BOOK_ERRORS[res.error]);
@@ -186,6 +190,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
         paid={formatUsd(paidCents ?? totals.dueToday)}
         serviceName={service.name}
+        celebrate
       />
     );
   }
@@ -467,6 +472,10 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                     <path d="M5 8V5a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" strokeWidth="2" />
                   </svg>
                   Encrypted checkout. Your card is never stored by Beadup.
+                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-steel">
+                  Cancel 24 hours or more before your appointment and your deposit is refunded. The booking fee covers card
+                  processing and isn&apos;t refundable. If {detailer.businessName.replace(/\.+$/, "")} cancels, you get everything back.
                 </p>
                 <Turnstile onToken={setTurnstileToken} />
                 {bookError && (

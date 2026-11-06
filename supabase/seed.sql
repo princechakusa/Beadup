@@ -64,3 +64,12 @@ values
   ('11111111-1111-4111-8111-111111111111', 'b0000000-0000-4000-8000-000000000001', 5, 'Looks brand new inside.'),
   ('11111111-1111-4111-8111-111111111111', 'b0000000-0000-4000-8000-000000000002', 5, 'On time and quick.'),
   ('11111111-1111-4111-8111-111111111111', 'b0000000-0000-4000-8000-000000000003', 4, 'Great finish.');
+
+-- GoTrue cannot read NULL in these columns; seeded users need empty strings
+-- so they can sign in (App Review demo account).
+update auth.users set
+  confirmation_token = coalesce(confirmation_token, ''), recovery_token = coalesce(recovery_token, ''),
+  email_change = coalesce(email_change, ''), email_change_token_new = coalesce(email_change_token_new, ''),
+  email_change_token_current = coalesce(email_change_token_current, ''), phone_change = coalesce(phone_change, ''),
+  phone_change_token = coalesce(phone_change_token, ''), reauthentication_token = coalesce(reauthentication_token, '')
+where id = '11111111-1111-4111-8111-111111111111';

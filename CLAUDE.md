@@ -37,7 +37,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Replace `src/lib/demo.ts` with DB reads. Proper 404 status for unknown handles
 - [x] Server-side booking creation (Zod-validated server action), slot double-booking protection, rate limiting, Turnstile
 ### M3: Payments
-- [ ] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy
+- [x] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy (built and tested with signed local events; run one real test-mode checkout once keys exist)
 - [ ] 🔑 Stripe test keys from owner
 - [ ] Balance payment link after job, automatic receipts (email + SMS)
 ### M4: Detailer mobile app (`apps/mobile`, Expo)
@@ -75,4 +75,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Web falls back to `src/lib/demo.ts` when Supabase env vars are unset (dev only; production throws). Booking page data is cached with tag `booking-page:<handle>`; revalidate it when a detailer edits their catalog.
 - Real 404s for unknown handles come from `src/proxy.ts` (calls `booking_page_exists`), because a `notFound()` inside the streamed page can only send 200. Any new top-level route must still work with that matcher.
 - Bookings: `createBooking` server action (`src/app/[handle]/actions.ts`) → Zod → Turnstile → Postgres rate limit → `create_booking()` (service role). Unpaid holds expire after 30 min. Pricing lives in both `pricing.ts` and SQL (`deposit_cents`, `booking_fee_cents`), same integer math, tested. Turnstile is skipped in dev without keys and fails closed in production.
+- Stripe: direct charges on the detailer's Express account (`controller.fees.payer=account`, `losses.payments=stripe`), hosted Checkout, no application fee. Webhook `/api/stripe/webhook` accepts the platform and Connect endpoint secrets; effects + idempotency run in `apply_stripe_event()`. Policy lives in `cancel_booking()`. Failed refunds are logged as `refund.failed` in `audit_log`; add a retry job before launch. Detailer API routes authenticate with `Authorization: Bearer <supabase access token>` (`src/lib/auth.ts`).
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

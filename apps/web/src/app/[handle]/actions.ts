@@ -8,6 +8,7 @@ import { bookingPageTag, getBookingPage, HANDLE_RE } from "@/lib/booking-page";
 import { VEHICLE_SIZES } from "@/lib/booking-types";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
+import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -36,8 +37,92 @@ const bookingInput = z.object({
 export type BookingInput = z.input<typeof bookingInput>;
 
 export type BookingResult =
-  | { ok: true; bookingId: string; depositCents: number; bookingFeeCents: number }
-  | { ok: false; error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" };
+  /** checkoutUrl is set when the client must pay on Stripe Checkout next. */
+  | { ok: true; bookingId: string; depositCents: number; bookingFeeCents: number; checkoutUrl?: string }
+  | {
+      ok: false;
+      error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" | "payments_not_ready";
+    };
+
+const checkoutContext = z.object({
+  bookingId: z.uuid(),
+  handle: z.string(),
+  businessName: z.string(),
+  serviceName: z.string(),
+  depositCents: z.number().int().min(0),
+  bookingFeeCents: z.number().int().min(0),
+  stripeAccountId: z.string().nullable(),
+  chargesEnabled: z.boolean(),
+});
+
+/**
+ * Opens a Stripe Checkout session on the detailer's connected account (direct
+ * charge: the detailer is merchant of record and pays processing, which the
+ * client's booking fee covers; Beadup takes no cut). Card data stays on Stripe.
+ */
+async function startCheckout(bookingId: string): Promise<{ url: string } | { error: "payments_not_ready" | "unavailable" }> {
+  const db = supabaseAdmin();
+  const s = stripe();
+  if (!db || !s) return { error: "unavailable" };
+
+  const { data } = await db.rpc("checkout_context", { p_booking_id: bookingId });
+  const ctx = checkoutContext.safeParse(data);
+  if (!ctx.success) return { error: "unavailable" };
+  const c = ctx.data;
+  if (!c.stripeAccountId || !c.chargesEnabled) {
+    await db.rpc("cancel_booking", { p_booking_id: bookingId, p_by: "client" }); // release the hold
+    return { error: "payments_not_ready" };
+  }
+
+  const site = siteUrl();
+  const session = await s.checkout.sessions.create(
+    {
+      mode: "payment",
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_TTL_SECONDS,
+      client_reference_id: c.bookingId,
+      metadata: { booking_id: c.bookingId },
+      payment_intent_data: {
+        metadata: { booking_id: c.bookingId },
+        description: `${c.serviceName} deposit, ${c.businessName}`,
+      },
+      line_items: [
+        {
+          quantity: 1,
+          price_data: { currency: "usd", unit_amount: c.depositCents, product_data: { name: `Deposit: ${c.serviceName}` } },
+        },
+        ...(c.bookingFeeCents > 0
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: "usd",
+                  unit_amount: c.bookingFeeCents,
+                  product_data: { name: "Booking fee", description: "Covers card processing" },
+                },
+              },
+            ]
+          : []),
+      ],
+      custom_text: {
+        submit: {
+          message:
+            "Cancel 24 hours or more before your appointment for a refund of the deposit. The booking fee covers card processing and is not refunded.",
+        },
+      },
+      success_url: `${site}/${c.handle}/booked?b=${c.bookingId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${site}/${c.handle}`,
+    },
+    { stripeAccount: c.stripeAccountId, idempotencyKey: `checkout-${c.bookingId}` },
+  );
+  if (!session.url) return { error: "unavailable" };
+
+  await db.rpc("attach_checkout_session", {
+    p_booking_id: c.bookingId,
+    p_session_id: session.id,
+    p_account_id: c.stripeAccountId,
+  });
+  return { url: session.url };
+}
 
 const hash = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 32);
 
@@ -106,5 +191,20 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
   }
 
   updateTag(bookingPageTag(input.handle));
-  return { ok: true, bookingId: result.bookingId, depositCents: result.depositCents, bookingFeeCents: result.bookingFeeCents };
+  const booked = { bookingId: result.bookingId, depositCents: result.depositCents, bookingFeeCents: result.bookingFeeCents };
+
+  if (!stripe()) {
+    // No payment processor configured: allowed only outside production.
+    if (process.env.NODE_ENV === "production") return { ok: false, error: "unavailable" };
+    return { ok: true, ...booked };
+  }
+  try {
+    const checkout = await startCheckout(result.bookingId);
+    if ("error" in checkout) return { ok: false, error: checkout.error };
+    return { ok: true, ...booked, checkoutUrl: checkout.url };
+  } catch (e) {
+    console.error("checkout failed", e instanceof Error ? e.message : e);
+    await db.rpc("cancel_booking", { p_booking_id: result.bookingId, p_by: "client" });
+    return { ok: false, error: "unavailable" };
+  }
 }

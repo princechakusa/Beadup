@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { haptic, playBookedChime } from "@/lib/feedback";
 import { GlassBead } from "@/components/GlassBead";
 
 type Bead = { x: number; size: number; delay: number; drift: number; fall: number };
@@ -24,13 +25,21 @@ export function BookedCelebration({
   when,
   paid,
   serviceName,
+  celebrate = false,
 }: {
   businessName: string;
   when: string;
   paid: string;
   serviceName: string;
+  /** Play the chime and success haptic on mount (best effort: browsers may block audio without a gesture). */
+  celebrate?: boolean;
 }) {
   const reduce = useReducedMotion();
+  useEffect(() => {
+    if (!celebrate) return;
+    haptic("success");
+    playBookedChime();
+  }, [celebrate]);
   const beads = useMemo(() => makeBeads(22), []);
 
   return (
