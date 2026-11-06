@@ -37,7 +37,7 @@ const DETAILERS: Record<string, Detailer> = {
       },
     ],
     addOns: [
-      { id: "pet", name: "Pet hair removal", priceCents: 4000 },
+      { id: "pet", name: "Pet hair removal (seats and carpets)", priceCents: 4000 },
       { id: "odor", name: "Odor treatment", priceCents: 3500 },
       { id: "engine", name: "Engine bay clean", priceCents: 3000 },
     ],

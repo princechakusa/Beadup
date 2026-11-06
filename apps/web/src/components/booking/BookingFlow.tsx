@@ -281,7 +281,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         <motion.span
                           animate={{ scale: on ? 1 : 0.85, backgroundColor: on ? "#4DD8FF" : "rgba(255,255,255,0)" }}
                           transition={{ type: "spring", stiffness: 600, damping: 20 }}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg border border-bead/60"
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-bead/60"
                         >
                           {on && (
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#04121A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -289,8 +289,8 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                             </svg>
                           )}
                         </motion.span>
-                        <span className="flex-1 font-semibold">{a.name}</span>
-                        <span className="font-semibold text-steel">+{formatUsd(a.priceCents)}</span>
+                        <span className="min-w-0 flex-1 font-semibold leading-snug">{a.name}</span>
+                        <span className="shrink-0 font-semibold text-steel">+{formatUsd(a.priceCents)}</span>
                       </motion.button>
                     );
                   })}

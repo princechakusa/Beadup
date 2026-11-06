@@ -26,7 +26,7 @@ values
 
 insert into public.add_ons (detailer_id, name, price_cents, sort_order)
 values
-  ('11111111-1111-4111-8111-111111111111', 'Pet hair removal', 4000, 1),
+  ('11111111-1111-4111-8111-111111111111', 'Pet hair removal (seats and carpets)', 4000, 1),
   ('11111111-1111-4111-8111-111111111111', 'Odor treatment', 3500, 2),
   ('11111111-1111-4111-8111-111111111111', 'Engine bay clean', 3000, 3);
 

@@ -29,7 +29,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 ### M1: Web booking (client side)
 - [x] Scaffold, rules.md, security headers (`apps/web/next.config.ts`)
 - [x] Booking flow UI with demo data (`/marcus`). Payment is stubbed.
-- [ ] Rename add-on to "Pet hair removal (seats and carpets)"
+- [x] Rename add-on to "Pet hair removal (seats and carpets)"
 - [ ] Premium pass: Skia-style glass bead on web (SVG/WebGL refraction), haptic-like micro-interactions, sound on "booked" (respect reduced motion)
 ### M2: Backend
 - [x] Supabase schema as SQL migrations in `supabase/migrations`: detailers, services, add_ons, availability, bookings, clients, payments, quotes, audit_log. **RLS default-deny on every table** + tests proving tenant isolation
