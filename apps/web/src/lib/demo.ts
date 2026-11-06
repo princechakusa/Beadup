@@ -37,10 +37,11 @@ const DETAILERS: Record<string, Detailer> = {
       },
     ],
     addOns: [
-      { id: "pet", name: "Pet hair removal (seats and carpets)", priceCents: 4000 },
-      { id: "odor", name: "Odor treatment", priceCents: 3500 },
-      { id: "engine", name: "Engine bay clean", priceCents: 3000 },
+      { id: "d0000000-0000-4000-8000-000000000001", name: "Pet hair removal (seats and carpets)", priceCents: 4000 },
+      { id: "d0000000-0000-4000-8000-000000000002", name: "Odor treatment", priceCents: 3500 },
+      { id: "d0000000-0000-4000-8000-000000000003", name: "Engine bay clean", priceCents: 3000 },
     ],
+    taken: [],
     weeklySlots: { "1": WEEKDAY_SLOTS, "2": WEEKDAY_SLOTS, "3": WEEKDAY_SLOTS, "4": WEEKDAY_SLOTS, "5": WEEKDAY_SLOTS, "6": WEEKDAY_SLOTS },
   },
 };

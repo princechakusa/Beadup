@@ -35,7 +35,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Supabase schema as SQL migrations in `supabase/migrations`: detailers, services, add_ons, availability, bookings, clients, payments, quotes, audit_log. **RLS default-deny on every table** + tests proving tenant isolation
 - [ ] 🔑 Connect a real Supabase project (owner: free account → URL + anon key + service role key)
 - [x] Replace `src/lib/demo.ts` with DB reads. Proper 404 status for unknown handles
-- [ ] Server-side booking creation (Zod-validated server action), slot double-booking protection, rate limiting, Turnstile
+- [x] Server-side booking creation (Zod-validated server action), slot double-booking protection, rate limiting, Turnstile
 ### M3: Payments
 - [ ] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy
 - [ ] 🔑 Stripe test keys from owner
@@ -55,6 +55,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 ### M7: Business pages and subscriptions
 - [ ] Marketing landing page (premium, animated), pricing, privacy policy, terms, support, `/delete-account`
 - [ ] Pro subscription ($19/mo) via **in-app purchase on both stores** (Apple IAP + Google Play Billing, same price, via RevenueCat). OWNER DECISION 2026-11-07: no web checkout or "buy on web" links in the app. Free plan limit of 5 bookings/month. Paywall shows price, period, features, cancel info, Restore Purchases, Terms/Privacy links (Apple 3.1.2)
+- [ ] **Never hardcode the Pro price.** The owner will lower it later. Price lives only in App Store Connect / Play Console (set per country there). The app displays the store's localized price string (`product.priceString` via RevenueCat), the free-plan limit and any plan limits come from a config table/remote config, not constants. Marketing copy on the website reads from config too
 - [ ] 🔑 App Store Connect + Play Console: create the `beadup_pro_monthly` subscription products. Bundle ID / package `com.beadup.app` is FINAL (owner approved 2026-11-07)
 ### M8: Launch
 - [ ] Security review against rules.md section 7 (OWASP ASVS/MASVS), CSP nonces, dependency audit
@@ -73,5 +74,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - anon has no table privileges. The public booking page reads only through `get_booking_page(handle)` (security definer). Money, plan, consent, review and audit writes go through server code with the service role.
 - Web falls back to `src/lib/demo.ts` when Supabase env vars are unset (dev only; production throws). Booking page data is cached with tag `booking-page:<handle>`; revalidate it when a detailer edits their catalog.
 - Real 404s for unknown handles come from `src/proxy.ts` (calls `booking_page_exists`), because a `notFound()` inside the streamed page can only send 200. Any new top-level route must still work with that matcher.
-- Bookings are not yet filtered out of open slots. Do that with the Stripe checkout step (the partial unique index already blocks double-booking).
+- Bookings: `createBooking` server action (`src/app/[handle]/actions.ts`) → Zod → Turnstile → Postgres rate limit → `create_booking()` (service role). Unpaid holds expire after 30 min. Pricing lives in both `pricing.ts` and SQL (`deposit_cents`, `booking_fee_cents`), same integer math, tested. Turnstile is skipped in dev without keys and fails closed in production.
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

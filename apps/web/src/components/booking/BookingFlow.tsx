@@ -6,8 +6,20 @@ import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
 import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { haptic, playBookedChime, primeAudio } from "@/lib/feedback";
+import { createBooking, type BookingResult } from "@/app/[handle]/actions";
+import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
 import { BookedCelebration } from "./BookedCelebration";
+import { Turnstile, turnstileEnabled } from "./Turnstile";
+
+const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string> = {
+  invalid: "Something in the booking didn't check out. Please review your details.",
+  rate_limited: "Too many attempts. Please wait a few minutes and try again.",
+  bot_check: "We couldn't verify this browser. Please refresh and try again.",
+  slot_taken: "That time was just booked by someone else. Please pick another time.",
+  slot_unavailable: "That time is no longer available. Please pick another time.",
+  unavailable: "Booking is temporarily unavailable. Please try again shortly.",
+};
 
 const STEPS = ["Service", "Vehicle", "Time", "Details", "Review"] as const;
 
@@ -32,17 +44,18 @@ type Details = { name: string; phone: string; address: string; smsConsent: boole
 const spring = { type: "spring", stiffness: 420, damping: 34 } as const;
 
 /** The next `count` days (from tomorrow, looking up to 3 weeks out) that have open start times. */
-function nextOpenDays(weeklySlots: Detailer["weeklySlots"], count: number) {
+function nextOpenDays(weeklySlots: Detailer["weeklySlots"], taken: ReadonlySet<string>, count: number) {
   const out: { key: string; dow: string; day: number; label: string; slots: string[] }[] = [];
   const now = new Date();
   for (let i = 1; i <= 21 && out.length < count; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    const slots = weeklySlots[String(d.getDay()) as keyof typeof weeklySlots] ?? [];
-    if (slots.length === 0) continue;
     const pad = (n: number) => n.toString().padStart(2, "0");
+    const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const slots = (weeklySlots[String(d.getDay()) as keyof typeof weeklySlots] ?? []).filter((s) => !taken.has(`${key} ${s}`));
+    if (slots.length === 0) continue;
     out.push({
       slots,
-      key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+      key,
       dow: d.toLocaleDateString("en-US", { weekday: "short" }),
       day: d.getDate(),
       label: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
@@ -71,10 +84,12 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
   const [addOns, setAddOns] = useState<string[]>([]);
   // Computed only once the visitor reaches the time step, so the current date
   // is read in their browser and never during the server prerender.
+  // Times booked by others during this visit, on top of what the page loaded with.
+  const [lostSlots, setLostSlots] = useState<string[]>([]);
   const showDays = step >= 2;
   const days = useMemo(
-    () => (showDays ? nextOpenDays(detailer.weeklySlots, 7) : []),
-    [showDays, detailer.weeklySlots],
+    () => (showDays ? nextOpenDays(detailer.weeklySlots, new Set([...detailer.taken, ...lostSlots]), 7) : []),
+    [showDays, detailer.weeklySlots, detailer.taken, lostSlots],
   );
   const [pickedDay, setDayKey] = useState<string | null>(null);
   const dayKey = pickedDay ?? days[0]?.key ?? null;
@@ -83,6 +98,9 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({});
   const [booked, setBooked] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [bookError, setBookError] = useState<string | null>(null);
+  const [paidCents, setPaidCents] = useState<number | null>(null);
 
   const service = detailer.services.find((s) => s.id === serviceId)!;
   const totals = useMemo(() => {
@@ -114,15 +132,45 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
       setErrors({});
     }
     if (step === 4) {
-      // Payment is wired to the processor in the next milestone.
+      // Creates the booking server-side (held for 30 min). Card payment is
+      // wired to the processor in the next milestone.
+      if (turnstileEnabled && !turnstileToken) {
+        setBookError(BOOK_ERRORS.bot_check);
+        return;
+      }
       primeAudio(); // inside the click, so the chime is allowed to play later
       setPaying(true);
-      setTimeout(() => {
-        setPaying(false);
-        setBooked(true);
-        haptic("success");
-        playBookedChime();
-      }, 1100);
+      setBookError(null);
+      createBooking({
+        handle: detailer.handle,
+        serviceId,
+        vehicleSize: size,
+        addOnIds: addOns,
+        date: dayKey ?? "",
+        time: slot ?? "",
+        name: details.name,
+        phone: details.phone,
+        address: details.address,
+        smsConsent: details.smsConsent,
+        turnstileToken: turnstileToken ?? undefined,
+      })
+        .then((res) => {
+          if (res.ok) {
+            setPaidCents(res.depositCents + res.bookingFeeCents);
+            setBooked(true);
+            haptic("success");
+            playBookedChime();
+            return;
+          }
+          setBookError(BOOK_ERRORS[res.error]);
+          if (res.error === "slot_taken" || res.error === "slot_unavailable") {
+            if (dayKey && slot) setLostSlots((xs) => [...xs, `${dayKey} ${slot}`]);
+            setSlot(null);
+            go(2);
+          }
+        })
+        .catch(() => setBookError(BOOK_ERRORS.unavailable))
+        .finally(() => setPaying(false));
       return;
     }
     haptic("step");
@@ -136,7 +184,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
       <BookedCelebration
         businessName={detailer.businessName}
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
-        paid={formatUsd(totals.dueToday)}
+        paid={formatUsd(paidCents ?? totals.dueToday)}
         serviceName={service.name}
       />
     );
@@ -345,7 +393,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         role="radio"
                         aria-checked={active}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => { haptic(); setSlot(s); }}
+                        onClick={() => { haptic(); setSlot(s); setBookError(null); }}
                         className={`h-12 rounded-2xl border text-sm font-semibold transition-colors ${active ? "border-bead bg-bead text-bead-ink shadow-[0_8px_24px_rgba(77,216,255,0.3)]" : "border-line bg-gunmetal"}`}
                       >
                         {to12h(s)}
@@ -354,6 +402,11 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                   })}
                 </div>
                 <p className="mt-4 text-[13px] text-steel">Service area: {detailer.serviceArea}</p>
+                {bookError && (
+                  <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
+                    {bookError}
+                  </p>
+                )}
               </>
             )}
 
@@ -378,7 +431,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                       className="mt-0.5 h-5 w-5 shrink-0 accent-[#4DD8FF]"
                     />
                     <span>
-                      Text me booking confirmations and reminders from {detailer.businessName.replace(/\.+$/, "")}. Msg &amp; data rates may apply. Reply STOP to opt out.
+                      {smsConsentText(detailer.businessName)}
                       {errors.smsConsent && <span className="mt-1 block text-[#ff8a8a]">{errors.smsConsent}</span>}
                     </span>
                   </label>
@@ -415,6 +468,12 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                   </svg>
                   Encrypted checkout. Your card is never stored by Beadup.
                 </p>
+                <Turnstile onToken={setTurnstileToken} />
+                {bookError && (
+                  <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
+                    {bookError}
+                  </p>
+                )}
               </>
             )}
           </motion.section>

@@ -1,13 +1,16 @@
 // All money is handled in integer cents to avoid floating point errors.
 
 /** Card processing estimate for US cards: 2.9% + 30¢. */
-const PROCESSOR_RATE = 0.029;
+// Rate 2.9% is encoded as the 971/1000 factor in bookingFeeCents.
 const PROCESSOR_FIXED_CENTS = 30;
 
 export const DEPOSIT_RATE = 0.3;
 
+// Integer math only, mirrored exactly by public.deposit_cents() and
+// public.booking_fee_cents() in Postgres, so the estimate shown here always
+// equals what the server charges.
 export function depositCents(totalCents: number): number {
-  return Math.round(totalCents * DEPOSIT_RATE);
+  return Math.floor((totalCents * 3 + 5) / 10); // 30%, half up
 }
 
 /**
@@ -16,7 +19,8 @@ export function depositCents(totalCents: number): number {
  */
 export function bookingFeeCents(chargeCents: number): number {
   if (chargeCents <= 0) return 0;
-  const gross = Math.ceil((chargeCents + PROCESSOR_FIXED_CENTS) / (1 - PROCESSOR_RATE));
+  // ceil((charge + 30) / 0.971) without floating point.
+  const gross = Math.floor(((chargeCents + PROCESSOR_FIXED_CENTS) * 1000 + 970) / 971);
   return gross - chargeCents;
 }
 

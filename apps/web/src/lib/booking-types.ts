@@ -26,6 +26,8 @@ export const detailerSchema = z.object({
     }),
   ),
   addOns: z.array(z.object({ id: z.string(), name: z.string(), priceCents: cents })),
+  /** Start times already held, "YYYY-MM-DD HH:MM" in the detailer's timezone. */
+  taken: z.array(z.string()).default([]),
   /** Start times keyed by weekday ("0" = Sunday), in the detailer's timezone. */
   weeklySlots: z.partialRecord(z.enum(["0", "1", "2", "3", "4", "5", "6"]), z.array(hhmm)),
 });
