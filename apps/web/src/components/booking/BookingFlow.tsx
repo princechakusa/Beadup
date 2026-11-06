@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
 import type { Detailer, VehicleSize } from "@/lib/booking-types";
+import { haptic, playBookedChime, primeAudio } from "@/lib/feedback";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
 import { BookedCelebration } from "./BookedCelebration";
 
@@ -114,13 +115,17 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
     }
     if (step === 4) {
       // Payment is wired to the processor in the next milestone.
+      primeAudio(); // inside the click, so the chime is allowed to play later
       setPaying(true);
       setTimeout(() => {
         setPaying(false);
         setBooked(true);
+        haptic("success");
+        playBookedChime();
       }, 1100);
       return;
     }
+    haptic("step");
     go(step + 1);
   }
 
@@ -215,7 +220,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         type="button"
                         role="radio"
                         aria-checked={active}
-                        onClick={() => setServiceId(s.id)}
+                        onClick={() => { haptic(); setServiceId(s.id); }}
                         whileTap={{ scale: 0.98 }}
                         className="relative flex items-center gap-3.5 rounded-[22px] border border-line bg-gunmetal p-4 text-left"
                       >
@@ -254,7 +259,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         type="button"
                         role="radio"
                         aria-checked={active}
-                        onClick={() => setSize(s.id)}
+                        onClick={() => { haptic(); setSize(s.id); }}
                         className={`relative h-12 rounded-2xl text-[15px] font-semibold transition-colors ${active ? "text-bead-ink" : "text-steel"}`}
                       >
                         {active && <motion.span layoutId="size-pill" transition={spring} className="absolute inset-0 rounded-2xl bg-bead" />}
@@ -275,7 +280,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         role="checkbox"
                         aria-checked={on}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setAddOns((xs) => (on ? xs.filter((x) => x !== a.id) : [...xs, a.id]))}
+                        onClick={() => { haptic(); setAddOns((xs) => (on ? xs.filter((x) => x !== a.id) : [...xs, a.id])); }}
                         className={`flex items-center gap-3.5 rounded-[20px] border p-4 text-left transition-colors ${on ? "border-bead/60 bg-[#0f1a20]" : "border-line bg-gunmetal"}`}
                       >
                         <motion.span
@@ -312,6 +317,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         aria-checked={active}
                         aria-label={d.label}
                         onClick={() => {
+                          haptic();
                           setDayKey(d.key);
                           if (slot && !d.slots.includes(slot)) setSlot(null);
                         }}
@@ -339,7 +345,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                         role="radio"
                         aria-checked={active}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSlot(s)}
+                        onClick={() => { haptic(); setSlot(s); }}
                         className={`h-12 rounded-2xl border text-sm font-semibold transition-colors ${active ? "border-bead bg-bead text-bead-ink shadow-[0_8px_24px_rgba(77,216,255,0.3)]" : "border-line bg-gunmetal"}`}
                       >
                         {to12h(s)}
@@ -372,7 +378,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                       className="mt-0.5 h-5 w-5 shrink-0 accent-[#4DD8FF]"
                     />
                     <span>
-                      Text me booking confirmations and reminders from {detailer.businessName}. Msg &amp; data rates may apply. Reply STOP to opt out.
+                      Text me booking confirmations and reminders from {detailer.businessName.replace(/\.+$/, "")}. Msg &amp; data rates may apply. Reply STOP to opt out.
                       {errors.smsConsent && <span className="mt-1 block text-[#ff8a8a]">{errors.smsConsent}</span>}
                     </span>
                   </label>

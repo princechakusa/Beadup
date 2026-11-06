@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { useMemo } from "react";
+import { GlassBead } from "@/components/GlassBead";
 
 type Bead = { x: number; size: number; delay: number; drift: number; fall: number };
 
@@ -67,25 +68,28 @@ export function BookedCelebration({
         initial={reduce ? false : { scale: 0.4, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 16 }}
-        className="relative flex h-[132px] w-[132px] items-center justify-center rounded-full border-2 border-bead bg-[#10262e] shadow-[0_0_60px_rgba(77,216,255,0.35)]"
+        style={{ originY: 0.9 }}
+        className="relative drop-shadow-[0_0_40px_rgba(77,216,255,0.3)]"
       >
         {!reduce && (
           <motion.span
             aria-hidden="true"
-            className="absolute inset-0 rounded-full border-2 border-bead"
-            initial={{ scale: 1, opacity: 0.8 }}
-            animate={{ scale: 1.8, opacity: 0 }}
+            className="absolute bottom-[4%] left-1/2 h-4 w-[70%] -translate-x-1/2 rounded-[50%] border-2 border-bead"
+            initial={{ scale: 0.6, opacity: 0.8 }}
+            animate={{ scale: 2.2, opacity: 0 }}
             transition={{ duration: 1.2, delay: 0.25, ease: "easeOut" }}
           />
         )}
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#4DD8FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <motion.path
-            d="M5 12.5l4.5 4.5L19 7.5"
-            initial={reduce ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-          />
-        </svg>
+        <GlassBead size={148}>
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#E8FBFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="drop-shadow-[0_0_8px_rgba(77,216,255,0.8)]">
+            <motion.path
+              d="M5 12.5l4.5 4.5L19 7.5"
+              initial={reduce ? false : { pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+            />
+          </svg>
+        </GlassBead>
       </motion.div>
 
       <motion.div
