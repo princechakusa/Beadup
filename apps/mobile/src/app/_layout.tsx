@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -23,8 +24,9 @@ const theme = {
   },
 };
 
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
+function RootNavigator() {
+  const { session, loading, offline } = useAuth();
+  const [fontsLoaded, fontError] = useFonts({
     Sora_600SemiBold,
     Sora_700Bold,
     Sora_800ExtraBold,
@@ -33,19 +35,40 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const ready = (fontsLoaded || !!fontError) && !loading;
 
   useEffect(() => {
-    // Hide the splash once fonts are ready; on a font error, fall back to system fonts.
-    if (loaded || error) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded, error]);
+    // Keep the splash until fonts and the stored session are ready, so the
+    // user never sees a flash of the sign-in screen while already signed in.
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
 
-  if (!loaded && !error) return null;
+  if (!ready) return null;
 
+  // Development builds without a backend open straight into the app preview.
+  const signedIn = !!session || (offline && __DEV__);
+
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.midnight } }}>
+      <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="sign-in" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn} redirectTo="/sign-in">
+        <Stack.Screen name="index" />
+      </Stack.Protected>
+      <Stack.Screen name="auth/callback" options={{ animation: 'fade' }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.midnight }}>
       <ThemeProvider value={theme}>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.midnight } }} />
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

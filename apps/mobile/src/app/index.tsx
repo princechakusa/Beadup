@@ -6,12 +6,14 @@ import { LiquidBead } from '@/components/bead/LiquidBead';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Text } from '@/components/ui/Text';
+import { signOut, useAuth } from '@/lib/auth';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
 
 // Design system preview. Replaced by the Today dashboard in the screens step
 // of M4; kept small so the theme can be checked on a device in Expo.
 export default function DesignPreview() {
+  const { session } = useAuth();
   return (
     <View style={styles.root}>
       <LinearGradient
@@ -56,6 +58,7 @@ export default function DesignPreview() {
             <Button label="New quote" onPress={() => haptic.success()} />
             <Button label="Share booking link" variant="glass" onPress={() => {}} />
             <Button label="Cancel booking" variant="danger" onPress={() => haptic.warning()} />
+            {session && <Button label="Sign out" variant="ghost" onPress={() => signOut()} />}
           </View>
         </ScrollView>
       </SafeAreaView>
