@@ -26,7 +26,7 @@ const theme = {
 };
 
 function RootNavigator() {
-  const { session, loading, offline } = useAuth();
+  const { session, loading, offline, hasProfile } = useAuth();
   const [fontsLoaded, fontError] = useFonts({
     Sora_600SemiBold,
     Sora_700Bold,
@@ -56,7 +56,10 @@ function RootNavigator() {
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn} redirectTo="/sign-in">
+      <Stack.Protected guard={signedIn && !hasProfile}>
+        <Stack.Screen name="onboarding" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && hasProfile} redirectTo={signedIn ? '/onboarding' : '/sign-in'}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="quote" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />

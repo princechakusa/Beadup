@@ -11,25 +11,61 @@ import { supabase } from './supabase';
 
 type AuthState = {
   session: Session | null;
-  /** True until the stored session has been read on launch. */
+  /** True until the stored session (and, if signed in, the profile check) is loaded. */
   loading: boolean;
   /** No backend configured (EXPO_PUBLIC_SUPABASE_* unset): local preview only. */
   offline: boolean;
+  /** Signed in and has a business profile; false means onboarding is needed. */
+  hasProfile: boolean;
+  refreshProfile: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthState>({ session: null, loading: true, offline: false });
+const AuthContext = createContext<AuthState>({
+  session: null,
+  loading: true,
+  offline: false,
+  hasProfile: false,
+  refreshProfile: async () => {},
+});
+
+async function profileExists(): Promise<boolean> {
+  if (!supabase) return true;
+  const { data, error } = await supabase.from('detailers').select('id').maybeSingle();
+  // Offline or a server hiccup: assume an existing user rather than sending
+  // them into onboarding (which would fail anyway without a connection).
+  if (error) return true;
+  return !!data;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({ session: null, loading: !!supabase, offline: !supabase });
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(!!supabase);
+  const [hasProfile, setHasProfile] = useState(!supabase);
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => setState((s) => ({ ...s, session: data.session, loading: false })));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setState((s) => ({ ...s, session, loading: false })));
+    const apply = async (s: Session | null) => {
+      setSession(s);
+      setHasProfile(s ? await profileExists() : false);
+      setLoading(false);
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      // Token refreshes don't change who is signed in.
+      if (event === 'TOKEN_REFRESHED') return setSession(s);
+      apply(s);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
-  return <AuthContext value={state}>{children}</AuthContext>;
+  const value: AuthState = {
+    session,
+    loading,
+    offline: !supabase,
+    hasProfile,
+    refreshProfile: async () => setHasProfile(await profileExists()),
+  };
+  return <AuthContext value={value}>{children}</AuthContext>;
 }
 
 export const useAuth = () => use(AuthContext);

@@ -45,7 +45,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Auth: Sign in with Apple + email magic link (no Google sign-in, owner's decision), secure session storage (email flows tested end to end on local Supabase; Apple needs a device + Apple Developer account)
 - [x] Screens from the design canvas: Today, Calendar, New quote (AI photo), Clients, Money, Paid + review, Settings (services/prices/availability, booking link share, **account deletion**) (review request text ships with M6; AI photo scan with M5; Apple token revoke on deletion needs the Apple key)
 - [x] Push notifications (optional, works without), offline schedule cache (token registration activates once an EAS project ID exists)
-- [ ] Onboarding: business name, handle, services, prices, Stripe Connect onboarding link
+- [x] Onboarding: business name, handle, services, prices, Stripe Connect onboarding link
 ### M5: AI quote
 - [ ] Server endpoint: photos (system picker, EXIF stripped, private bucket) → Claude vision → itemized suggested quote from the detailer's own price list. Reject non-vehicle images. Detailer approves before sending. Third-party AI consent screen (Apple 5.1.2(i))
 - [ ] 🔑 Anthropic API key
@@ -81,4 +81,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Mobile auth: `src/lib/auth.tsx` (AuthProvider, Apple with SHA-256 nonce, PKCE magic link + 6-digit code fallback), session in Keychain/Keystore via chunked `secure-storage.ts`. Routes guarded with `Stack.Protected` in `src/app/_layout.tsx`. Magic link lands on `beadup://auth/callback` (allow-listed in `supabase/config.toml`; template in `supabase/templates/magic_link.html`). For App Review, plan a demo-account sign-in that works without email access (M8).
 - Push: opt-in from Settings only (`src/lib/push.ts`), tokens in `push_tokens` (RLS, token is the primary key so it can't be hijacked), removed on sign-out. Server sends via Expo (`apps/web/src/lib/push.ts`) after payment webhooks; dead tokens pruned. Needs `extra.eas.projectId` in app.json (🔑 Expo/EAS account) before tokens can be issued.
 - Offline: `useQuery(fn, deps, cacheKey)` saves the last good result in the app's documents folder (`src/lib/cache.ts`) and shows it with an "Offline" chip when the network fails; wiped on sign-out and account deletion.
+- Onboarding: `create_detailer_profile()` (one transaction, runs as auth.uid()) + `handle_available()`. The root guard sends signed-in users without a `detailers` row to `/onboarding`; `useAuth().refreshProfile()` flips them into the app.
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.
