@@ -134,7 +134,7 @@ export default function BookingDetail() {
               onPress={() =>
                 run('done', async () => {
                   await setBookingStatus(b.id, 'completed');
-                  haptic.success();
+                  router.push(`/paid/${b.id}`);
                 })
               }
             />

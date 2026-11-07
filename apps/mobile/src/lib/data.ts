@@ -28,6 +28,7 @@ export type Booking = {
 
 export type Payment = {
   id: string;
+  bookingId: string;
   kind: 'deposit' | 'balance' | 'refund';
   status: 'pending' | 'succeeded' | 'failed' | 'refunded';
   amountCents: number;
@@ -128,7 +129,7 @@ export async function fetchPayments(since: Date): Promise<Payment[]> {
   if (!supabase) return fixtures.payments;
   const { data, error } = await db()
     .from('payments')
-    .select('id, kind, status, amount_cents, created_at, booking:bookings(client:clients(name))')
+    .select('id, booking_id, kind, status, amount_cents, created_at, booking:bookings(client:clients(name))')
     .gte('created_at', since.toISOString())
     .in('status', ['succeeded', 'refunded'])
     .order('created_at', { ascending: false })
@@ -136,6 +137,7 @@ export async function fetchPayments(since: Date): Promise<Payment[]> {
   if (error) throw error;
   type Row = {
     id: string;
+    booking_id: string;
     kind: Payment['kind'];
     status: Payment['status'];
     amount_cents: number;
@@ -144,6 +146,7 @@ export async function fetchPayments(since: Date): Promise<Payment[]> {
   };
   return (data as unknown as Row[]).map((r) => ({
     id: r.id,
+    bookingId: r.booking_id,
     kind: r.kind,
     status: r.status,
     amountCents: r.amount_cents,

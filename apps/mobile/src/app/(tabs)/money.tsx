@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -96,7 +96,11 @@ export default function Money() {
           {month.data.payments.slice(0, 20).map((p) => {
             const refunded = p.status === 'refunded';
             return (
-              <View key={p.id} style={styles.row}>
+              <Pressable
+                key={p.id}
+                style={styles.row}
+                onPress={() => router.push(refunded ? `/booking/${p.bookingId}` : `/paid/${p.bookingId}`)}
+                accessibilityRole="button">
                 <View style={[styles.icon, { backgroundColor: refunded ? 'rgba(255,138,138,0.12)' : 'rgba(91,227,164,0.12)' }]}>
                   <Icon name={refunded ? 'arrowDown' : 'arrowUp'} size={18} strokeWidth={2.2} color={refunded ? colors.danger : colors.success} />
                 </View>
@@ -113,7 +117,7 @@ export default function Money() {
                   {refunded ? '-' : '+'}
                   {usd(p.amountCents)}
                 </Text>
-              </View>
+              </Pressable>
             );
           })}
         </ListCard>

@@ -46,10 +46,10 @@ export const fixtures = {
   bookings: (from: Date, to: Date) =>
     allBookings.filter((b) => Date.parse(b.startsAt) >= from.getTime() && Date.parse(b.startsAt) < to.getTime()),
   payments: [
-    { id: 'p1', kind: 'balance', status: 'succeeded', amountCents: 16800, createdAt: at(0, 12, 41), clientName: 'Jenna Rivera' },
-    { id: 'p2', kind: 'deposit', status: 'succeeded', amountCents: 22500, createdAt: at(-1, 15), clientName: 'Ana Martinez' },
-    { id: 'p3', kind: 'deposit', status: 'succeeded', amountCents: 4200, createdAt: at(-1, 9), clientName: 'Dev Patel' },
-    { id: 'p4', kind: 'balance', status: 'succeeded', amountCents: 4900, createdAt: at(-2, 11), clientName: 'Kevin Lee' },
+    { id: 'p1', bookingId: 'b5', kind: 'balance', status: 'succeeded', amountCents: 16800, createdAt: at(0, 12, 41), clientName: 'Jenna Rivera' },
+    { id: 'p2', bookingId: 'b3', kind: 'deposit', status: 'succeeded', amountCents: 22500, createdAt: at(-1, 15), clientName: 'Ana Martinez' },
+    { id: 'p3', bookingId: 'b2', kind: 'deposit', status: 'succeeded', amountCents: 4200, createdAt: at(-1, 9), clientName: 'Dev Patel' },
+    { id: 'p4', bookingId: 'b6', kind: 'balance', status: 'succeeded', amountCents: 4900, createdAt: at(-2, 11), clientName: 'Kevin Lee' },
   ] satisfies Payment[],
   clients: [
     { id: 'c1', name: 'Jenna Rivera', phone: '+15125550101', email: null, visits: 6, spentCents: 138000, lastVisit: at(-1, 10), nextBooking: at(0, 9, 30) },
