@@ -9,7 +9,7 @@ import { LiquidBead } from '@/components/bead/LiquidBead';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Text } from '@/components/ui/Text';
-import { AuthError, sendMagicLink, signInWithApple, useAuth, verifyEmailCode } from '@/lib/auth';
+import { AuthError, sendMagicLink, signInWithApple, signInWithPassword, useAuth, verifyEmailCode } from '@/lib/auth';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, radius, space } from '@/theme/tokens';
@@ -22,7 +22,9 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState('');
-  const [busy, setBusy] = useState<'email' | 'code' | 'apple' | null>(null);
+  const [busy, setBusy] = useState<'email' | 'code' | 'apple' | 'password' | null>(null);
+  const [usePassword, setUsePassword] = useState(false);
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
@@ -36,7 +38,7 @@ export default function SignIn() {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  async function run(kind: 'email' | 'code' | 'apple', fn: () => Promise<void>) {
+  async function run(kind: 'email' | 'code' | 'apple' | 'password', fn: () => Promise<void>) {
     setBusy(kind);
     setError(null);
     try {
@@ -110,11 +112,43 @@ export default function SignIn() {
                   autoComplete="email"
                   keyboardType="email-address"
                   textContentType="emailAddress"
-                  returnKeyType="send"
-                  onSubmitEditing={() => send(email)}
-                  error={error}
+                  returnKeyType={usePassword ? 'next' : 'send'}
+                  onSubmitEditing={() => !usePassword && send(email)}
+                  error={usePassword ? null : error}
                 />
-                <Button label="Email me a sign-in link" onPress={() => send(email)} loading={busy === 'email'} disabled={offline} />
+                {usePassword ? (
+                  <>
+                    <Field
+                      label="Password"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoComplete="current-password"
+                      textContentType="password"
+                      returnKeyType="go"
+                      onSubmitEditing={() => run('password', () => signInWithPassword(email, password))}
+                      error={error}
+                    />
+                    <Button
+                      label="Sign in"
+                      onPress={() => run('password', () => signInWithPassword(email, password))}
+                      loading={busy === 'password'}
+                      disabled={offline || !password}
+                    />
+                  </>
+                ) : (
+                  <Button label="Email me a sign-in link" onPress={() => send(email)} loading={busy === 'email'} disabled={offline} />
+                )}
+                <Button
+                  label={usePassword ? 'Email me a link instead' : 'Sign in with a password'}
+                  variant="ghost"
+                  onPress={() => {
+                    setUsePassword((v) => !v);
+                    setPassword('');
+                    setError(null);
+                  }}
+                />
               </View>
             ) : (
               <View style={{ gap: space.lg }}>

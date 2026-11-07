@@ -3,5 +3,5 @@
 useDefault = true
 
 [allowlist]
-description = "Cloudflare's published always-pass Turnstile test keys, documented in .env.example (not secrets)"
-regexes = ['''1x0000000000000000000000000000000AA''', '''1x00000000000000000000AA''']
+description = "Public values: Cloudflare's always-pass Turnstile test keys (.env.example) and Supabase publishable keys, which ship in the app by design (RLS protects the data)"
+regexes = ['''1x0000000000000000000000000000000AA''', '''1x00000000000000000000AA''', '''sb_publishable_[A-Za-z0-9_-]+''']

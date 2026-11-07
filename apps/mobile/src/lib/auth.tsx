@@ -100,6 +100,19 @@ export async function verifyEmailCode(address: string, code: string): Promise<vo
   if (error) throw new AuthError('That code is wrong or expired. Request a new email.');
 }
 
+/**
+ * Email + password, for accounts that have a password (the App Review demo
+ * account, created by the owner in the Supabase dashboard). New detailers use
+ * Apple or the emailed link/code; there is no password sign-up in the app.
+ */
+export async function signInWithPassword(address: string, password: string): Promise<void> {
+  const parsed = email.safeParse(address.trim().toLowerCase());
+  if (!parsed.success) throw new AuthError('Enter a valid email address.');
+  if (password.length < 8 || password.length > 128) throw new AuthError('Enter your password.');
+  const { error } = await client().auth.signInWithPassword({ email: parsed.data, password });
+  if (error) throw new AuthError(error.status === 429 ? 'Too many attempts. Wait a minute and try again.' : 'Email or password is wrong.');
+}
+
 /** Completes a magic link: exchanges the PKCE code from beadup://auth/callback?code=... */
 export async function completeMagicLink(code: string): Promise<void> {
   const { error } = await client().auth.exchangeCodeForSession(code);
