@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -26,7 +27,7 @@ export async function requestDeletion(raw: z.input<typeof input>): Promise<Delet
   if (!db) return { ok: false, error: "unavailable" };
 
   const h = await headers();
-  const ip = h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIp(h);
   if (!(await verifyTurnstile(parsed.data.turnstileToken, ip))) return { ok: false, error: "bot_check" };
 
   const key = `deletion:${createHash("sha256").update(ip).digest("hex").slice(0, 32)}`;

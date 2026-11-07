@@ -1,0 +1,85 @@
+# Checks every push and pull request (rules.md section 7): database RLS tests,
+# both apps' types, lint and build, dependency audit, and secret scanning.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-and-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Start local Supabase
+        run: npx -y supabase@3.0.0 start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,supavisor,mailpit
+
+      - name: Database tests (RLS, bookings, payments, messaging, plans)
+        run: npx -y supabase@3.0.0 test db
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Type-check and lint web
+        working-directory: apps/web
+        run: npx tsc --noEmit && npm run lint
+
+      - name: Build web against the local stack
+        working-directory: apps/web
+        run: |
+          eval "$(npx -y supabase@3.0.0 status -o env --override-name api.url=SB_URL --override-name auth.anon_key=SB_ANON 2>/dev/null)" || true
+          export NEXT_PUBLIC_SUPABASE_URL="${SB_URL:-http://127.0.0.1:54321}"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SB_ANON:?local anon key missing}"
+          export NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+          npm run build
+
+      - name: Audit web dependencies (production)
+        working-directory: apps/web
+        run: npm audit --omit=dev --audit-level=high
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - working-directory: apps/mobile
+        run: npm ci
+      - name: Type-check and lint mobile
+        working-directory: apps/mobile
+        run: npx tsc --noEmit && npm run lint
+      - name: Bundle the app JavaScript (iOS and Android)
+        working-directory: apps/mobile
+        run: |
+          npx expo export --platform ios --output-dir /tmp/ios-export
+          npx expo export --platform android --output-dir /tmp/android-export
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

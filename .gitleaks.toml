@@ -1,0 +1,7 @@
+# Gitleaks config: default rules plus one allowlisted value.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Cloudflare's published always-pass Turnstile test keys, documented in .env.example (not secrets)"
+regexes = ['''1x0000000000000000000000000000000AA''', '''1x00000000000000000000AA''']

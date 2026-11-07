@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { z } from "zod";
 import { bookingPageTag, getBookingPage, HANDLE_RE } from "@/lib/booking-page";
 import { VEHICLE_SIZES } from "@/lib/booking-types";
@@ -135,7 +136,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
   if (!(await getPublicConfig()).sms_enabled) input.smsConsent = false;
 
   const h = await headers();
-  const ip = h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIp(h);
 
   if (!(await verifyTurnstile(input.turnstileToken, ip))) return { ok: false, error: "bot_check" };
 

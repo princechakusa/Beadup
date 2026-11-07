@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { bookingPageTag } from "@/lib/booking-page";
@@ -22,7 +23,7 @@ export async function submitReview(raw: z.input<typeof input>): Promise<ReviewRe
   if (!db) return { ok: false, error: "unavailable" };
 
   const h = await headers();
-  const ip = h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIp(h);
   const key = `review:${createHash("sha256").update(ip).digest("hex").slice(0, 32)}`;
   const { data: allowed } = await db.rpc("hit_rate_limit", { p_key: key, p_limit: 10, p_window_seconds: 3600 });
   if (allowed !== true) return { ok: false, error: "rate_limited" };
