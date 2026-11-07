@@ -1,7 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
 import { deliverQueued } from "@/lib/messages";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// Retries queued texts (failed sends are re-queued up to 5 attempts).
+// Queues due texts (day-before reminders, review requests) and delivers or
+// retries queued ones (failed sends are re-queued up to 5 attempts). Run every
+// 15 minutes.
 // Call on a schedule with "Authorization: Bearer $CRON_SECRET" (Vercel Cron
 // sends this header automatically when CRON_SECRET is set).
 function authorized(request: Request): boolean {
@@ -15,5 +18,7 @@ function authorized(request: Request): boolean {
 
 export async function GET(request: Request): Promise<Response> {
   if (!authorized(request)) return new Response("unauthorized", { status: 401 });
-  return Response.json(await deliverQueued());
+  const db = supabaseAdmin();
+  const { data: queued } = db ? await db.rpc("enqueue_due_messages") : { data: null };
+  return Response.json({ queued, ...(await deliverQueued()) });
 }

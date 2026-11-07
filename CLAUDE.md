@@ -50,7 +50,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Server endpoint: photos (system picker, EXIF stripped, private bucket) → Claude vision → itemized suggested quote from the detailer's own price list. Reject non-vehicle images. Detailer approves before sending. Third-party AI consent screen (Apple 5.1.2(i)) (dev uses a flagged sample suggestion; the live Claude call runs once ANTHROPIC_API_KEY is set)
 - [ ] 🔑 Anthropic API key
 ### M6: Messaging
-- [ ] SMS confirmations, day-before reminders, review request (Twilio), STOP handling, consent logging
+- [x] SMS confirmations, day-before reminders, review request (Twilio), STOP handling, consent logging (sends once Twilio keys and 10DLC exist)
 - [ ] 🔑 Twilio account + 10DLC registration
 ### M7: Business pages and subscriptions
 - [ ] Marketing landing page (premium, animated), pricing, privacy policy, terms, support, `/delete-account`
@@ -83,4 +83,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Offline: `useQuery(fn, deps, cacheKey)` saves the last good result in the app's documents folder (`src/lib/cache.ts`) and shows it with an "Offline" chip when the network fails; wiped on sign-out and account deletion.
 - Onboarding: `create_detailer_profile()` (one transaction, runs as auth.uid()) + `handle_available()`. The root guard sends signed-in users without a `detailers` row to `/onboarding`; `useAuth().refreshProfile()` flips them into the app.
 - AI quote: `POST /api/quotes/ai` (`apps/web/src/lib/ai-quote.ts`): claude-opus-5-5, effort medium, structured output (Zod) + `fallbacks: "default"`; model returns catalog ids only, the server prices from the DB and saves a draft quote via `create_ai_draft_quote()`. Requires `detailers.ai_consent_at` (set by `record_ai_consent()`). Photos: app re-encodes to ≤1568px JPEG (drops EXIF/GPS), private `quote-photos` bucket under `<uid>/`; account deletion removes them. No key: dev returns a flagged mock, production returns 503.
+- Messaging (M6): `/api/cron/messages` every 15 min runs `enqueue_due_messages()` (day-before reminders 10:00-20:00 detailer time, review requests ~2h after completion) then delivers. Review links `/r/<48-hex token>` -> `submit_review()` (completed bookings only, once). Twilio Messaging Service inbound URL = `<site>/api/twilio/inbound` (signature-verified; STOP/START -> `record_sms_opt_out()` across all detailers for that phone). Production builds need `NEXT_PUBLIC_SITE_URL` at build time.
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { bookingFeeCents, formatUsd } from "./pricing";
 import { sendSms } from "./sms";
+import { siteUrl } from "./stripe";
 import { supabaseAdmin } from "./supabase-admin";
 
 // Outbox worker for customer texts. Rows are queued by the database in the
@@ -10,7 +11,7 @@ import { supabaseAdmin } from "./supabase-admin";
 
 const contextSchema = z.object({
   id: z.uuid(),
-  kind: z.enum(["booking_confirmed", "balance_link", "balance_receipt"]),
+  kind: z.enum(["booking_confirmed", "balance_link", "balance_receipt", "reminder", "review_request"]),
   status: z.string(),
   linkUrl: z.string().nullable(),
   phone: z.string(),
@@ -24,6 +25,7 @@ const contextSchema = z.object({
   subtotalCents: z.number(),
   depositCents: z.number(),
   paidCents: z.number(),
+  reviewToken: z.string(),
 });
 type MessageContext = z.infer<typeof contextSchema>;
 
@@ -49,6 +51,10 @@ export function renderMessage(m: MessageContext): string {
     }
     case "balance_receipt":
       return `${biz}: payment received, ${formatUsd(m.paidCents)} in total. Thank you! ${STOP}`;
+    case "reminder":
+      return `${biz}: reminder, ${m.serviceName} tomorrow, ${when(m.startsAt, m.timezone).split(" at ")[1]}, at ${m.address}. Reply here if you need to change it. ${STOP}`;
+    case "review_request":
+      return `${biz}: thanks for choosing us. How did we do? It takes 10 seconds: ${siteUrl()}/r/${m.reviewToken} ${STOP}`;
   }
 }
 
