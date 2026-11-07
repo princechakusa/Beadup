@@ -103,7 +103,13 @@ export default async function Privacy() {
         <li>
           <strong>Cloudflare</strong> provides bot protection on booking pages.
         </li>
-        <li>Our website hosting provider.</li>
+        <li>
+          <strong>RevenueCat</strong> keeps track of Beadup Pro subscriptions bought through the App Store or Google
+          Play, using an account identifier (no card details). Apple and Google process those purchases.
+        </li>
+        <li>
+          <strong>Netlify</strong> hosts our website and booking pages.
+        </li>
       </ul>
       <p>
         When a client books, their booking details are shared with the detailer they booked. We may also disclose

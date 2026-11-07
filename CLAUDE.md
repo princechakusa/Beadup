@@ -63,7 +63,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] 🔑 Domain (beadup.app or getbeadup.com), hosting (Vercel free tier), production keys
 - [ ] 🔑 Apple Developer + Google Play accounts. Store listings, screenshots, privacy labels, demo accounts, review notes (rules.md section 8)
 - [ ] 3D app icon render (Blender is installed on this PC)
-- [ ] Outreach: draft messages to US detailers (owner approves before sending). First 20 get 3 months of Pro free
+- [x] Outreach: draft messages to US detailers (owner approves before sending). First 20 get 3 months of Pro free (`docs/outreach/README.md`: DMs, group posts, email, follow-up, objection replies, how to grant the 3 months)
 
 ## Later (after ~100 paying detailers)
 Add trades in this order: pressure washing → window cleaning → mobile pet grooming → boat/RV detailing.

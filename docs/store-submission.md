@@ -3,23 +3,31 @@
 Ready-to-paste answers for **App Store Connect** and **Google Play Console**. Written against `rules.md`.
 Items in `[BRACKETS]` need a real value before submitting. Re-check Apple's and Google's current forms on submission day: the questions change.
 
-**Status (2026-11-07):** Apple developer account exists (owner is signed in to App Store Connect). **Nothing is submitted.** Google Play account not yet created.
+**Launch setup (owner decisions 2026-11-07), reflected everywhere below:**
+- **No in-app client payments.** Clients book free and pay the 30% deposit to the detailer directly, through the
+  detailer's own payment link (Square, PayPal, Venmo, Cash App) or instructions (e.g. Zelle). Beadup never touches
+  client money (`plan_config.payments_mode = "external"`). No Stripe at launch.
+- **No text messages** (`sms_enabled = false`): nothing goes to Twilio. Detailers get push alerts.
+- **AI photo quotes use OpenAI**, after an in-app consent screen.
+- **Hosting:** https://beadup.netlify.app until a domain is bought. Legal name: Prince Chakusa.
+
+**Status (2026-11-07):** Apple developer account exists. **Nothing is submitted.** Google Play account exists (owner).
 
 ### App Store Connect progress
 Done in the owner's account:
 - [x] Bundle ID `com.beadup.app` registered (capabilities: In-App Purchase, Sign In with Apple)
 - [x] App record "Beadup" created (Apple ID 6831768099, SKU `beadup-ios-001`, English U.S., iOS)
-- [x] Version 1.0: description, keywords, promotional text entered and saved
+- [x] Version 1.0: description, keywords, promotional text entered. **Replace them with the section 1 text below**: the saved version promises card deposits and automatic receipts, which the launch build doesn't have
 - [x] App Information: subtitle, categories Business + Productivity, Content Rights = no third-party content
 - [x] Age rating questionnaire: all "None/No" → **4+**
-- [ ] App Privacy labels (section 1 table) and Privacy Policy URL: needs the live domain
-- [ ] Support URL, Marketing URL, Copyright: needs domain and legal name
+- [ ] App Privacy labels (section 1 table) and Privacy Policy URL `https://beadup.netlify.app/privacy`
+- [ ] Support URL `https://beadup.netlify.app/support`, Marketing URL `https://beadup.netlify.app`, Copyright `© 2026 Prince Chakusa`
 - [ ] App Review info: demo account, contact, review notes (section 1)
 - [ ] Pricing and availability: Free, United States first
 - [ ] Screenshots (6.9" iPhone): from the real build
 - [ ] In-App Purchase: create subscription `beadup_pro_monthly`. **Price is set only here (and per country) and must never be hardcoded in the app**
-- [ ] 🔑 Apple banner: the **Account Holder must accept the updated Apple Developer Program License Agreement** before new apps can be submitted. Also the EU trader status declaration if distributing in the EU
-- [ ] Upload a build (EAS) and submit for review
+- [ ] 🔑 Apple banner: the **Account Holder must accept the updated Apple Developer Program License Agreement** (deadline Nov 14, 2026). Also the EU trader status declaration if distributing in the EU
+- [ ] Upload a build (EAS, see `docs/DEPLOY.md`) and submit for review
 
 ---
 
@@ -28,119 +36,132 @@ Done in the owner's account:
 | Item | Value |
 |---|---|
 | App name | Beadup |
-| Bundle ID / package | `com.beadup.app` (permanent once published. Confirm before the first upload) |
+| Bundle ID / package | `com.beadup.app` (final, owner approved 2026-11-07) |
 | Primary category | Business |
 | Secondary category (Apple) | Productivity |
-| Price | Free to download. Pro plan sold on the web (see section 5) |
-| Support email | `[SUPPORT EMAIL]` |
-| Support URL | `https://[DOMAIN]/support` |
-| Marketing URL | `https://[DOMAIN]` |
-| Privacy policy URL | `https://[DOMAIN]/privacy` |
-| Terms URL | `https://[DOMAIN]/terms` |
-| Account deletion URL | `https://[DOMAIN]/delete-account` |
-| Copyright | `© 2026 [OWNER OR COMPANY NAME]` |
+| Price | Free to download. Optional Beadup Pro subscription via in-app purchase (section 5) |
+| Support email | `[SUPPORT EMAIL]` (same as `NEXT_PUBLIC_SUPPORT_EMAIL` on Netlify) |
+| Support URL | `https://beadup.netlify.app/support` |
+| Marketing URL | `https://beadup.netlify.app` |
+| Privacy policy URL | `https://beadup.netlify.app/privacy` |
+| Terms URL | `https://beadup.netlify.app/terms` |
+| Account deletion URL | `https://beadup.netlify.app/delete-account` |
+| Copyright | `© 2026 Prince Chakusa` |
 | Audience | Adults 18+. Not for children |
+
+Swap `beadup.netlify.app` for the real domain everywhere when one is bought.
 
 ---
 
 ## 1. App Store Connect
 
 ### Listing text
-**Name (max 30):** `Beadup`
-**Subtitle (max 30):** `Quotes, bookings, payments`
-**Promotional text (max 170):**
-`Send a priced quote from your phone, take a deposit before you drive out, and get paid the same day. Built for mobile detailers.`
+Character counts are in brackets; all are within the limits.
 
-**Keywords (max 100, comma separated, no spaces):**
-`detailing,car wash,booking,quote,invoice,scheduler,deposit,mobile detailer,appointments,clients`
+**Name (max 30):** `Beadup` [6]
+**Subtitle (max 30):** `Quotes and bookings, detailers` [30]
+**Promotional text (max 170):**
+`Send a priced quote from your phone and get booked from one link, with a deposit that cuts no-shows. Built for mobile car detailers.` [132]
+
+**Keywords (max 100, comma separated, no spaces after commas):**
+`detailing,car wash,booking,quote,scheduler,deposit,mobile detailer,appointments,clients,calendar` [96]
 
 **Description (max 4000):**
 ```
-Beadup is the quote, booking and payment app built for mobile car detailers.
+Beadup is the quote and booking app built for mobile car detailers.
 
 QUOTE IN 60 SECONDS
-Take photos of the vehicle and Beadup suggests an itemized price from your own price list. You review and approve every quote before it is sent.
-
-STOP NO-SHOWS
-Clients book through your personal link and pay a deposit up front. The card fee is added at checkout, so you receive the full deposit.
+Take photos of the vehicle and Beadup suggests an itemized price from your own price list. AI photo quotes are estimates: you review, edit and approve every quote before it is sent.
 
 ONE LINK, NO APP FOR CLIENTS
-Put your link in your Instagram bio or text it to customers. They pick a service and a time, and pay from their browser. No download, no account.
+Put your booking link in your Instagram bio or send it to customers. They pick a service, vehicle size, add-ons and a time from their browser. No download, no account.
+
+DEPOSITS THAT CUT NO-SHOWS
+Every booking shows a 30% deposit. Clients pay it straight to you through your own payment link or instructions, such as Square, PayPal, Venmo or Zelle. Beadup never touches your money and takes no cut.
 
 RUN YOUR DAY
-See today's jobs, get directions to the next one, text or call the client, and mark jobs done. Receipts are sent automatically.
+See today's jobs, get directions to the next one, call the client, and mark jobs done. Get an alert the moment someone books (optional).
 
 KNOW YOUR NUMBERS
-Track earnings, payouts and your best clients in one place.
+See what you earned this week and this month, what is still booked, and your best clients.
+
+BEADUP PRO
+The free plan includes a monthly booking limit. Beadup Pro is an optional auto-renewing subscription for more bookings, bought in the app. The price is shown before you buy.
 
 PRIVACY
-Photos you choose for a quote are sent to a third-party AI service only after you give permission. Card details are handled by our payment provider and never stored by Beadup. You can delete your account and data in the app at any time.
+Vehicle photos are sent to our AI provider, OpenAI, only after you give permission in the app. Beadup never sees card or bank details. You can delete your account and data in the app at any time.
 ```
+[1,351 characters]
 
-**What's New (1.0):** `First release.`
+**What's New (1.0):** `First release.` [14]
 
 ### Screenshots (required: 6.9" iPhone, 1290×2796)
-Use real app screens, not splash or login only (guideline 2.3.3). Order: 1 Today, 2 AI photo quote, 3 Calendar, 4 Money, 5 Clients, 6 Client booking page (browser). Source designs: the design canvas. Capture from the real build before submitting.
+Use real app screens from the TestFlight build, not splash or login only (guideline 2.3.3). One caption per screen:
+
+| # | Screen | Caption |
+|---|---|---|
+| 1 | Today | Your day, your jobs, your money |
+| 2 | New quote (AI photo) | Photos in, priced quote out |
+| 3 | Calendar | Every job, every hour, at a glance |
+| 4 | Client booking page (Safari) | One link. Clients book in a minute |
+| 5 | Money | Know what this month brought in |
+| 6 | Settings > Payment link | Deposits go straight to you |
 
 ### Age rating questionnaire
 Answer **None / No** to every item: violence, sexual content, profanity, horror, alcohol/tobacco/drugs, gambling, contests, medical info, unrestricted web access, user-generated content, messaging between users, ads, in-app controls. Expected rating **4+**.
-Re-check: if reviews or user messaging are added later, answer again.
+Re-check: client reviews are text shown only to the detailer and on their booking page as an average; if public review text is added later, answer again.
 
 ### App Privacy ("nutrition label")
 **Tracking:** No. Beadup does not track users across other companies' apps or sites. No tracking permission prompt.
 
-Data **collected and linked to the user**, all for **App Functionality** only (not advertising, not analytics unless added):
+Data **collected and linked to the user**, all for **App Functionality** only (not advertising, not analytics):
 
 | Apple data type | Collected? | Why |
 |---|---|---|
-| Contact info: name, email, phone | Yes | Account, client records, confirmations |
-| Contact info: physical address | Yes | Where to do the job (clients' addresses entered by the detailer or the client) |
-| User content: photos | Yes | Vehicle photos for price quotes |
-| Purchases: purchase history | Yes | Booking and payment records (card numbers are **not** collected by Beadup) |
+| Contact info: name, email, phone | Yes | Detailer account; client name and phone on bookings |
+| Contact info: physical address | Yes | Where to do the job |
+| User content: photos | Yes | Vehicle photos for AI price quotes (optional) |
+| User content: other | Yes | Reviews clients choose to leave; the detailer's payment link/note |
+| Purchases: purchase history | Yes | Pro subscription status, and booking records (no card data) |
 | Identifiers: user ID | Yes | Account |
-| Financial info | No | Handled by Stripe |
-| Location | No (until a route feature is added. Update the label if it is) | |
+| Identifiers: device ID | Yes | Push token, only if booking alerts are turned on |
+| Financial info | No | Clients pay detailers outside Beadup; Beadup never receives card or bank details |
+| Location | No | |
 | Health, contacts, browsing history, search history | No | |
 | Diagnostics | No (change to Yes if crash reporting is added) | |
 
-Third parties that receive data: Stripe (payments), Twilio (text messages), Anthropic (vehicle photos for quotes, with explicit in-app consent: guideline 5.1.2(i)), Supabase (hosting, acts as processor).
-
-**Update 2026-11-07 (features added since this table):** optional booking alerts store an Expo push token per device. Declare **Identifiers: device ID = Yes** (App Functionality, linked to the user) in App Store Connect and **Device or other IDs = Yes** in Play Data safety. Add **Expo** (push delivery) and **Cloudflare** (Turnstile bot check on booking pages) to the third-party list. The live privacy policy at `/privacy` already lists them.
-
-**Owner decision 2026-11-07: AI photo quotes use OpenAI** (`plan_config.ai_provider = "openai"`). Wherever this file says Anthropic for vehicle photos, declare **OpenAI** instead.
-
-**Owner decision 2026-11-07: launch without text messages.** While `plan_config.sms_enabled` is false no data goes to Twilio, so do not list Twilio as a recipient or declare SMS. Clients get Stripe email receipts; detailers get push alerts. Update both store forms and `/privacy` when texts are turned on.
+Third parties that receive data: **OpenAI** (vehicle photos for quotes, with explicit in-app consent: guideline 5.1.2(i)), **Expo** (push delivery), **Cloudflare** (Turnstile bot check on booking pages), **RevenueCat** (subscription status), **Supabase** and **Netlify** (hosting, processors). Not at launch: Stripe, Twilio. Update this table, Play Data safety and `/privacy` before either is turned on.
 
 ### App Review information
-**Sign-in required:** Yes. Provide two demo accounts and keep the backend live:
-- Detailer: `[DEMO DETAILER EMAIL]` / sign-in link or password `[ ]`
-- Client booking page needs no account: `https://[DOMAIN]/marcus`
+**Sign-in required:** Yes. Create the demo account in Supabase (Authentication → Users → Add user, email + password, Auto confirm), sign in once and finish onboarding, then enter it here. The sign-in screen has "Sign in with a password" for it.
+- Detailer: `[DEMO DETAILER EMAIL]` / `[DEMO PASSWORD]`
+- Client booking page needs no account: `https://beadup.netlify.app/[DEMO HANDLE]`
 
-**Contact:** `[NAME]`, `[PHONE]`, `[EMAIL]`
+**Contact:** Prince Chakusa, `[PHONE]`, `[EMAIL]`
 
 **Notes for Review (paste):**
 ```
 Beadup is a business tool for mobile car detailers (physical, on-site vehicle cleaning).
 
 HOW TO TEST
-1. Sign in with the demo detailer account. The Today screen shows jobs and earnings.
-2. Tap + to create a quote. Pick photos (system picker). Before any photo leaves the device the app shows an AI disclosure and asks for permission. The quote is a suggestion the detailer edits and approves.
-3. Open https://[DOMAIN]/marcus in Safari to see the client booking page (no account needed). It uses Stripe test mode for the review build: card 4242 4242 4242 4242, any future date, any CVC.
+1. On the sign-in screen tap "Sign in with a password" and use the demo detailer account above. The Today screen shows jobs and earnings.
+2. Tap + to create a quote. Pick photos (system picker). Before any photo leaves the device the app shows an AI disclosure naming OpenAI and asks for permission. The quote is an estimate the detailer edits and approves.
+3. Open https://beadup.netlify.app/[DEMO HANDLE] in Safari to see the client booking page (no account needed). Book a time; the confirmation shows the detailer's own payment instructions.
 
-PAYMENTS (guideline 3.1.3(e))
-Clients pay detailers for physical services consumed outside the app, so those payments use card/Apple Pay through Stripe, not in-app purchase. The client pays a small card-processing fee at checkout.
+CLIENT PAYMENTS (guideline 3.1.3(e))
+Clients pay detailers for physical services performed at the vehicle. Beadup does not process these payments: after booking, the client is shown the detailer's own payment link or instructions and pays the detailer directly, outside the app.
 
 DETAILER SUBSCRIPTION
-Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test the purchase and Restore Purchases. Client payments for detailing services are separate (physical services, guideline 3.1.3(e)).
+Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test the purchase and Restore Purchases.
 
 ACCOUNT DELETION (5.1.1(v))
-Settings › Delete account removes the account and its data in the app. Web: https://[DOMAIN]/delete-account
+Settings > Delete account removes the account and its data in the app. Web: https://beadup.netlify.app/delete-account
 
 AI (5.1.2(i))
-Vehicle photos are sent to a third-party AI provider (Anthropic) only after the user taps Allow on a consent screen. Quotes are never charged automatically.
+Vehicle photos are sent to a third-party AI provider (OpenAI) only after the user taps Allow on a consent screen, and consent can be withdrawn in Settings. Quotes are suggestions the detailer approves.
 
 PERMISSIONS
-Camera and photo picker are used only when the user adds vehicle photos. Notifications are optional and the app works without them. Text messages to clients require their opt-in at booking, with STOP to opt out.
+Camera and photo picker are used only when the user adds vehicle photos. Notifications are optional and the app works without them. The app sends no text messages.
 ```
 
 ### Other App Store Connect answers
@@ -157,45 +178,45 @@ Camera and photo picker are used only when the user adds vehicle photos. Notific
 ## 2. Google Play Console
 
 ### Store listing
-**App name (max 30):** `Beadup: Detailer Bookings`
-**Short description (max 80):** `Quote, book and get paid from your phone. Built for mobile car detailers.`
-**Full description (max 4000):** use the App Store description above, with the last paragraph unchanged.
+**App name (max 30):** `Beadup: Detailer Bookings` [25]
+**Short description (max 80):** `Quotes and bookings for mobile car detailers. Clients book from one link.` [73]
+**Full description (max 4000):** use the App Store description above unchanged.
 **Category:** Business. **Tags:** Business, Productivity.
-**Contact:** email `[SUPPORT EMAIL]`, website `https://[DOMAIN]`.
-**Graphics:** icon 512×512 (render from `apps/mobile/assets/images/icon.png`), feature graphic 1024×500, at least 4 phone screenshots from the real app.
+**Contact:** email `[SUPPORT EMAIL]`, website `https://beadup.netlify.app`.
+**Graphics:** icon 512×512 (render from `apps/mobile/assets/images/icon.png`), feature graphic 1024×500, at least 4 phone screenshots from the real app (same six as Apple).
 
 ### App content declarations
 | Declaration | Answer |
 |---|---|
-| Privacy policy | `https://[DOMAIN]/privacy` |
-| App access | Restricted. Add demo credentials: `[DEMO DETAILER EMAIL]`, `[ ]`, plus client page `https://[DOMAIN]/marcus` |
+| Privacy policy | `https://beadup.netlify.app/privacy` |
+| App access | Restricted. Add demo credentials: `[DEMO DETAILER EMAIL]`, `[DEMO PASSWORD]` ("Sign in with a password" on the sign-in screen), plus client page `https://beadup.netlify.app/[DEMO HANDLE]` |
 | Ads | No ads |
 | Content rating (IARC) | Category: Utility / Productivity. No violence, sex, language, controlled substances, gambling, user-to-user sharing. Expected: Everyone |
 | Target audience | 18 and over. Not designed for children |
 | News app | No |
 | COVID-19 app | No |
 | Government app | No |
-| Financial features | Complete the declaration. Beadup does not offer loans, banking or crypto. It facilitates payments for physical services through a third-party processor. Pick the options that match at submission and re-read Google's current wording |
+| Financial features | None. Beadup does not process payments, offer loans, banking or crypto. Clients pay detailers directly outside the app |
 | Health | No |
 | Advertising ID | Not used |
 | Data safety | See below |
-| Account deletion | In-app path: Settings › Delete account. Web link: `https://[DOMAIN]/delete-account` |
+| Account deletion | In-app path: Settings › Delete account. Web link: `https://beadup.netlify.app/delete-account` |
 
 ### Data safety form
 **Data collected:** Yes. **Encrypted in transit:** Yes. **Users can request deletion:** Yes (in-app and web link above).
 
 | Data type | Collected | Shared | Purpose | Optional? |
 |---|---|---|---|---|
-| Name, email address, phone number | Yes | Yes (Twilio sends texts, Stripe handles payments) | App functionality, account management | Required |
+| Name, email address, phone number | Yes | No | App functionality, account management | Required |
 | Address (job location) | Yes | No | App functionality | Required |
-| Photos | Yes | Yes (AI provider, with consent) | App functionality | Optional |
-| Purchase history (bookings and payments) | Yes | Yes (Stripe) | App functionality | Required |
+| Photos | Yes | Yes (OpenAI, with consent) | App functionality | Optional |
+| Purchase history (subscription status, bookings) | Yes | No | App functionality | Required |
 | User IDs | Yes | No | App functionality | Required |
-| Financial info (card numbers) | No. Entered only on Stripe's hosted fields | | | |
-| Location | No (update if a route feature is added) | | | |
-| Contacts, messages, files, health, app activity, device IDs | No | | | |
+| Device or other IDs (push token) | Yes | No | App functionality | Optional |
+| Financial info | No. Clients pay detailers outside Beadup | | | |
+| Location, contacts, messages, files, health, app activity | No | | | |
 
-Notes: data processed by Supabase for hosting is a service provider, not "sharing". Mark Stripe, Twilio and the AI provider as shared where Google's definition applies.
+Notes: Supabase, Netlify, Expo, Cloudflare and RevenueCat act as service providers, which Google doesn't count as "sharing". OpenAI receives photos the user chooses, with consent: declare as shared.
 
 ### Permissions declared
 Camera and read media images/photo picker only. No location, contacts, SMS or phone permissions.
@@ -206,15 +227,14 @@ New personal developer accounts must run a **closed test with enough testers for
 ---
 
 ## 3. Payments disclosure (both stores)
-- Client → detailer payments: physical services. Apple 3.1.3(e) and Google's physical-services exemption apply. No in-app purchase / Play Billing.
-- Detailer → Beadup Pro subscription: see section 5.
+- Client → detailer payments: physical services, paid **directly to the detailer outside the app** (their own link or instructions). Beadup processes no client payments. Apple 3.1.3(e) / Google's physical-services exemption apply; no in-app purchase / Play Billing for them.
+- Detailer → Beadup Pro subscription: in-app purchase on both stores (section 5).
+- If Stripe is switched on later (`payments_mode = "stripe"`), update the description, privacy labels, Data safety and review notes before that build ships.
 
 ## 4. Before pressing Submit
-Run the checklist in `rules.md` section 8. Also confirm: Stripe is out of test mode for the production build, demo accounts work, `/privacy`, `/terms`, `/support` and `/delete-account` are live, screenshots come from the real build, and the privacy answers above still match what the app actually collects.
+Run the checklist in `rules.md` section 8. Also confirm: the demo account works with "Sign in with a password", the demo handle's booking page loads and books, `/privacy`, `/terms`, `/support` and `/delete-account` are live, screenshots come from the real build, the listing text in App Store Connect matches section 1, and the privacy answers above still match what the app actually collects.
 
 ## 5. Decided: Pro subscription is in-app purchase on both stores
-Owner decision 2026-11-07. Apple treats SaaS subscriptions as digital goods that need in-app purchase (3.1.1, 3.1.2) and Google requires Play Billing, so Pro ($19/month) is sold with **Apple IAP and Google Play Billing at the same price**. This is the lowest review risk. The stores take a commission (small developers are eligible for reduced rates: apply for Apple's App Store Small Business Program and check Google's current service-fee tiers).
+Owner decision 2026-11-07. Apple treats SaaS subscriptions as digital goods that need in-app purchase (3.1.1, 3.1.2) and Google requires Play Billing, so Pro is sold with **Apple IAP and Google Play Billing at the same price**. This is the lowest review risk. The stores take a commission (small developers are eligible for reduced rates: apply for Apple's App Store Small Business Program and check Google's current service-fee tiers).
 
-Implementation: one auto-renewing subscription `beadup_pro_monthly` in each store, managed through RevenueCat (free at small revenue) so entitlements work across devices (3.1.2(a)). The Free plan (5 bookings a month) needs no purchase. Show the price, billing period, what is included and how to cancel before the purchase button (3.1.2(c)), plus Restore Purchases and links to Terms and Privacy.
-
-Paste into the review notes in section 1: `DETAILER SUBSCRIPTION: Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test. Client payments for detailing services are separate (physical services, guideline 3.1.3(e)).`
+Implementation: one auto-renewing subscription `beadup_pro_monthly` in each store, managed through RevenueCat (free at small revenue) so entitlements work across devices (3.1.2(a)). The Free plan (monthly booking limit from `plan_config`) needs no purchase. Show the price, billing period, what is included and how to cancel before the purchase button (3.1.2(c)), plus Restore Purchases and links to Terms and Privacy. The price is never written in the app or this file: it comes from the store.
