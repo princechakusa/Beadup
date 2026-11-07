@@ -9,7 +9,7 @@ import { LiquidBead } from '@/components/bead/LiquidBead';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Text } from '@/components/ui/Text';
-import { AuthError, sendMagicLink, signInWithApple, signInWithPassword, useAuth, verifyEmailCode } from '@/lib/auth';
+import { AuthError, enterDemo, sendMagicLink, signInWithApple, signInWithPassword, useAuth, verifyEmailCode } from '@/lib/auth';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, radius, space } from '@/theme/tokens';
@@ -80,9 +80,12 @@ export default function SignIn() {
             </View>
 
             {offline && (
-              <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
-                Sign-in isn&apos;t configured in this build.
-              </Text>
+              <View style={{ gap: space.md }}>
+                <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
+                  Preview build: sign-in isn&apos;t connected. Restart Expo with the project&apos;s .env.local to use real accounts.
+                </Text>
+                {__DEV__ && <Button label="Open the demo" variant="glass" onPress={enterDemo} />}
+              </View>
             )}
 
             {!sentTo ? (

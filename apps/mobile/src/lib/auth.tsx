@@ -19,6 +19,8 @@ type AuthState = {
   /** Signed in and has a business profile; false means onboarding is needed. */
   hasProfile: boolean;
   refreshProfile: () => Promise<void>;
+  /** Preview mode only (no backend): whether the demo is "signed in". */
+  demoSignedIn: boolean;
 };
 
 const AuthContext = createContext<AuthState>({
@@ -27,7 +29,15 @@ const AuthContext = createContext<AuthState>({
   offline: false,
   hasProfile: false,
   refreshProfile: async () => {},
+  demoSignedIn: true,
 });
+
+// Preview mode has no session to clear, so sign-out flips this flag instead.
+let setDemoSignedIn: ((v: boolean) => void) | null = null;
+/** Preview mode: open the demo again from the sign-in screen. */
+export function enterDemo(): void {
+  setDemoSignedIn?.(true);
+}
 
 async function profileExists(): Promise<boolean> {
   if (!supabase) return true;
@@ -42,6 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(!!supabase);
   const [hasProfile, setHasProfile] = useState(!supabase);
+  const [demoSignedIn, setDemo] = useState(true);
+  useEffect(() => {
+    setDemoSignedIn = setDemo;
+    return () => {
+      setDemoSignedIn = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -65,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     offline: !supabase,
     hasProfile,
     refreshProfile: async () => setHasProfile(await profileExists()),
+    demoSignedIn,
   };
   return <AuthContext value={value}>{children}</AuthContext>;
 }
@@ -153,6 +171,13 @@ export async function signInWithApple(): Promise<boolean> {
 export async function signOut(): Promise<void> {
   clearCache(); // personal data must not outlive the session on this device
   await disablePush().catch(() => {}); // the next account on this phone can claim the token
-  await resetPurchases();
-  await supabase?.auth.signOut();
+  await resetPurchases().catch(() => {});
+  if (!supabase) {
+    setDemoSignedIn?.(false);
+    return;
+  }
+  // Revoke the session on the server; if that fails (no signal), still sign
+  // out on this phone so the button always works.
+  const { error } = await supabase.auth.signOut();
+  if (error) await supabase.auth.signOut({ scope: 'local' });
 }

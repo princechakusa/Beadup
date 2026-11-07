@@ -26,7 +26,7 @@ const theme = {
 };
 
 function RootNavigator() {
-  const { session, loading, offline, hasProfile } = useAuth();
+  const { session, loading, offline, hasProfile, demoSignedIn } = useAuth();
   const [fontsLoaded, fontError] = useFonts({
     Sora_600SemiBold,
     Sora_700Bold,
@@ -45,7 +45,7 @@ function RootNavigator() {
   }, [ready]);
 
   // Development builds without a backend open straight into the app preview.
-  const signedIn = !!session || (offline && __DEV__);
+  const signedIn = !!session || (offline && __DEV__ && demoSignedIn);
 
   useEffect(() => (ready && signedIn ? listenForNotificationTaps() : undefined), [ready, signedIn]);
 
