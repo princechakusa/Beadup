@@ -6,7 +6,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { cancelBooking, fetchBooking, fetchProfile, requestBalanceLink, setBookingStatus, useQuery } from '@/lib/data';
+import { cancelBooking, fetchBooking, fetchProfile, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, usd } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
@@ -30,6 +30,8 @@ export default function BookingDetail() {
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const now = useNow();
+  // Launch mode: deposits and balances are paid to the detailer directly.
+  const external = usePaymentsMode() === 'external';
 
   const b = booking.data;
   const run = async (key: string, fn: () => Promise<void>) => {
@@ -56,7 +58,7 @@ export default function BookingDetail() {
 
   const started = now >= Date.parse(b.startsAt);
   const balance = b.subtotalCents - b.paidCents;
-  const s = STATUS[b.status];
+  const s = external && b.status === 'confirmed' ? { label: 'Booked', tone: 'bead' as const } : STATUS[b.status];
 
   return (
     <Screen eyebrow={`${dayLabel(b.startsAt, tz)} · ${timeOf(b.startsAt, tz)}`} title={b.serviceName} tabs={false} right={<BackButton />}>
@@ -100,8 +102,14 @@ export default function BookingDetail() {
           <Line key={a.name} label={a.name} value={a.priceCents != null ? usd(a.priceCents) : ''} muted />
         ))}
         <Line label="Total" value={usd(b.subtotalCents)} strong />
-        <Line label="Paid so far" value={usd(b.paidCents)} muted />
-        {balance > 0 && b.status !== 'cancelled' && <Line label="Balance due after the job" value={usd(balance)} gold />}
+        {external ? (
+          <Line label="Deposit (30%), paid to you directly" value={usd(b.depositCents)} muted />
+        ) : (
+          <>
+            <Line label="Paid so far" value={usd(b.paidCents)} muted />
+            {balance > 0 && b.status !== 'cancelled' && <Line label="Balance due after the job" value={usd(balance)} gold />}
+          </>
+        )}
       </ListCard>
 
       {notice && (
@@ -112,7 +120,7 @@ export default function BookingDetail() {
 
       {b.status === 'confirmed' && (
         <View style={{ gap: space.md }}>
-          {started && balance > 0 && (
+          {!external && started && balance > 0 && (
             <Button
               label="Send balance payment link"
               loading={busy === 'balance'}
@@ -128,7 +136,7 @@ export default function BookingDetail() {
           )}
           {started && (
             <Button
-              label={balance > 0 ? 'Mark job done (paid another way)' : 'Mark job done'}
+              label={external ? 'Mark job done' : balance > 0 ? 'Mark job done (paid another way)' : 'Mark job done'}
               variant="glass"
               loading={busy === 'done'}
               onPress={() =>
@@ -147,10 +155,12 @@ export default function BookingDetail() {
           ) : (
             <View style={styles.confirm}>
               <Text variant="body">
-                Cancel and refund {b.client.name.split(' ')[0]} {usd(b.paidCents + b.bookingFeeCents)} in full? They&apos;ll get it back on their card.
+                {external
+                  ? `Cancel ${b.client.name.split(' ')[0]}’s booking? If they paid you a deposit, refund it to them directly.`
+                  : `Cancel and refund ${b.client.name.split(' ')[0]} ${usd(b.paidCents + b.bookingFeeCents)} in full? They’ll get it back on their card.`}
               </Text>
               <Button
-                label="Yes, cancel and refund"
+                label={external ? 'Yes, cancel booking' : 'Yes, cancel and refund'}
                 variant="danger"
                 loading={busy === 'cancel'}
                 onPress={() =>

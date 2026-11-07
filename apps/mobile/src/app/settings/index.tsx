@@ -10,7 +10,7 @@ import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { AI_PROVIDER_LABEL, aiConsentStatus, withdrawAiConsent, type AiProviderId } from '@/lib/ai';
 import { signOut } from '@/lib/auth';
-import { fetchAccount, fetchPlanUsage, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
+import { fetchAccount, fetchPaymentDetails, fetchPlanUsage, fetchProfile, startPayoutsSetup, usePaymentsMode, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
@@ -28,6 +28,16 @@ export default function Settings() {
   const [push, setPush] = useState<PushState | null>(null);
   const [ai, setAi] = useState<boolean | null>(null);
   const [aiProvider, setAiProvider] = useState<AiProviderId>('openai');
+  const paymentsMode = usePaymentsMode();
+  const paymentDetails = useQuery(fetchPaymentDetails, [], 'payment-details');
+  const pd = paymentDetails.data;
+  const paymentSummary = !pd
+    ? ' '
+    : pd.link
+      ? pd.link.replace(/^https:\/\//, '').slice(0, 28)
+      : pd.note
+        ? pd.note.slice(0, 28)
+        : 'Not set · add how clients pay you';
   useFocusEffect(
     useCallback(() => {
       aiConsentStatus()
@@ -145,8 +155,23 @@ export default function Settings() {
       <ListCard>
         <Row icon="car" label="Services and prices" onPress={() => router.push('/settings/services')} />
         <Row icon="calendar" label="Availability" onPress={() => router.push('/settings/availability')} />
-        <Row icon="money" label="Deposit" detail="30% · client pays the card fee" />
-        <Row icon="money" label="Payouts" detail={opening ? 'Opening Stripe…' : payouts} onPress={a?.payoutsEnabled ? undefined : openPayouts} warn={!!a && !a.chargesEnabled} />
+        {paymentsMode === 'external' ? (
+          <>
+            <Row icon="money" label="Deposit" detail="30% · paid to you directly" />
+            <Row
+              icon="link"
+              label="Payment link"
+              detail={paymentSummary}
+              onPress={() => router.push('/settings/payment')}
+              warn={!!pd && !pd.link && !pd.note}
+            />
+          </>
+        ) : (
+          <>
+            <Row icon="money" label="Deposit" detail="30% · client pays the card fee" />
+            <Row icon="money" label="Payouts" detail={opening ? 'Opening Stripe…' : payouts} onPress={a?.payoutsEnabled ? undefined : openPayouts} warn={!!a && !a.chargesEnabled} />
+          </>
+        )}
       </ListCard>
 
       <ListCard>

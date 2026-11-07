@@ -36,7 +36,7 @@ async function sendToDetailer(detailerId: string, title: string, body: string, u
 }
 
 /** "New booking" / "Balance paid" alert for a booking's detailer. */
-export async function notifyPayment(bookingId: string, kind: "deposit" | "balance"): Promise<void> {
+export async function notifyPayment(bookingId: string, kind: "deposit" | "balance" | "booked"): Promise<void> {
   const db = supabaseAdmin();
   if (!db) return;
   const { data } = await db
@@ -60,7 +60,10 @@ export async function notifyPayment(bookingId: string, kind: "deposit" | "balanc
   const when = new Date(b.starts_at).toLocaleString("en-US", { timeZone: tz, weekday: "short", hour: "numeric", minute: "2-digit" });
   const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
 
-  if (kind === "deposit") {
+  if (kind === "booked") {
+    // External payments: the client pays the deposit to the detailer directly.
+    await sendToDetailer(b.detailer_id, "New booking", `${who} booked ${b.service_name}, ${when}. Deposit ${usd(b.deposit_cents)} comes to you directly.`, `/booking/${bookingId}`);
+  } else if (kind === "deposit") {
     await sendToDetailer(b.detailer_id, "New booking", `${who} booked ${b.service_name}, ${when}. Deposit paid.`, `/booking/${bookingId}`);
   } else {
     await sendToDetailer(b.detailer_id, `${who} paid you`, `${b.service_name} paid in full, ${usd(b.subtotal_cents)}.`, `/paid/${bookingId}`);

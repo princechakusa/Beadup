@@ -6,7 +6,7 @@ import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { Badge, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { fetchBookings, fetchProfile, useQuery, type Booking } from '@/lib/data';
+import { fetchBookings, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
 import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, timeOf, usd } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
@@ -25,6 +25,7 @@ export default function Calendar() {
   const [weekStart, setWeekStart] = useState(() => mondayOf(todayKey));
   const [selected, setSelected] = useState(todayKey);
 
+  const external = usePaymentsMode() === 'external';
   const week = useQuery(
     () => fetchBookings(startOfDay(weekStart, tz), startOfDay(addDaysKey(weekStart, 7), tz)),
     [weekStart, tz],
@@ -104,7 +105,7 @@ export default function Calendar() {
         ))}
 
         {dayJobs.map((b) => (
-          <JobBlock key={b.id} booking={b} tz={tz} firstHour={FIRST_HOUR} />
+          <JobBlock key={b.id} booking={b} tz={tz} firstHour={FIRST_HOUR} external={external} />
         ))}
 
         {showNow && (
@@ -140,7 +141,7 @@ const STATUS = {
   no_show: { label: 'No-show', tone: 'danger' as const, color: colors.danger, tint: 'rgba(255,138,138,' },
 };
 
-function JobBlock({ booking: b, tz, firstHour }: { booking: Booking; tz: string; firstHour: number }) {
+function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; tz: string; firstHour: number; external: boolean }) {
   const start = minutesOfDay(b.startsAt, tz);
   const top = 8 + ((start - firstHour * 60) / 60) * HOUR_H;
   // Jobs past midnight are clipped at the end of the day (the grid shows one day).
@@ -170,7 +171,7 @@ function JobBlock({ booking: b, tz, firstHour }: { booking: Booking; tz: string;
             <Text variant="caption" style={{ fontSize: 12, color: '#DCEFF7' }}>
               {timeOf(b.startsAt, tz)} – {timeOf(end, tz)}
             </Text>
-            {!compact && <Badge label={s.label} tone={s.tone} />}
+            {!compact && <Badge label={external && b.status === 'confirmed' ? 'Booked' : s.label} tone={s.tone} />}
           </View>
           <Text variant="heading" numberOfLines={1} style={{ fontSize: compact ? 15 : 20 }}>
             {b.serviceName}

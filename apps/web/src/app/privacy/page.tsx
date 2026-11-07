@@ -9,7 +9,8 @@ export const metadata: Metadata = { title: "Privacy policy" };
 // for the store privacy answers). Have it reviewed by a lawyer before launch,
 // and update it whenever data use changes (rules.md section 3).
 export default async function Privacy() {
-  const { ai_provider } = await getPublicConfig();
+  const { ai_provider, payments_mode } = await getPublicConfig();
+  const external = payments_mode === "external";
   const ai = ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
   return (
     <DocPage title="Privacy policy" updated="November 7, 2026">
@@ -32,7 +33,11 @@ export default async function Privacy() {
         <li>Your clients, bookings, quotes and payment records inside Beadup.</li>
         <li>Vehicle photos you add to a quote, and the AI suggestion made from them, if you use AI photo quotes.</li>
         <li>A push notification token for your device, only if you turn on booking alerts.</li>
-        <li>Your Stripe account identifier, so payments reach your Stripe account. Beadup does not store your bank details.</li>
+        {external ? (
+          <li>The payment link or payment instructions you choose to show clients after they book.</li>
+        ) : (
+          <li>Your Stripe account identifier, so payments reach your Stripe account. Beadup does not store your bank details.</li>
+        )}
       </ul>
       <p>
         <strong>From clients who book</strong>
@@ -40,14 +45,21 @@ export default async function Privacy() {
       <ul>
         <li>Your name, mobile number and the address where the vehicle will be.</li>
         <li>The service, vehicle size, time and price of your booking.</li>
-        <li>Your email address, if you enter it at checkout, so we can send your receipt.</li>
+        {!external && <li>Your email address, if you enter it at checkout, so we can send your receipt.</li>}
         <li>Whether you agreed to receive text messages, the exact wording you agreed to and when, and any opt-out.</li>
         <li>A rating and comment, if you choose to leave a review.</li>
       </ul>
-      <p>
-        <strong>Card details</strong> are entered on Stripe&apos;s secure checkout and are never received or stored by
-        Beadup.
-      </p>
+      {external ? (
+        <p>
+          <strong>Payments</strong> are made by clients directly to their detailer, outside Beadup. Beadup never receives
+          card or bank details.
+        </p>
+      ) : (
+        <p>
+          <strong>Card details</strong> are entered on Stripe&apos;s secure checkout and are never received or stored by
+          Beadup.
+        </p>
+      )}
       <p>
         <strong>Security data:</strong> to prevent abuse we keep a one-way scrambled version of your IP address for a
         short time to limit repeated requests, and booking pages use Cloudflare Turnstile to check for automated bots.
@@ -68,10 +80,12 @@ export default async function Privacy() {
       <h2>Who we share it with</h2>
       <p>We share information only with the service providers that run parts of Beadup, and only what they need:</p>
       <ul>
-        <li>
-          <strong>Stripe</strong> processes payments and payouts. Detailers are Stripe account holders and Stripe&apos;s own
-          terms and privacy policy apply to them.
-        </li>
+        {!external && (
+          <li>
+            <strong>Stripe</strong> processes payments and payouts. Detailers are Stripe account holders and Stripe&apos;s own
+            terms and privacy policy apply to them.
+          </li>
+        )}
         <li>
           <strong>Twilio</strong> delivers text messages, when Beadup sends them. Text messages are not in use yet; we
           will update this policy before they are.
@@ -100,8 +114,8 @@ export default async function Privacy() {
       <p>
         We keep account information for as long as the account is open. When a detailer deletes their account, we delete
         their profile, clients, bookings, quotes, photos and messages from Beadup. We keep a short security record that an
-        account was deleted, without personal details. Stripe and the card networks keep payment records they are
-        required to keep by law. Deleted data can remain in encrypted backups for a limited time before it is overwritten.
+        account was deleted, without personal details.{" "}
+        {!external && "Stripe and the card networks keep payment records they are required to keep by law. "}Deleted data can remain in encrypted backups for a limited time before it is overwritten.
       </p>
 
       <h2>Your choices and rights</h2>

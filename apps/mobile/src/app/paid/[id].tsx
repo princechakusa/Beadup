@@ -10,7 +10,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Text } from '@/components/ui/Text';
-import { fetchBalance, fetchBooking, fetchNextBookings, fetchPayments, fetchProfile, useQuery } from '@/lib/data';
+import { fetchBalance, fetchBooking, fetchNextBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery } from '@/lib/data';
 import { dateKey, dayLabel, startOfDay, timeOf, usd } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
@@ -47,11 +47,15 @@ export default function Paid() {
   const balance = useQuery(fetchBalance);
   const next = useQuery(() => fetchNextBookings(3));
 
+  // Launch mode: the client paid the detailer directly, so show the job total
+  // and what is left to collect instead of Stripe payments.
+  const external = usePaymentsMode() === 'external';
   const b = booking.data;
-  const amount = useCountUp(b?.paidCents ?? 0);
+  const shown = b ? (external ? b.subtotalCents : b.paidCents) : 0;
+  const amount = useCountUp(shown);
   useEffect(() => {
-    if (b && b.paidCents > 0) haptic.success();
-  }, [b]);
+    if (b && (external || b.paidCents > 0)) haptic.success();
+  }, [b, external]);
 
   const todayTotal = (today.data ?? []).filter((p) => p.status === 'succeeded').reduce((n, p) => n + p.amountCents, 0);
   const nextJob = (next.data ?? []).find((x) => x.id !== id);
@@ -69,9 +73,9 @@ export default function Paid() {
         <LiquidBead size={104} />
         <Animated.View entering={FadeInDown.delay(250).springify()} style={{ alignItems: 'center', gap: 4 }}>
           <Text variant="body" tone="steel" style={{ marginTop: space.lg }}>
-            {b ? `${name} paid you` : ' '}
+            {b ? (external ? `Job done for ${name}` : `${name} paid you`) : ' '}
           </Text>
-          <Text style={styles.amount} accessibilityLabel={b ? `${usd(b.paidCents)} paid` : undefined}>
+          <Text style={styles.amount} accessibilityLabel={b ? `${usd(shown)} ${external ? 'job total' : 'paid'}` : undefined}>
             {usd(amount, { cents: true })}
           </Text>
           {b && (
@@ -83,6 +87,24 @@ export default function Paid() {
       </View>
 
       <Animated.View entering={FadeInDown.delay(400).springify()} style={{ gap: space.md }}>
+        {external && b ? (
+        <GlassCard>
+          <View style={styles.rowBetween}>
+            <Text variant="body" tone="steel">
+              Deposit
+            </Text>
+            <Text variant="bodyStrong">{usd(b.depositCents)}</Text>
+          </View>
+          <View style={[styles.rowBetween, { marginTop: space.md }]}>
+            <Text variant="body" tone="steel">
+              Balance to collect
+            </Text>
+            <Text variant="bodyStrong" tone="gold">
+              {usd(b.subtotalCents - b.depositCents)}
+            </Text>
+          </View>
+        </GlassCard>
+        ) : (
         <GlassCard>
           <View style={styles.rowBetween}>
             <Text variant="body" tone="steel">
@@ -99,6 +121,7 @@ export default function Paid() {
             </Text>
           </View>
         </GlassCard>
+        )}
 
         {nextJob && (
           <Button

@@ -2,6 +2,8 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(16);
+-- These tests cover the Stripe path (unpaid holds); external mode has its own file.
+update public.plan_config set value = '"stripe"' where key = 'payments_mode';
 
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, created_at, updated_at) values
   ('00000000-0000-0000-0000-000000000000', 'cccccccc-0000-4000-8000-000000000000', 'authenticated', 'authenticated', 'c@test.local', '', now(), now());

@@ -27,6 +27,7 @@ export function BookedCelebration({
   serviceName,
   celebrate = false,
   smsEnabled = false,
+  payment,
 }: {
   businessName: string;
   when: string;
@@ -36,6 +37,8 @@ export function BookedCelebration({
   celebrate?: boolean;
   /** Mention texts only when they are actually sent. */
   smsEnabled?: boolean;
+  /** External payments: the deposit is still to be paid to the detailer, via their link and/or note. */
+  payment?: { link: string | null; note: string | null };
 }) {
   const reduce = useReducedMotion();
   useEffect(() => {
@@ -121,15 +124,40 @@ export function BookedCelebration({
             <span className="font-semibold">{when}</span>
           </div>
           <div className="flex justify-between py-1.5 text-[15px]">
-            <span className="text-steel">Paid today</span>
+            <span className="text-steel">{payment ? "Deposit to pay" : "Paid today"}</span>
             <span className="font-display font-bold text-gold">{paid}</span>
           </div>
         </div>
 
+        {payment && (
+          <div className="mt-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 text-left">
+            <p className="text-[15px] font-semibold">Pay your deposit to {businessName}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-steel">
+              Your time is held. Pay the {paid} deposit to secure it.
+            </p>
+            {payment.note && <p className="mt-3 whitespace-pre-line break-words text-[15px] font-medium">{payment.note}</p>}
+            {payment.link && (
+              <a
+                href={payment.link}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="mt-4 flex h-[52px] items-center justify-center rounded-[18px] bg-gold font-bold text-midnight shadow-[0_10px_30px_rgba(255,181,71,0.3)]"
+              >
+                Pay {paid} deposit
+              </a>
+            )}
+            {!payment.link && !payment.note && (
+              <p className="mt-3 text-[13px] text-steel">{businessName} will contact you about the deposit.</p>
+            )}
+          </div>
+        )}
+
         <p className="mt-6 text-[13px] leading-relaxed text-steel">
-          {smsEnabled
-            ? "Your receipt and confirmation are on their way by text and email. You'll get a reminder the day before."
-            : "Your receipt is on its way by email. Need to change anything? Contact the detailer directly."}
+          {payment
+            ? "Need to change anything? Contact the detailer directly."
+            : smsEnabled
+              ? "Your receipt and confirmation are on their way by text and email. You'll get a reminder the day before."
+              : "Your receipt is on its way by email. Need to change anything? Contact the detailer directly."}
         </p>
       </motion.div>
     </div>

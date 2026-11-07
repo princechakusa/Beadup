@@ -13,6 +13,9 @@ const DETAILERS: Record<string, Detailer> = {
     timezone: "America/Chicago",
     rating: 4.7,
     reviewCount: 3,
+    payments: "external",
+    paymentLink: null,
+    paymentNote: "Zelle: (512) 555-0101",
     services: [
       {
         id: "a0000000-0000-4000-8000-000000000001",

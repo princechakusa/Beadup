@@ -474,3 +474,59 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [],
   useFocusEffect(run);
   return { data, error, loading, stale, refresh: run };
 }
+
+// Launch mode (owner decision 2026-11-07): clients pay deposits to the
+// detailer directly via the detailer's own link or note; Beadup never touches
+// the money. "stripe" switches the in-app Stripe flows back on.
+export type PaymentsMode = 'stripe' | 'external';
+
+export async function fetchPaymentsMode(): Promise<PaymentsMode> {
+  if (!supabase) return 'external';
+  const { data, error } = await db().rpc('payments_mode');
+  if (error) throw error;
+  return data === 'stripe' ? 'stripe' : 'external';
+}
+
+/** Payments mode for screens; external until the server says otherwise. */
+export function usePaymentsMode(): PaymentsMode {
+  return useQuery(fetchPaymentsMode, [], 'payments-mode').data ?? 'external';
+}
+
+export type PaymentDetails = { link: string | null; note: string | null };
+
+export async function fetchPaymentDetails(): Promise<PaymentDetails> {
+  if (!supabase) return fixtures.paymentDetails;
+  const { data, error } = await db().from('detailers').select('payment_link, payment_note').maybeSingle();
+  if (error) throw error;
+  return { link: data?.payment_link ?? null, note: data?.payment_note ?? null };
+}
+
+/**
+ * Cleans a typed payment link: adds https:// when missing, refuses plain
+ * http and anything that isn't a web address. Same rule as the database check.
+ */
+export function normalizePaymentLink(input: string): { ok: true; link: string | null } | { ok: false; error: string } {
+  const t = input.trim();
+  if (!t) return { ok: true, link: null };
+  if (/^http:\/\//i.test(t)) return { ok: false, error: 'Use the https:// version of the link.' };
+  const link = /^https:\/\//i.test(t) ? `https://${t.slice(8)}` : `https://${t}`;
+  if (link.length > 300 || !/^https:\/\/[^\s<>"]+\.[^\s<>"]+$/.test(link)) return { ok: false, error: 'That doesn’t look like a web link.' };
+  try {
+    new URL(link);
+  } catch {
+    return { ok: false, error: 'That doesn’t look like a web link.' };
+  }
+  return { ok: true, link };
+}
+
+export async function savePaymentDetails(d: PaymentDetails): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = await db()
+    .from('detailers')
+    .update({ payment_link: d.link, payment_note: d.note?.trim() ? d.note.trim().slice(0, 200) : null })
+    .eq('id', user.user.id);
+  if (error) throw error;
+  await refreshBookingPage();
+}

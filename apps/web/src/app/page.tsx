@@ -7,8 +7,35 @@ import { getPublicConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: { absolute: "Beadup: quote, book and get paid as a mobile detailer" },
   description:
-    "AI photo quotes, a booking link your clients can use without an app, and deposits that cover their own card fee. Built for mobile car detailers.",
+    "AI photo quotes, a booking link your clients can use without an app, and a deposit step that cuts no-shows. Built for mobile car detailers.",
 };
+
+const FEATURES_EXTERNAL = [
+  {
+    title: "AI photo quotes",
+    body: "Photos in, itemized price out, from your own price list. You approve every quote before it's sent.",
+  },
+  {
+    title: "Deposits that stick",
+    body: "Every booking asks for a 30% deposit, paid straight to you through your own payment link. Beadup takes no cut.",
+  },
+  {
+    title: "One link, no app for clients",
+    body: "Put your link in your Instagram bio. Clients pick a service and a time from their browser in under a minute.",
+  },
+  {
+    title: "Your day at a glance",
+    body: "Today's jobs, the next address, and one tap to start the route, text or call the client.",
+  },
+  {
+    title: "Booking alerts",
+    body: "Your phone pings the moment someone books, with the service, time and deposit.",
+  },
+  {
+    title: "Clients and money in one place",
+    body: "Every client, visit and job price in the app, so you always know what this week brought in.",
+  },
+];
 
 const FEATURES = [
   {
@@ -45,7 +72,7 @@ export default async function Home() {
       <LandingHero freeBookings={config.free_bookings_per_month} />
 
       <section id="features" className="mx-auto mt-24 grid w-full max-w-6xl gap-5 px-5 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
-        {FEATURES.map((f) => (
+        {(config.payments_mode === "external" ? FEATURES_EXTERNAL : FEATURES).map((f) => (
           <div key={f.title} className="flex flex-col gap-2.5 rounded-[32px] border border-white/[0.08] bg-panel p-7">
             <h2 className="font-display text-[22px] font-bold">{f.title}</h2>
             <p className="text-[15px] leading-relaxed text-steel">{f.body}</p>

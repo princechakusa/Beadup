@@ -9,7 +9,12 @@ const spring = { type: "spring", stiffness: 260, damping: 24 } as const;
 export function LandingHero({ freeBookings }: { freeBookings: number }) {
   const reduce = useReducedMotion();
   const rise = (delay: number) =>
-    reduce ? {} : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { ...spring, delay } };
+    // The server can't know the visitor's motion setting, so it renders the
+    // hidden start state. Under Reduce Motion we still animate *to* visible,
+    // just instantly; dropping the props left the hero invisible.
+    reduce
+      ? { initial: { opacity: 0, y: 0 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+      : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { ...spring, delay } };
 
   return (
     <section className="relative mx-auto grid w-full max-w-6xl items-center gap-14 px-5 pt-8 sm:px-10 lg:grid-cols-[1fr_420px] lg:pt-16">

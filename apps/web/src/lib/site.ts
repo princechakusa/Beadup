@@ -14,9 +14,11 @@ const configSchema = z.object({
   sms_enabled: z.boolean().optional().default(false),
   /** Who receives vehicle photos for AI quotes (named in the privacy policy). */
   ai_provider: z.enum(["openai", "anthropic"]).optional().default("openai"),
+  /** "external": clients pay deposits to detailers directly (launch); "stripe": Beadup Checkout. */
+  payments_mode: z.enum(["stripe", "external"]).optional().default("stripe"),
 });
 export type PublicConfig = z.infer<typeof configSchema>;
-const FALLBACK: PublicConfig = { free_bookings_per_month: 5, pro_price_display: null, pro_price_period: "month", sms_enabled: false, ai_provider: "openai" };
+const FALLBACK: PublicConfig = { free_bookings_per_month: 5, pro_price_display: null, pro_price_period: "month", sms_enabled: false, ai_provider: "openai", payments_mode: "external" };
 
 /**
  * Plan limits and the marketing price, from the plan_config table. Nothing

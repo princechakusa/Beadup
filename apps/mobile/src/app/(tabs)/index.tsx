@@ -11,6 +11,7 @@ import {
   fetchBookings,
   fetchNextBookings,
   fetchPayments,
+  usePaymentsMode,
   fetchProfile,
   fetchRating,
   useQuery,
@@ -33,25 +34,31 @@ export default function Today() {
   const todayKey = dateKey(new Date(), tz);
   const monday = mondayOf(todayKey);
 
+  // Launch mode: clients pay the detailer directly, so earnings come from
+  // finished jobs instead of Stripe payments.
+  const external = usePaymentsMode() === 'external';
   const week = useQuery(async () => {
     const start = startOfDay(addDaysKey(monday, -7), tz);
-    const [payments, bookings] = await Promise.all([
-      fetchPayments(start),
-      fetchBookings(startOfDay(monday, tz), startOfDay(addDaysKey(monday, 7), tz)),
+    const [payments, twoWeeks] = await Promise.all([
+      external ? Promise.resolve([]) : fetchPayments(start),
+      fetchBookings(start, startOfDay(addDaysKey(monday, 7), tz)),
     ]);
-    return { payments, bookings };
-  }, [monday, tz], `today-week-${monday}`);
+    const bookings = twoWeeks.filter((b) => dateKey(new Date(b.startsAt), tz) >= monday);
+    return { payments, bookings, twoWeeks };
+  }, [monday, tz, external], `today-week-${monday}-${external ? 'x' : 's'}`);
   const next = useQuery(() => fetchNextBookings(6), [], 'today-next');
   const rating = useQuery(fetchRating);
 
   // Cumulative earnings per day this week (Mon..Sun), and last week's total.
   const daily = Array<number>(7).fill(0);
   let lastWeek = 0;
-  for (const p of week.data?.payments ?? []) {
-    if (p.status !== 'succeeded') continue;
-    const k = dateKey(new Date(p.createdAt), tz);
-    if (k >= monday) daily[weekdayIndex(k)] += p.amountCents;
-    else lastWeek += p.amountCents;
+  const entries = external
+    ? (week.data?.twoWeeks ?? []).filter((b) => b.status === 'completed').map((b) => ({ at: b.startsAt, cents: b.subtotalCents }))
+    : (week.data?.payments ?? []).filter((p) => p.status === 'succeeded').map((p) => ({ at: p.createdAt, cents: p.amountCents }));
+  for (const e of entries) {
+    const k = dateKey(new Date(e.at), tz);
+    if (k >= monday) daily[weekdayIndex(k)] += e.cents;
+    else lastWeek += e.cents;
   }
   const cumulative = daily.map((_, i) => daily.slice(0, i + 1).reduce((a, b) => a + b, 0));
   const todayIdx = weekdayIndex(todayKey);

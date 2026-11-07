@@ -39,8 +39,9 @@ async function Review({ params }: { params: PageProps<"/r/[token]">["params"] })
   if (c.alreadyReviewed) {
     return (
       <div className="text-center">
-        <h1 className="font-display text-3xl font-extrabold">Thanks, you&apos;ve already reviewed this</h1>
-        <p className="mt-3 text-steel">We appreciate it.</p>
+        {/* Also shown right after sending: saving refreshes this page. */}
+        <h1 className="font-display text-3xl font-extrabold">Thanks for your review</h1>
+        <p className="mt-3 text-steel">It helps {c.businessName} and other drivers nearby. Reviews can only be left once.</p>
       </div>
     );
   }

@@ -49,6 +49,24 @@ jobs:
           export NEXT_PUBLIC_SITE_URL="http://localhost:3000"
           npm run build
 
+      - name: End-to-end booking tests (Playwright)
+        working-directory: apps/web
+        run: |
+          eval "$(npx -y supabase@3.0.0 status -o env --override-name api.url=SB_URL --override-name auth.anon_key=SB_ANON --override-name auth.service_role_key=SB_SERVICE 2>/dev/null)" || true
+          export NEXT_PUBLIC_SUPABASE_URL="${SB_URL:-http://127.0.0.1:54321}"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SB_ANON:?local anon key missing}"
+          export SUPABASE_SERVICE_ROLE_KEY="${SB_SERVICE:?local service role key missing}"
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
       - name: Audit web dependencies (production)
         working-directory: apps/web
         run: npm audit --omit=dev --audit-level=high

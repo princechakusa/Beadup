@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocPage } from "@/components/site/SiteChrome";
-import { LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
+import { getPublicConfig, LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Terms of service" };
 
 // Mirrors how the product works (cancellation policy = cancel_booking() in
 // SQL; subscriptions = store billing). Have it reviewed by a lawyer before
 // launch and fill in the governing law.
-export default function Terms() {
+export default async function Terms() {
+  const { payments_mode } = await getPublicConfig();
+  const external = payments_mode === "external";
   return (
     <DocPage title="Terms of service" updated="November 7, 2026">
       <p>
@@ -32,6 +34,19 @@ export default function Terms() {
       </ul>
 
       <h2>Payments</h2>
+      {external ? (
+      <ul>
+        <li>
+          Beadup does not process or hold client payments. Clients pay the detailer directly, using the payment method
+          the detailer shows after booking (for example their own payment link or bank transfer details).
+        </li>
+        <li>
+          The booking page shows the price and a suggested deposit (currently 30% of the price). Deposits, balances,
+          cancellations and refunds are agreed between the client and the detailer.
+        </li>
+        <li>Beadup does not take a percentage of detailers&apos; payments.</li>
+      </ul>
+      ) : (
       <ul>
         <li>
           Client payments are processed by Stripe and paid out to the detailer&apos;s Stripe account. Detailers must
@@ -43,13 +58,21 @@ export default function Terms() {
         </li>
         <li>Beadup does not take a percentage of detailers&apos; payments.</li>
       </ul>
+      )}
 
       <h2>Cancellations and refunds for bookings</h2>
+      {external ? (
+      <p>
+        Clients should contact the detailer to change or cancel a booking. Because deposits are paid to the detailer
+        directly, refunds are made by the detailer under the policy they give the client. Beadup cannot issue refunds.
+      </p>
+      ) : (
       <ul>
         <li>If a client cancels 24 hours or more before the appointment, the deposit is refunded. The booking fee covers card processing and is not refunded.</li>
         <li>If a client cancels later than that, or doesn&apos;t show up, the deposit is not refunded.</li>
         <li>If the detailer cancels, the client is refunded in full, including the booking fee.</li>
       </ul>
+      )}
 
       <h2>Beadup Pro</h2>
       <p>

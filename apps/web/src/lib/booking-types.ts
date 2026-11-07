@@ -16,6 +16,17 @@ export const detailerSchema = z.object({
   /** Average of visible reviews, or null when there are none yet. */
   rating: z.number().min(1).max(5).nullable(),
   reviewCount: z.number().int().min(0),
+  /** "external": the client pays the deposit to the detailer directly (launch mode). */
+  payments: z.enum(["stripe", "external"]).default("stripe"),
+  /** The detailer's own payment page (https only, checked in the database too). */
+  paymentLink: z
+    .string()
+    .max(300)
+    .regex(/^https:\/\/[^\s<>"]+$/)
+    .nullable()
+    .default(null),
+  /** Plain-text payment instructions, e.g. "Zelle: 512-555-0101". */
+  paymentNote: z.string().max(200).nullable().default(null),
   services: z.array(
     z.object({
       id: z.string(),

@@ -38,7 +38,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Server-side booking creation (Zod-validated server action), slot double-booking protection, rate limiting, Turnstile
 ### M3: Payments
 - [x] Stripe Connect integration (Express accounts, "Stripe handles pricing"), deposit Checkout / Payment Element, client booking fee, idempotent signature-verified webhooks, refunds/cancellation policy (built and tested with signed local events; run one real test-mode checkout once keys exist)
-- [ ] 🔑 Stripe test keys from owner
+- [ ] 🔑 Stripe test keys from owner. **OWNER DECISION 2026-11-07: launch without Stripe.** A UAE Stripe platform can only onboard UAE connected accounts, so it can't pay US detailers. `plan_config.payments_mode = 'external'`: clients book free and pay the 30% deposit to the detailer directly via the detailer's own payment link/note (`detailers.payment_link`, `payment_note`). No booking fee, bookings confirmed at once. Switch to `'stripe'` once Beadup has a US/UK/EEA/CA/CH company (cheapest: US LLC); all Stripe code stays
 - [x] Balance payment link after job, automatic receipts (email + SMS) (email via Stripe receipts; SMS via outbox, sends once Twilio keys exist)
 ### M4: Detailer mobile app (`apps/mobile`, Expo)
 - [x] Theme + design tokens, Sora/Inter, dark glass components, Skia liquid bead logo (wobble, tilt reflections), haptics
@@ -59,7 +59,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] 🔑 App Store Connect + Play Console: create the `beadup_pro_monthly` subscription products. Bundle ID / package `com.beadup.app` is FINAL (owner approved 2026-11-07)
 ### M8: Launch
 - [x] Security review against rules.md section 7 (OWASP ASVS/MASVS), CSP nonces, dependency audit (see `docs/SECURITY_REVIEW.md`; nonces are incompatible with Partial Prerendering per the Next docs, so CSP keeps `unsafe-inline` with the mitigations listed there; CI + Dependabot + gitleaks added)
-- [ ] E2E tests (Playwright) for the booking + payment flow
+- [x] E2E tests (Playwright) for the booking + payment flow (`apps/web/e2e`, 9 tests incl. axe accessibility, run in CI against the local stack)
 - [ ] 🔑 Domain (beadup.app or getbeadup.com), hosting (Vercel free tier), production keys
 - [ ] 🔑 Apple Developer + Google Play accounts. Store listings, screenshots, privacy labels, demo accounts, review notes (rules.md section 8)
 - [ ] 3D app icon render (Blender is installed on this PC)
@@ -89,3 +89,4 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Accounts (2026-11-07): Expo project `@princechakusa/beadup` (EAS projectId in app.json, owner pinned to `princechakusa`; the owner also has a `businessos1` account). Supabase project ref `bczhuwibozwsynrlfqrq` (org "Beadup", us-west-2, Free), already connected to the GitHub repo; migrations reach it through the GitHub integration's "Deploy to production" (migrations only; auth settings and seed are not synced, so set redirect URLs, Apple provider and the magic-link template in the dashboard). Owner has Apple Developer and Google Play accounts. AI quotes use **OpenAI** (owner decision): provider is `plan_config.ai_provider` (`openai` | `anthropic`); `apps/web/src/lib/ai-quote.ts` calls OpenAI Responses (`OPENAI_MODEL`, default gpt-6-luna, `store: false`) or Claude. Consent is per provider (`detailers.ai_consent_provider`, `ai_consent_status()`), so a provider switch re-asks.
 - CSP keeps `'unsafe-inline'` scripts on purpose: nonces need dynamic rendering and break Partial Prerendering (see `docs/SECURITY_REVIEW.md`). Never add `dangerouslySetInnerHTML`/`eval`.
 - Rate-limit IPs come from `src/lib/client-ip.ts` (host-set headers first). Failed refunds are retried by `/api/cron/messages` (`src/lib/refunds.ts`).
+- Payments mode (`payments_mode()`, `get_public_config().payments_mode`): web booking flow, policies, support/pricing/landing copy and the mobile app (Settings > Payment link, onboarding last step, Money/Today from finished jobs, "Booked" instead of "Deposit paid") all follow it. Hosting: Netlify free (`netlify.toml`, Next.js plugin named explicitly, scheduled function `apps/web/netlify/functions/cron-messages.mts`), site https://beadup.netlify.app; deploy steps in `docs/DEPLOY.md`.

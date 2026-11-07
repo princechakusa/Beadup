@@ -106,14 +106,17 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [paidCents, setPaidCents] = useState<number | null>(null);
 
   const service = detailer.services.find((s) => s.id === serviceId)!;
+  // Launch mode: the client pays the deposit to the detailer directly (no card form, no booking fee).
+  const external = detailer.payments === "external";
+  const shortName = detailer.businessName.replace(/\.+$/, "");
   const totals = useMemo(() => {
     const base = service.priceCents[size];
     const extras = detailer.addOns.filter((a) => addOns.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const total = base + extras;
     const deposit = depositCents(total);
-    const fee = bookingFeeCents(deposit);
+    const fee = external ? 0 : bookingFeeCents(deposit);
     return { base, extras, total, deposit, fee, dueToday: deposit + fee };
-  }, [service, size, addOns, detailer.addOns]);
+  }, [service, size, addOns, detailer.addOns, external]);
 
   const canContinue =
     (step === 0 && !!serviceId) || step === 1 || (step === 2 && !!dayKey && !!slot) || step === 3 || step === 4;
@@ -191,6 +194,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         businessName={detailer.businessName}
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
         paid={formatUsd(paidCents ?? totals.dueToday)}
+        payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
         serviceName={service.name}
         celebrate
         smsEnabled={smsEnabled}
@@ -467,20 +471,29 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                   <Row label="Total" value={formatUsd(totals.total)} strong />
                   <div className="my-4 h-px bg-white/[0.06]" />
                   <Row label="Deposit (30%)" value={formatUsd(totals.deposit)} />
-                  <Row label="Booking fee" value={formatUsd(totals.fee)} muted />
+                  {!external && <Row label="Booking fee" value={formatUsd(totals.fee)} muted />}
                   <Row label={`Pay ${formatUsd(totals.total - totals.deposit)} after the job`} value="" muted />
                 </div>
-                <p className="mt-4 flex items-center gap-2 text-[13px] text-steel">
-                  <svg width="14" height="16" viewBox="0 0 16 18" aria-hidden="true">
-                    <rect x="2" y="8" width="12" height="9" rx="2" fill="currentColor" />
-                    <path d="M5 8V5a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  Encrypted checkout. Your card is never stored by Beadup.
-                </p>
-                <p className="mt-2 text-[13px] leading-relaxed text-steel">
-                  Cancel 24 hours or more before your appointment and your deposit is refunded. The booking fee covers card
-                  processing and isn&apos;t refundable. If {detailer.businessName.replace(/\.+$/, "")} cancels, you get everything back.
-                </p>
+                {external ? (
+                  <p className="mt-4 text-[13px] leading-relaxed text-steel">
+                    After you book, you&apos;ll pay the {formatUsd(totals.deposit)} deposit to {shortName} directly. Beadup
+                    never takes your card. Deposits, changes and refunds are handled by {shortName}.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-4 flex items-center gap-2 text-[13px] text-steel">
+                      <svg width="14" height="16" viewBox="0 0 16 18" aria-hidden="true">
+                        <rect x="2" y="8" width="12" height="9" rx="2" fill="currentColor" />
+                        <path d="M5 8V5a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      Encrypted checkout. Your card is never stored by Beadup.
+                    </p>
+                    <p className="mt-2 text-[13px] leading-relaxed text-steel">
+                      Cancel 24 hours or more before your appointment and your deposit is refunded. The booking fee covers card
+                      processing and isn&apos;t refundable. If {shortName} cancels, you get everything back.
+                    </p>
+                  </>
+                )}
                 <Turnstile onToken={setTurnstileToken} />
                 {bookError && (
                   <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
@@ -505,7 +518,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-steel">{step === 4 ? "Due today" : "Estimated total"}</p>
+              <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
               <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} />
             </div>
             <motion.button
@@ -519,7 +532,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               {paying ? (
                 <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="block h-5 w-5 rounded-full border-2 border-bead-ink border-t-transparent" aria-label="Processing" />
               ) : step === 4 ? (
-                "Book & pay"
+                external ? "Book" : "Book & pay"
               ) : (
                 "Continue"
               )}

@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { updateTag } from "next/cache";
+import { after } from "next/server";
 import { headers } from "next/headers";
 import { clientIp } from "@/lib/client-ip";
 import { z } from "zod";
@@ -9,6 +10,7 @@ import { bookingPageTag, getBookingPage, HANDLE_RE } from "@/lib/booking-page";
 import { VEHICLE_SIZES } from "@/lib/booking-types";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
+import { notifyPayment } from "@/lib/push";
 import { getPublicConfig } from "@/lib/site";
 import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -40,7 +42,15 @@ export type BookingInput = z.input<typeof bookingInput>;
 
 export type BookingResult =
   /** checkoutUrl is set when the client must pay on Stripe Checkout next. */
-  | { ok: true; bookingId: string; depositCents: number; bookingFeeCents: number; checkoutUrl?: string }
+  | {
+      ok: true;
+      bookingId: string;
+      depositCents: number;
+      bookingFeeCents: number;
+      checkoutUrl?: string;
+      /** "external": confirmed now; the client pays the deposit to the detailer directly. */
+      payments?: "stripe" | "external";
+    }
   | {
       ok: false;
       error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" | "payments_not_ready" | "plan_limit";
@@ -151,7 +161,8 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     if (!service) return { ok: false, error: "invalid" };
     const extras = detailer.addOns.filter((a) => input.addOnIds.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const deposit = depositCents(service.priceCents[input.vehicleSize] + extras);
-    return { ok: true, bookingId: "demo", depositCents: deposit, bookingFeeCents: bookingFeeCents(deposit) };
+    const external = detailer.payments === "external";
+    return { ok: true, bookingId: "demo", depositCents: deposit, bookingFeeCents: external ? 0 : bookingFeeCents(deposit), payments: detailer.payments };
   }
 
   // 5 attempts per 10 minutes per IP, and 3 per hour per phone number.
@@ -182,7 +193,13 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
 
   const result = z
     .union([
-      z.object({ ok: z.literal(true), bookingId: z.uuid(), depositCents: z.number(), bookingFeeCents: z.number() }),
+      z.object({
+        ok: z.literal(true),
+        bookingId: z.uuid(),
+        depositCents: z.number(),
+        bookingFeeCents: z.number(),
+        payments: z.enum(["stripe", "external"]).default("stripe"),
+      }),
       z.object({ ok: z.literal(false), error: z.string() }),
     ])
     .parse(data);
@@ -196,6 +213,13 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
 
   updateTag(bookingPageTag(input.handle));
   const booked = { bookingId: result.bookingId, depositCents: result.depositCents, bookingFeeCents: result.bookingFeeCents };
+
+  if (result.payments === "external") {
+    // Confirmed by the database; the client pays the detailer directly. No
+    // payment webhook will follow, so alert the detailer now.
+    after(() => notifyPayment(result.bookingId, "booked"));
+    return { ok: true, ...booked, payments: "external" };
+  }
 
   if (!stripe()) {
     // No payment processor configured: allowed only outside production.

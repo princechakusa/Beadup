@@ -20,13 +20,22 @@ export default async function Pricing() {
   // the App Store / Google Play and shown by the store at purchase.
   const price = config.pro_price_display;
 
-  const everything = [
-    "Your booking link with deposits",
-    "AI photo quotes from your price list",
-    "Calendar, clients and money in one app",
-    "Automatic email receipts for every payment",
-    "Clients pay the card fee, you keep the full deposit",
-  ];
+  const external = config.payments_mode === "external";
+  const everything = external
+    ? [
+        "Your booking link, with your own deposit link shown to clients",
+        "AI photo quotes from your price list",
+        "Calendar, clients and money in one app",
+        "Booking alerts on your phone",
+        "No cut of your payments: clients pay you directly",
+      ]
+    : [
+        "Your booking link with deposits",
+        "AI photo quotes from your price list",
+        "Calendar, clients and money in one app",
+        "Automatic email receipts for every payment",
+        "Clients pay the card fee, you keep the full deposit",
+      ];
 
   return (
     <>
@@ -90,7 +99,9 @@ export default async function Pricing() {
         </div>
 
         <p className="mt-10 text-center text-sm text-steel">
-          Card processing is paid by your clients as a small booking fee, so you keep the full deposit.
+          {external
+            ? "Clients pay you directly through your own payment link. Beadup never takes a cut."
+            : "Card processing is paid by your clients as a small booking fee, so you keep the full deposit."}
         </p>
       </main>
       <SiteFooter />

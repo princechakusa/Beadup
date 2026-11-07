@@ -32,7 +32,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mx-auto mt-24 flex w-full max-w-6xl flex-col gap-4 border-t border-white/[0.06] px-5 py-10 text-[13px] text-[#5b6371] sm:flex-row sm:items-center sm:justify-between sm:px-10">
+    <footer className="mx-auto mt-24 flex w-full max-w-6xl flex-col gap-4 border-t border-white/[0.06] px-5 py-10 text-[13px] text-steel sm:flex-row sm:items-center sm:justify-between sm:px-10">
       <span>© Beadup</span>
       <nav className="flex flex-wrap gap-x-6 gap-y-2 text-steel">
         <Link href="/privacy" className="hover:text-paint">

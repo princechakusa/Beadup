@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Text } from '@/components/ui/Text';
 import { signOut, useAuth } from '@/lib/auth';
-import { startPayoutsSetup } from '@/lib/data';
+import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
+import { startPayoutsSetup, usePaymentsMode } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
@@ -66,6 +67,7 @@ export default function Onboarding() {
   const [error, setError] = useState<string | null>(null);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const effectiveHandle = handleEdited ? handle : slug(name);
+  const paymentsMode = usePaymentsMode();
 
   // Live handle check (debounced).
   useEffect(() => {
@@ -300,16 +302,27 @@ export default function Onboarding() {
                     {apiBaseUrl.replace(/^https?:\/\//, '')}/{effectiveHandle}
                   </Text>
                 </View>
-                <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
-                  Connect Stripe so clients can pay deposits. Beadup never sees card numbers, and payouts go straight to
-                  your bank.
-                </Text>
-                {error && (
-                  <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
-                    {error}
-                  </Text>
+                {paymentsMode === 'external' ? (
+                  <>
+                    <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
+                      Last step: how should clients pay your deposit? They see this right after they book.
+                    </Text>
+                    <PaymentDetailsForm initial={{ link: null, note: null }} saveLabel="Save and open Beadup" onSaved={() => refreshProfile()} />
+                  </>
+                ) : (
+                  <>
+                    <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
+                      Connect Stripe so clients can pay deposits. Beadup never sees card numbers, and payouts go straight to
+                      your bank.
+                    </Text>
+                    {error && (
+                      <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
+                        {error}
+                      </Text>
+                    )}
+                    <Button label="Connect Stripe" onPress={connectStripe} loading={busy} />
+                  </>
                 )}
-                <Button label="Connect Stripe" onPress={connectStripe} loading={busy} />
                 <Button label="I’ll do this later" variant="ghost" onPress={() => refreshProfile()} />
               </>
             )}
