@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Text } from '@/components/ui/Text';
 import { signOut, useAuth } from '@/lib/auth';
+import { Icon } from '@/components/ui/Icon';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { startPayoutsSetup, usePaymentsMode } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
@@ -146,7 +147,17 @@ export default function Onboarding() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingTop: insets.top + space.lg, paddingBottom: insets.bottom + space.xl, paddingHorizontal: 20, gap: space.lg }}>
           <View style={styles.top}>
-            <Text variant="eyebrow" tone="bead">
+            {(step === 1 || step === 2) && (
+              <Pressable
+                onPress={() => go(step - 1)}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                style={styles.backBtn}>
+                <Icon name="chevronLeft" size={20} color={colors.paint} />
+              </Pressable>
+            )}
+            <Text variant="eyebrow" tone="bead" style={{ flex: 1 }}>
               Step {step + 1} of {STEPS.length} · {STEPS[step]}
             </Text>
             {step === 0 && (
@@ -351,6 +362,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
 }
 
 const styles = StyleSheet.create({
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)', marginRight: 10 },
   root: { flex: 1, backgroundColor: colors.midnight },
   aurora: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

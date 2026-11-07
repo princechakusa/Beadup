@@ -6,22 +6,21 @@
         <td align="center">
           <table role="presentation" width="100%" style="max-width:440px;background:#161A21;border-radius:24px;padding:32px">
             <tr><td style="font-size:12px;letter-spacing:2px;color:#4DD8FF;text-transform:uppercase">Beadup</td></tr>
-            <tr><td style="padding-top:12px;font-size:24px;font-weight:700">Sign in to Beadup</td></tr>
+            <tr><td style="padding-top:12px;font-size:24px;font-weight:700">Your sign-in code</td></tr>
             <tr>
               <td style="padding-top:12px;font-size:15px;line-height:22px;color:#9AA3B2">
-                Open this email on your phone and tap the button. The link works once and expires in one hour.
+                Enter this code in the Beadup app. It works once and expires in one hour.
               </td>
             </tr>
             <tr>
-              <td style="padding-top:24px">
-                <a href="{{ .ConfirmationURL }}"
-                   style="display:inline-block;background:#4DD8FF;color:#04121A;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px">Sign in</a>
+              <td style="padding-top:20px">
+                <div style="font-size:40px;letter-spacing:10px;font-weight:700;color:#4DD8FF;font-family:Menlo,Consolas,monospace">{{ .Token }}</div>
               </td>
             </tr>
             <tr>
-              <td style="padding-top:24px;font-size:14px;color:#9AA3B2">
-                On another device? Enter this code in the app instead:
-                <div style="margin-top:8px;font-size:28px;letter-spacing:6px;font-weight:700;color:#F4F6FA">{{ .Token }}</div>
+              <td style="padding-top:24px;font-size:13px;line-height:20px;color:#9AA3B2">
+                Reading this on your phone? You can also
+                <a href="{{ .ConfirmationURL }}" style="color:#4DD8FF">tap here to sign in</a>.
               </td>
             </tr>
             <tr>
