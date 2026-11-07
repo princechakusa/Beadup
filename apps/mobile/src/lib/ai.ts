@@ -25,10 +25,25 @@ export type AiSuggestion = {
   confidence: 'low' | 'medium' | 'high';
 };
 
+export type AiProviderId = 'openai' | 'anthropic';
+
+/** How the provider is named to the detailer (consent screen, Settings). */
+export const AI_PROVIDER_LABEL: Record<AiProviderId, { name: string; long: string }> = {
+  openai: { name: 'OpenAI', long: 'OpenAI, the company that makes ChatGPT' },
+  anthropic: { name: 'Anthropic', long: 'Anthropic, the company that makes the Claude AI model' },
+};
+
+/** Which provider photos go to, and whether this detailer agreed to that provider. */
+export async function aiConsentStatus(): Promise<{ provider: AiProviderId; consented: boolean }> {
+  if (!supabase) return { provider: 'openai', consented: true };
+  const { data, error } = await supabase.rpc('ai_consent_status');
+  if (error || !data) return { provider: 'openai', consented: false };
+  const d = data as { provider: string; consented: boolean };
+  return { provider: d.provider === 'anthropic' ? 'anthropic' : 'openai', consented: d.consented };
+}
+
 export async function hasAiConsent(): Promise<boolean> {
-  if (!supabase) return true;
-  const { data } = await supabase.from('detailers').select('ai_consent_at').maybeSingle();
-  return !!data?.ai_consent_at;
+  return (await aiConsentStatus()).consented;
 }
 
 export async function giveAiConsent(): Promise<void> {

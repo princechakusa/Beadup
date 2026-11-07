@@ -107,6 +107,8 @@ Third parties that receive data: Stripe (payments), Twilio (text messages), Anth
 
 **Update 2026-11-07 (features added since this table):** optional booking alerts store an Expo push token per device. Declare **Identifiers: device ID = Yes** (App Functionality, linked to the user) in App Store Connect and **Device or other IDs = Yes** in Play Data safety. Add **Expo** (push delivery) and **Cloudflare** (Turnstile bot check on booking pages) to the third-party list. The live privacy policy at `/privacy` already lists them.
 
+**Owner decision 2026-11-07: AI photo quotes use OpenAI** (`plan_config.ai_provider = "openai"`). Wherever this file says Anthropic for vehicle photos, declare **OpenAI** instead.
+
 **Owner decision 2026-11-07: launch without text messages.** While `plan_config.sms_enabled` is false no data goes to Twilio, so do not list Twilio as a recipient or declare SMS. Clients get Stripe email receipts; detailers get push alerts. Update both store forms and `/privacy` when texts are turned on.
 
 ### App Review information

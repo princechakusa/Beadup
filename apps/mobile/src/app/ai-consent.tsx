@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
@@ -9,7 +9,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { giveAiConsent } from '@/lib/ai';
+import { AI_PROVIDER_LABEL, aiConsentStatus, giveAiConsent, type AiProviderId } from '@/lib/ai';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
@@ -20,6 +20,11 @@ import { colors, space } from '@/theme/tokens';
 export default function AiConsent() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [provider, setProvider] = useState<AiProviderId | null>(null);
+  useEffect(() => {
+    aiConsentStatus().then((s) => setProvider(s.provider));
+  }, []);
+  const label = provider ? AI_PROVIDER_LABEL[provider] : null;
 
   const accept = async () => {
     setBusy(true);
@@ -37,7 +42,7 @@ export default function AiConsent() {
   };
 
   const points: [string, string][] = [
-    ['camera', 'Beadup sends the photos you choose, plus your services and add-ons, to Anthropic, the company that makes the Claude AI model.'],
+    ['camera', `Beadup sends the photos you choose, plus your services and add-ons, to ${label?.long ?? 'our AI provider'}.`],
     ['sparkle', 'The AI suggests a service and add-ons from your own price list. Prices always come from your price list, and you review every quote before it goes to a client.'],
     ['link', 'Photos are stored privately in your Beadup account. Only you can see them.'],
     ['settings', 'You can turn AI photo quotes off any time in Settings. Quotes still work without it.'],
@@ -72,7 +77,7 @@ export default function AiConsent() {
           {error}
         </Text>
       )}
-      <Button label="I agree, send my photos to the AI" onPress={accept} loading={busy} />
+      <Button label="I agree, send my photos to the AI" onPress={accept} loading={busy} disabled={!provider} />
       <Button label="Not now" variant="ghost" onPress={() => router.back()} />
     </Screen>
   );

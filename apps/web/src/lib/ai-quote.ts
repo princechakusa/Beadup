@@ -1,19 +1,33 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
 // Photo -> suggested quote (rules.md section 5). The model only picks from the
 // detailer's own catalog by id; prices always come from our database, and the
 // detailer approves every number before anything is sent to a client.
+//
+// Provider is config (plan_config.ai_provider, owner decision 2026-11-07:
+// "openai"); keys live only in server env vars.
 
-export const MODEL = "claude-opus-5-5";
+export type AiProvider = "openai" | "anthropic";
 
-let client: Anthropic | null = null;
-export function anthropic(): Anthropic | null {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  client ??= new Anthropic({ timeout: 90_000, maxRetries: 2 });
-  return client;
+export const ANTHROPIC_MODEL = "claude-opus-5-5";
+/** Override with OPENAI_MODEL. gpt-6-luna: OpenAI's efficient high-volume model. */
+export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-6-luna";
+
+let anthropicClient: Anthropic | null = null;
+let openaiClient: OpenAI | null = null;
+
+/** True when the configured provider has a key on this server. */
+export function aiConfigured(provider: AiProvider): boolean {
+  return provider === "openai" ? !!process.env.OPENAI_API_KEY : !!process.env.ANTHROPIC_API_KEY;
+}
+
+export function modelFor(provider: AiProvider): string {
+  return provider === "openai" ? OPENAI_MODEL : ANTHROPIC_MODEL;
 }
 
 export const suggestionSchema = z.object({
@@ -56,14 +70,55 @@ export type CatalogForAi = {
 
 export class AiDeclinedError extends Error {}
 
+async function askOpenAI(photos: { base64: string }[], catalog: CatalogForAi, detailerNote: string): Promise<Suggestion> {
+  openaiClient ??= new OpenAI({ timeout: 90_000, maxRetries: 2 });
+  const response = await openaiClient.responses.parse({
+    model: OPENAI_MODEL,
+    instructions: SYSTEM,
+    input: [
+      {
+        role: "user",
+        content: [
+          ...photos.map((p) => ({ type: "input_image" as const, image_url: `data:image/jpeg;base64,${p.base64}`, detail: "high" as const })),
+          { type: "input_text" as const, text: userText(catalog, detailerNote) },
+        ],
+      },
+    ],
+    text: { format: zodTextFormat(suggestionSchema, "quote_suggestion") },
+    store: false, // don't keep client photos on OpenAI's side beyond the request
+  });
+  for (const item of response.output) {
+    if (item.type !== "message") continue;
+    for (const c of item.content) if (c.type === "refusal") throw new AiDeclinedError("declined");
+  }
+  if (!response.output_parsed) throw new Error(`no structured output (status ${response.status})`);
+  return response.output_parsed;
+}
+
+const userText = (catalog: CatalogForAi, note: string) =>
+  `Price list:
+${JSON.stringify(catalog)}${note ? `
+
+Detailer's note: ${note}` : ""}`;
+
 export async function suggestQuote(
-  ai: Anthropic,
+  provider: AiProvider,
   photos: { base64: string }[],
   catalog: CatalogForAi,
   detailerNote: string,
 ): Promise<Suggestion> {
-  const response = await ai.beta.messages.parse({
-    model: MODEL,
+  const raw = provider === "openai" ? await askOpenAI(photos, catalog, detailerNote) : await askClaude(photos, catalog, detailerNote);
+  return sanitize(raw, catalog);
+}
+
+async function askClaude(
+  photos: { base64: string }[],
+  catalog: CatalogForAi,
+  detailerNote: string,
+): Promise<Suggestion> {
+  anthropicClient ??= new Anthropic({ timeout: 90_000, maxRetries: 2 });
+  const response = await anthropicClient.beta.messages.parse({
+    model: ANTHROPIC_MODEL,
     max_tokens: 16000,
     output_config: { effort: "medium", format: betaZodOutputFormat(suggestionSchema) },
     // Re-run a safety-classifier decline on Anthropic's recommended model.
@@ -90,8 +145,11 @@ export async function suggestQuote(
   if (response.stop_reason === "refusal") throw new AiDeclinedError("declined");
   const parsed = response.parsed_output;
   if (!parsed) throw new Error(`no structured output (stop_reason ${response.stop_reason})`);
+  return parsed;
+}
 
-  // Never trust ids blindly: keep only ones that exist in this detailer's catalog.
+/** Keep only ids that exist in this detailer's catalog and bound every string. */
+function sanitize(parsed: Suggestion, catalog: CatalogForAi): Suggestion {
   const serviceIds = new Set(catalog.services.map((s) => s.id));
   const addOnIds = new Set(catalog.addOns.map((a) => a.id));
   return {
@@ -115,7 +173,7 @@ export function mockSuggestion(catalog: CatalogForAi): Suggestion {
     conditions: [{ label: "Pet hair", area: "rear seats", severity: "moderate" }],
     service_id: catalog.services[1]?.id ?? catalog.services[0]?.id ?? null,
     add_on_ids: catalog.addOns.slice(0, 1).map((a) => a.id),
-    note: "Sample suggestion for development. Add ANTHROPIC_API_KEY to get real photo analysis.",
+    note: "Sample suggestion for development. Add the AI provider's API key to get real photo analysis.",
     confidence: "low",
   };
 }

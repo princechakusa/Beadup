@@ -8,7 +8,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { hasAiConsent, withdrawAiConsent } from '@/lib/ai';
+import { AI_PROVIDER_LABEL, aiConsentStatus, withdrawAiConsent, type AiProviderId } from '@/lib/ai';
 import { signOut } from '@/lib/auth';
 import { fetchAccount, fetchPlanUsage, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
@@ -27,9 +27,15 @@ export default function Settings() {
   const [opening, setOpening] = useState(false);
   const [push, setPush] = useState<PushState | null>(null);
   const [ai, setAi] = useState<boolean | null>(null);
+  const [aiProvider, setAiProvider] = useState<AiProviderId>('openai');
   useFocusEffect(
     useCallback(() => {
-      hasAiConsent().then(setAi).catch(() => setAi(false));
+      aiConsentStatus()
+        .then((s) => {
+          setAi(s.consented);
+          setAiProvider(s.provider);
+        })
+        .catch(() => setAi(false));
     }, []),
   );
   useEffect(() => {
@@ -173,7 +179,7 @@ export default function Settings() {
               AI photo quotes
             </Text>
             <Text variant="caption" style={{ fontSize: 12 }}>
-              Photos are sent to our AI provider, Anthropic
+              Photos are sent to our AI provider, {AI_PROVIDER_LABEL[aiProvider].name}
             </Text>
           </View>
           <Switch

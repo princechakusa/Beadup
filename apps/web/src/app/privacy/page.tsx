@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocPage } from "@/components/site/SiteChrome";
-import { LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
+import { getPublicConfig, LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Privacy policy" };
 
 // Written to match what the code actually does (see docs/store-submission.md
 // for the store privacy answers). Have it reviewed by a lawyer before launch,
 // and update it whenever data use changes (rules.md section 3).
-export default function Privacy() {
+export default async function Privacy() {
+  const { ai_provider } = await getPublicConfig();
+  const ai = ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
   return (
     <DocPage title="Privacy policy" updated="November 7, 2026">
       <p>
@@ -75,8 +77,8 @@ export default function Privacy() {
           will update this policy before they are.
         </li>
         <li>
-          <strong>Anthropic</strong> provides the AI model that suggests quotes. Vehicle photos and the detailer&apos;s
-          service list are sent to Anthropic only after the detailer turns on AI photo quotes.
+          <strong>{ai}</strong> provides the AI model that suggests quotes. Vehicle photos and the detailer&apos;s
+          service list are sent to {ai} only after the detailer turns on AI photo quotes{ai === "OpenAI" ? ", with storage of the request turned off" : ""}.
         </li>
         <li>
           <strong>Supabase</strong> hosts our database, sign-in and private photo storage.

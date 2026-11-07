@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { z } from "zod";
-import { AiDeclinedError, anthropic, mockSuggestion, suggestQuote, type CatalogForAi } from "@/lib/ai-quote";
+import { AiDeclinedError, aiConfigured, mockSuggestion, modelFor, suggestQuote, type AiProvider, type CatalogForAi } from "@/lib/ai-quote";
 import { detailerFromRequest } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -36,9 +37,16 @@ export async function POST(request: Request): Promise<Response> {
   const { data: rl } = await db.rpc("hit_rate_limit", { p_key: `ai-quote:${userId}`, p_limit: 30, p_window_seconds: 3600 });
   if (rl !== true) return Response.json({ error: "rate_limited" }, { status: 429 });
 
-  const { data: detailer } = await db.from("detailers").select("ai_consent_at").eq("id", userId).maybeSingle();
+  const [{ data: detailer }, { data: providerRaw }] = await Promise.all([
+    db.from("detailers").select("ai_consent_at, ai_consent_provider").eq("id", userId).maybeSingle(),
+    db.rpc("current_ai_provider"),
+  ]);
+  const provider: AiProvider = providerRaw === "anthropic" ? "anthropic" : "openai";
   if (!detailer) return Response.json({ error: "no_profile" }, { status: 409 });
-  if (!detailer.ai_consent_at) return Response.json({ error: "consent_required" }, { status: 403 });
+  // Consent covers one named provider; a provider change asks again.
+  if (!detailer.ai_consent_at || detailer.ai_consent_provider !== provider) {
+    return Response.json({ error: "consent_required" }, { status: 403 });
+  }
 
   const [{ data: services }, { data: addOns }] = await Promise.all([
     db.from("services").select("id, name, description, duration_min, price_sedan_cents, price_suv_cents, price_truck_cents").eq("detailer_id", userId).eq("active", true).order("sort_order"),
@@ -50,12 +58,12 @@ export async function POST(request: Request): Promise<Response> {
     addOns: (addOns ?? []).map((a) => ({ id: a.id, name: a.name })),
   };
 
-  const ai = anthropic();
-  if (!ai && process.env.NODE_ENV === "production") return Response.json({ error: "ai_unavailable" }, { status: 503 });
+  const live = aiConfigured(provider);
+  if (!live && process.env.NODE_ENV === "production") return Response.json({ error: "ai_unavailable" }, { status: 503 });
 
   let suggestion;
   try {
-    if (ai) {
+    if (live) {
       const photos = await Promise.all(
         photoPaths.map(async (path) => {
           const { data, error } = await db.storage.from("quote-photos").download(path);
@@ -64,15 +72,15 @@ export async function POST(request: Request): Promise<Response> {
           return { base64: Buffer.from(await data.arrayBuffer()).toString("base64") };
         }),
       );
-      suggestion = await suggestQuote(ai, photos, catalog, note);
+      suggestion = await suggestQuote(provider, photos, catalog, note);
     } else {
       suggestion = mockSuggestion(catalog);
     }
   } catch (e) {
     if (e instanceof AiDeclinedError) return Response.json({ error: "ai_declined" }, { status: 422 });
-    if (e instanceof Anthropic.RateLimitError) return Response.json({ error: "busy" }, { status: 503 });
-    if (e instanceof Anthropic.APIError) {
-      console.error("ai quote api error", e.status);
+    if (e instanceof Anthropic.RateLimitError || e instanceof OpenAI.RateLimitError) return Response.json({ error: "busy" }, { status: 503 });
+    if (e instanceof Anthropic.APIError || e instanceof OpenAI.APIError) {
+      console.error("ai quote api error", provider, e.status);
       return Response.json({ error: "ai_unavailable" }, { status: 502 });
     }
     console.error("ai quote failed", e instanceof Error ? e.message : e);
@@ -97,13 +105,13 @@ export async function POST(request: Request): Promise<Response> {
     p_detailer_id: userId,
     p_vehicle_size: size,
     p_vehicle_desc: suggestion.vehicle_description,
-    p_suggestion: { ...suggestion, model: ai ? "claude-opus-5-5" : "mock", items },
+    p_suggestion: { ...suggestion, provider, model: live ? modelFor(provider) : "mock", items },
     p_photo_paths: photoPaths,
   });
 
   return Response.json({
     quoteId,
-    mock: !ai,
+    mock: !live,
     vehicleSize: size,
     vehicleDescription: suggestion.vehicle_description,
     conditions: suggestion.conditions,
