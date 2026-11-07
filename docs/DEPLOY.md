@@ -32,8 +32,12 @@ Not needed while texts are off: `TWILIO_*`. The 15-minute job is
 ## 2. Supabase dashboard (owner, production project)
 - Authentication → URL Configuration: Site URL `https://beadup.netlify.app`; Redirect URLs
   `beadup://auth/callback` and (for Expo Go testing) `exp://**`.
-- Authentication → Emails → Magic Link: paste `supabase/templates/magic_link.html` (it includes
-  the 6-digit code). Subject: `Your Beadup sign-in`.
+- Email: Supabase only lets you edit templates **after custom SMTP is set up**, and its built-in sender
+  only delivers to members of your Supabase team. So until custom SMTP exists, email sign-in works for the
+  owner (testing) but **not for real detailers**. iPhone detailers use Sign in with Apple (no email
+  needed); App Review uses the password demo account. Before Android or any email users: set up custom
+  SMTP (needs a sending domain, e.g. Resend's free tier once a domain is bought), then paste
+  `supabase/templates/magic_link.html` (adds the 6-digit code) with subject `Your Beadup sign-in`.
 - Authentication → Sign In / Providers → Apple: enable, Client IDs `com.beadup.app`.
 - Before real users: custom SMTP (the built-in sender allows only a few emails per hour).
 - App Review account: Authentication → Users → Add user → email + password, "Auto confirm".
