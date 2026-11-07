@@ -20,6 +20,7 @@ const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string>
   slot_unavailable: "That time is no longer available. Please pick another time.",
   unavailable: "Booking is temporarily unavailable. Please try again shortly.",
   payments_not_ready: "This detailer isn't taking online payments yet. Please contact them directly to book.",
+  plan_limit: "This detailer's online booking is full for this month. Please contact them directly to book.",
 };
 
 const STEPS = ["Service", "Vehicle", "Time", "Details", "Review"] as const;

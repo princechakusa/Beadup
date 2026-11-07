@@ -63,6 +63,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="quote" options={{ presentation: 'modal' }} />
         <Stack.Screen name="ai-consent" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings/services" />
         <Stack.Screen name="settings/availability" />

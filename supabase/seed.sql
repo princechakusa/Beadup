@@ -12,7 +12,8 @@ insert into public.detailers (id, handle, business_name, tagline, service_area, 
 values ('11111111-1111-4111-8111-111111111111', 'marcus', 'Marcus Shine Co.',
         'Mobile detailing · we come to you', 'Austin, TX · 25 mi', 'America/Chicago', true);
 
-insert into public.detailer_accounts (detailer_id) values ('11111111-1111-4111-8111-111111111111');
+-- The demo account is Pro (no expiry) so App Review never hits the free-plan limit.
+insert into public.detailer_accounts (detailer_id, plan) values ('11111111-1111-4111-8111-111111111111', 'pro');
 
 insert into public.services (id, detailer_id, name, description, duration_min,
                              price_sedan_cents, price_suv_cents, price_truck_cents, sort_order)

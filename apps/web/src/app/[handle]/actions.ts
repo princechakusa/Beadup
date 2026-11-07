@@ -41,7 +41,7 @@ export type BookingResult =
   | { ok: true; bookingId: string; depositCents: number; bookingFeeCents: number; checkoutUrl?: string }
   | {
       ok: false;
-      error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" | "payments_not_ready";
+      error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" | "payments_not_ready" | "plan_limit";
     };
 
 const checkoutContext = z.object({
@@ -184,7 +184,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     .parse(data);
 
   if (!result.ok) {
-    const known = ["slot_taken", "slot_unavailable"] as const;
+    const known = ["slot_taken", "slot_unavailable", "plan_limit"] as const;
     const code = known.find((k) => k === result.error);
     if (code) updateTag(bookingPageTag(input.handle)); // refresh taken times
     return { ok: false, error: code ?? "invalid" };

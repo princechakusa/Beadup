@@ -326,6 +326,15 @@ export async function deleteAccount(): Promise<void> {
   await db().auth.signOut({ scope: 'local' });
 }
 
+export type PlanUsage = { plan: 'free' | 'pro'; used: number; limit: number };
+
+export async function fetchPlanUsage(): Promise<PlanUsage> {
+  if (!supabase) return { plan: 'free', used: 3, limit: 5 };
+  const { data, error } = await db().rpc('plan_usage');
+  if (error) throw error;
+  return data as PlanUsage;
+}
+
 export type CatalogService = {
   id: string;
   name: string;

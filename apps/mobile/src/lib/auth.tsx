@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { clearCache } from './cache';
 import { disablePush } from './push';
+import { resetPurchases } from './purchases';
 import { supabase } from './supabase';
 
 type AuthState = {
@@ -139,5 +140,6 @@ export async function signInWithApple(): Promise<boolean> {
 export async function signOut(): Promise<void> {
   clearCache(); // personal data must not outlive the session on this device
   await disablePush().catch(() => {}); // the next account on this phone can claim the token
+  await resetPurchases();
   await supabase?.auth.signOut();
 }

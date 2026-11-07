@@ -10,7 +10,7 @@ import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { hasAiConsent, withdrawAiConsent } from '@/lib/ai';
 import { signOut } from '@/lib/auth';
-import { fetchAccount, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
+import { fetchAccount, fetchPlanUsage, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
@@ -22,6 +22,7 @@ const SUPPORT_EMAIL = 'support@beadup.app';
 export default function Settings() {
   const profile = useQuery(fetchProfile);
   const account = useQuery(fetchAccount);
+  const usage = useQuery(fetchPlanUsage);
   const [copied, setCopied] = useState(false);
   const [opening, setOpening] = useState(false);
   const [push, setPush] = useState<PushState | null>(null);
@@ -52,10 +53,13 @@ export default function Settings() {
   const bookingUrl = p ? `${apiBaseUrl.replace(/^https?:\/\//, '')}/${p.handle}` : '';
   const fullUrl = p ? `${apiBaseUrl}/${p.handle}` : '';
 
+  const u = usage.data;
   const plan =
-    a?.plan === 'pro'
-      ? `Pro${a.planRenewsAt ? ` · renews ${new Date(a.planRenewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}`
-      : 'Free plan';
+    u?.plan === 'pro' || a?.plan === 'pro'
+      ? `Pro${a?.planRenewsAt ? ` · renews ${new Date(a.planRenewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}`
+      : u
+        ? `Free plan · ${u.used} of ${u.limit} bookings this month`
+        : 'Free plan';
   const payouts = !a
     ? ' '
     : a.chargesEnabled
@@ -80,7 +84,7 @@ export default function Settings() {
 
   return (
     <Screen title="Settings" tabs={false} right={<BackButton />}>
-      <View style={styles.profile}>
+      <Pressable style={styles.profile} onPress={() => router.push('/pro')} accessibilityRole="button" accessibilityLabel={`Plan: ${plan}`}>
         <View style={styles.monogram}>
           <Text variant="heading" tone="beadInk">
             {p ? initials(p.businessName) : ''}
@@ -90,11 +94,12 @@ export default function Settings() {
           <Text variant="heading" style={{ fontSize: 18 }}>
             {p?.businessName ?? ' '}
           </Text>
-          <Text variant="caption" tone={a?.plan === 'pro' ? 'gold' : 'steel'} style={{ fontSize: 13 }}>
+          <Text variant="caption" tone="steel" style={{ fontSize: 13 }}>
             {plan}
           </Text>
         </View>
-      </View>
+        <Icon name="chevronRight" size={18} color="#5B6371" />
+      </Pressable>
 
       <View style={styles.linkCard}>
         <Text variant="caption" style={{ fontSize: 13 }}>
