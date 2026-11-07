@@ -11,8 +11,10 @@ import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, time
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
 
-const FIRST_HOUR = 7;
-const LAST_HOUR = 20;
+// Default visible day; it stretches to fit jobs that start earlier or run
+// later (a 6-hour ceramic coating from 4 PM ends at 10 PM).
+const DAY_START_HOUR = 7;
+const DAY_END_HOUR = 20;
 const HOUR_H = 62;
 const SIZE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck' } as const;
 
@@ -32,8 +34,13 @@ export default function Calendar() {
   const dayJobs = (week.data ?? []).filter((b) => dateKey(new Date(b.startsAt), tz) === selected);
   const count = (key: string) => (week.data ?? []).filter((b) => dateKey(new Date(b.startsAt), tz) === key).length;
 
+  const FIRST_HOUR = Math.min(DAY_START_HOUR, ...dayJobs.map((b) => Math.floor(minutesOfDay(b.startsAt, tz) / 60)));
+  const LAST_HOUR = Math.max(
+    DAY_END_HOUR,
+    ...dayJobs.map((b) => Math.min(23, Math.ceil((minutesOfDay(b.startsAt, tz) + b.durationMin) / 60) - 1)),
+  );
   const nowMin = minutesOfDay(new Date().toISOString(), tz);
-  const showNow = selected === todayKey && nowMin >= FIRST_HOUR * 60 && nowMin <= LAST_HOUR * 60;
+  const showNow = selected === todayKey && nowMin >= FIRST_HOUR * 60 && nowMin <= (LAST_HOUR + 1) * 60;
   const month = new Date(`${selected}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 
   const shiftWeek = (n: number) => {
@@ -90,14 +97,14 @@ export default function Calendar() {
         {Array.from({ length: LAST_HOUR - FIRST_HOUR + 1 }, (_, i) => FIRST_HOUR + i).map((h) => (
           <View key={h} style={styles.hourRow}>
             <Text variant="caption" style={styles.hourLabel}>
-              {h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`}
+              {h === 0 ? '12 AM' : h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`}
             </Text>
             <View style={styles.hourLine} />
           </View>
         ))}
 
         {dayJobs.map((b) => (
-          <JobBlock key={b.id} booking={b} tz={tz} />
+          <JobBlock key={b.id} booking={b} tz={tz} firstHour={FIRST_HOUR} />
         ))}
 
         {showNow && (
@@ -133,10 +140,12 @@ const STATUS = {
   no_show: { label: 'No-show', tone: 'danger' as const, color: colors.danger, tint: 'rgba(255,138,138,' },
 };
 
-function JobBlock({ booking: b, tz }: { booking: Booking; tz: string }) {
+function JobBlock({ booking: b, tz, firstHour }: { booking: Booking; tz: string; firstHour: number }) {
   const start = minutesOfDay(b.startsAt, tz);
-  const top = 8 + ((start - FIRST_HOUR * 60) / 60) * HOUR_H;
-  const height = Math.max(56, (b.durationMin / 60) * HOUR_H - 6);
+  const top = 8 + ((start - firstHour * 60) / 60) * HOUR_H;
+  // Jobs past midnight are clipped at the end of the day (the grid shows one day).
+  const minutes = Math.min(b.durationMin, 24 * 60 - start);
+  const height = Math.max(56, (minutes / 60) * HOUR_H - 6);
   const s = STATUS[b.status as keyof typeof STATUS] ?? STATUS.confirmed;
   const end = new Date(Date.parse(b.startsAt) + b.durationMin * 60_000).toISOString();
   const compact = height < 120;

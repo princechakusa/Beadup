@@ -188,8 +188,13 @@ export default function Settings() {
             onValueChange={async (on) => {
               haptic.select();
               if (on) return router.push('/ai-consent');
-              await withdrawAiConsent().catch(() => {});
               setAi(false);
+              try {
+                await withdrawAiConsent();
+              } catch {
+                haptic.error();
+                setAi(true); // still on at the server; show the truth
+              }
             }}
             trackColor={{ true: colors.bead, false: '#262B35' }}
             accessibilityLabel="AI photo quotes"

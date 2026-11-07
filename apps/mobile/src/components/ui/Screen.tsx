@@ -26,6 +26,12 @@ export function Screen({ eyebrow, title, right, children, refreshing = false, on
   return (
     <ScrollView
       style={styles.root}
+      // Keyboard: iOS scrolls the focused field above the keyboard, taps on
+      // buttons work while it is open, and dragging the list down closes it
+      // (number pads have no return key). Android resizes the window.
+      automaticallyAdjustKeyboardInsets
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
       contentContainerStyle={{
         paddingTop: insets.top + space.lg,
         paddingHorizontal: 20,

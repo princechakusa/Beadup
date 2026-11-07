@@ -24,6 +24,8 @@ export default function Services() {
   const [addOn, setAddOn] = useState({ name: '', price: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Switch positions the detailer just set, shown until the reload confirms them.
+  const [pending, setPending] = useState<Record<string, boolean>>({});
 
   const edit = (s: CatalogService) =>
     setDraft({
@@ -72,9 +74,17 @@ export default function Services() {
 
   const toggle = async (table: 'services' | 'add_ons', id: string, active: boolean) => {
     haptic.select();
-    await supabase?.from(table).update({ active }).eq('id', id);
-    catalog.refresh();
-    refreshBookingPage();
+    setPending((p) => ({ ...p, [id]: active }));
+    if (!supabase) return; // preview mode: nothing to save
+    const { error: e } = await supabase.from(table).update({ active }).eq('id', id);
+    if (e) {
+      haptic.error();
+      setError('Could not update. Check your connection and try again.');
+    } else {
+      catalog.refresh();
+      refreshBookingPage();
+    }
+    setPending(({ [id]: _, ...rest }) => rest);
   };
 
   const addAddOn = async () => {
@@ -110,7 +120,7 @@ export default function Services() {
               </Text>
             </Pressable>
             <Switch
-              value={s.active}
+              value={pending[s.id] ?? s.active}
               onValueChange={(v) => toggle('services', s.id, v)}
               trackColor={{ true: colors.bead, false: '#262B35' }}
               accessibilityLabel={`${s.name} shown on booking link`}
@@ -164,7 +174,7 @@ export default function Services() {
               <Text variant="caption">{usd(a.priceCents)}</Text>
             </View>
             <Switch
-              value={a.active}
+              value={pending[a.id] ?? a.active}
               onValueChange={(v) => toggle('add_ons', a.id, v)}
               trackColor={{ true: colors.bead, false: '#262B35' }}
               accessibilityLabel={`${a.name} shown on booking link`}
