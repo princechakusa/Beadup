@@ -74,7 +74,7 @@ export default function SignIn() {
               </Text>
               <Text variant="body" tone="steel" style={{ marginTop: space.sm, textAlign: 'center' }}>
                 {sentTo
-                  ? `We sent a sign-in link to ${sentTo}. Tap it on this phone, or enter the 6-digit code.`
+                  ? `We sent a sign-in link to ${sentTo}. Enter the code from the email, or tap the link on this phone.`
                   : 'Quotes, bookings and payments for your detailing business.'}
               </Text>
             </View>
@@ -156,18 +156,18 @@ export default function SignIn() {
             ) : (
               <View style={{ gap: space.lg }}>
                 <Field
-                  label="6-digit code"
+                  label="Code from the email"
                   value={code}
-                  onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
+                  onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="12345678"
                   keyboardType="number-pad"
                   textContentType="oneTimeCode"
                   autoComplete="one-time-code"
-                  maxLength={6}
+                  maxLength={10}
                   style={styles.code}
                   error={error}
                 />
-                <Button label="Sign in" onPress={() => run('code', () => verifyEmailCode(sentTo, code))} loading={busy === 'code'} disabled={code.length !== 6} />
+                <Button label="Sign in" onPress={() => run('code', () => verifyEmailCode(sentTo, code))} loading={busy === 'code'} disabled={code.length < 6} />
                 <Button
                   label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}
                   variant="glass"

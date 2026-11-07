@@ -111,9 +111,9 @@ export async function sendMagicLink(address: string): Promise<void> {
   if (error) throw new AuthError(error.status === 429 ? 'Too many requests. Wait a minute and try again.' : 'Could not send the email. Try again.');
 }
 
-/** The 6-digit code from the same email, for when the link opens elsewhere. */
+/** The code from the same email (6 to 10 digits, set in Supabase Auth), for when the link opens elsewhere. */
 export async function verifyEmailCode(address: string, code: string): Promise<void> {
-  if (!/^\d{6}$/.test(code)) throw new AuthError('Enter the 6-digit code from the email.');
+  if (!/^\d{6,10}$/.test(code)) throw new AuthError('Enter the code from the email.');
   const { error } = await client().auth.verifyOtp({ email: address.trim().toLowerCase(), token: code, type: 'email' });
   if (error) throw new AuthError('That code is wrong or expired. Request a new email.');
 }
