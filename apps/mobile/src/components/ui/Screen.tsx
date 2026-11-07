@@ -16,10 +16,12 @@ type Props = {
   onRefresh?: () => void;
   /** Space for the floating tab bar (tab screens). */
   tabs?: boolean;
+  /** Showing saved data because the network is unavailable. */
+  offline?: boolean;
 };
 
 /** Standard screen: small grey line over a big Sora title, pull to refresh. */
-export function Screen({ eyebrow, title, right, children, refreshing = false, onRefresh, tabs = true }: Props) {
+export function Screen({ eyebrow, title, right, children, refreshing = false, onRefresh, tabs = true, offline = false }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
@@ -42,6 +44,14 @@ export function Screen({ eyebrow, title, right, children, refreshing = false, on
         </View>
         {right}
       </View>
+      {offline && (
+        <View style={styles.offline} accessibilityLiveRegion="polite">
+          <View style={styles.offlineDot} />
+          <Text variant="caption" style={{ fontSize: 12 }}>
+            Offline · showing your saved schedule
+          </Text>
+        </View>
+      )}
       {children}
     </ScrollView>
   );
@@ -92,4 +102,6 @@ const styles = StyleSheet.create({
   list: { borderRadius: 24, backgroundColor: '#11151B', borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
   sep: { height: 1, marginHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)' },
   empty: { alignItems: 'center', gap: 6, paddingVertical: space.xxl, paddingHorizontal: space.xl },
+  offline: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: colors.lineStrong },
+  offlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.steel },
 });

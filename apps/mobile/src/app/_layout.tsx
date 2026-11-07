@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { listenForNotificationTaps } from '@/lib/push';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -43,10 +44,12 @@ function RootNavigator() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
-  if (!ready) return null;
-
   // Development builds without a backend open straight into the app preview.
   const signedIn = !!session || (offline && __DEV__);
+
+  useEffect(() => (ready && signedIn ? listenForNotificationTaps() : undefined), [ready, signedIn]);
+
+  if (!ready) return null;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.midnight } }}>

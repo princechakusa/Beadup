@@ -16,7 +16,7 @@ const DUE_AFTER_DAYS = 60;
 const AVATAR = [colors.bead, colors.gold, colors.success, '#C9D0DC'];
 
 export default function Clients() {
-  const clients = useQuery(fetchClients);
+  const clients = useQuery(fetchClients, [], 'clients');
   const profile = useQuery(fetchProfile);
   const tz = profile.data?.timezone ?? 'America/Chicago';
   const [q, setQ] = useState('');
@@ -46,6 +46,7 @@ export default function Clients() {
     <Screen
       eyebrow={clients.data ? `${clients.data.length} client${clients.data.length === 1 ? '' : 's'}` : ' '}
       title="Clients"
+      offline={clients.stale}
       refreshing={clients.loading && !!clients.data}
       onRefresh={clients.refresh}>
       <View style={styles.search}>

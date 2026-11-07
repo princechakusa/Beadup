@@ -43,6 +43,12 @@
       "expo-secure-store",
       "expo-apple-authentication",
       [
+        "expo-notifications",
+        {
+          "color": "#4DD8FF"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Beadup uses the photos you choose to build a price quote for a vehicle. Photos are only used for that quote.",

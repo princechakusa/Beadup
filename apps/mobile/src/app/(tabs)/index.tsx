@@ -28,7 +28,7 @@ export default function Today() {
   const [chartWidth, setChartWidth] = useState(0);
   const now = useNow();
 
-  const profile = useQuery(fetchProfile);
+  const profile = useQuery(fetchProfile, [], 'profile');
   const tz = profile.data?.timezone ?? 'America/Chicago';
   const todayKey = dateKey(new Date(), tz);
   const monday = mondayOf(todayKey);
@@ -40,8 +40,8 @@ export default function Today() {
       fetchBookings(startOfDay(monday, tz), startOfDay(addDaysKey(monday, 7), tz)),
     ]);
     return { payments, bookings };
-  }, [monday, tz]);
-  const next = useQuery(() => fetchNextBookings(6));
+  }, [monday, tz], `today-week-${monday}`);
+  const next = useQuery(() => fetchNextBookings(6), [], 'today-next');
   const rating = useQuery(fetchRating);
 
   // Cumulative earnings per day this week (Mon..Sun), and last week's total.
@@ -72,6 +72,7 @@ export default function Today() {
     <Screen
       eyebrow={new Date().toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'short' })}
       title={`${greeting(tz)}${firstName ? `, ${firstName}` : ''}`}
+      offline={week.stale || next.stale}
       refreshing={refreshing && !!week.data}
       onRefresh={() => {
         week.refresh();

@@ -17,7 +17,7 @@ const HOUR_H = 62;
 const SIZE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck' } as const;
 
 export default function Calendar() {
-  const profile = useQuery(fetchProfile);
+  const profile = useQuery(fetchProfile, [], 'profile');
   const tz = profile.data?.timezone ?? 'America/Chicago';
   const todayKey = dateKey(new Date(), tz);
   const [weekStart, setWeekStart] = useState(() => mondayOf(todayKey));
@@ -26,6 +26,7 @@ export default function Calendar() {
   const week = useQuery(
     () => fetchBookings(startOfDay(weekStart, tz), startOfDay(addDaysKey(weekStart, 7), tz)),
     [weekStart, tz],
+    `calendar-${weekStart}`,
   );
   const days = Array.from({ length: 7 }, (_, i) => addDaysKey(weekStart, i));
   const dayJobs = (week.data ?? []).filter((b) => dateKey(new Date(b.startsAt), tz) === selected);
@@ -46,6 +47,7 @@ export default function Calendar() {
     <Screen
       eyebrow={month}
       title="Calendar"
+      offline={week.stale}
       refreshing={week.loading && !!week.data}
       onRefresh={week.refresh}
       right={

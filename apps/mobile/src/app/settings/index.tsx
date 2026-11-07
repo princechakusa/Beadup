@@ -1,8 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
-import { Linking, Pressable, Share, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Linking, Pressable, Share, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Icon, type IconName } from '@/components/ui/Icon';
@@ -12,6 +12,7 @@ import { signOut } from '@/lib/auth';
 import { fetchAccount, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
 
@@ -22,6 +23,22 @@ export default function Settings() {
   const account = useQuery(fetchAccount);
   const [copied, setCopied] = useState(false);
   const [opening, setOpening] = useState(false);
+  const [push, setPush] = useState<PushState | null>(null);
+  useEffect(() => {
+    pushState().then(setPush).catch(() => setPush('off'));
+  }, []);
+
+  const togglePush = async (on: boolean) => {
+    haptic.select();
+    if (on) {
+      const s = await enablePush();
+      setPush(s);
+      if (s === 'denied') Linking.openSettings();
+    } else {
+      await disablePush();
+      setPush('off');
+    }
+  };
 
   const p = profile.data;
   const a = account.data;
@@ -112,6 +129,31 @@ export default function Settings() {
         <Row icon="calendar" label="Availability" onPress={() => router.push('/settings/availability')} />
         <Row icon="money" label="Deposit" detail="30% · client pays the card fee" />
         <Row icon="money" label="Payouts" detail={opening ? 'Opening Stripe…' : payouts} onPress={a?.payoutsEnabled ? undefined : openPayouts} warn={!!a && !a.chargesEnabled} />
+      </ListCard>
+
+      <ListCard>
+        <View style={styles.row}>
+          <Icon name="bell" size={20} color={colors.steel} />
+          <View style={{ flex: 1, gap: 1 }}>
+            <Text variant="bodyStrong" style={{ fontSize: 15 }}>
+              Booking alerts
+            </Text>
+            <Text variant="caption" style={{ fontSize: 12 }}>
+              {push === 'denied'
+                ? 'Turned off in your phone settings'
+                : push === 'unavailable'
+                  ? 'Available in the App Store and Play Store builds'
+                  : 'Optional. The app works without them'}
+            </Text>
+          </View>
+          <Switch
+            value={push === 'on'}
+            disabled={push === null || push === 'unavailable'}
+            onValueChange={togglePush}
+            trackColor={{ true: colors.bead, false: '#262B35' }}
+            accessibilityLabel="Booking alerts"
+          />
+        </View>
       </ListCard>
 
       <ListCard>

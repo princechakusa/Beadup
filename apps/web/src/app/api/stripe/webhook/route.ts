@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import type Stripe from "stripe";
 import { deliverQueued } from "@/lib/messages";
+import { notifyPayment } from "@/lib/push";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -78,9 +79,10 @@ export async function POST(request: Request): Promise<Response> {
   if (outcome === "applied" && (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded")) {
     const session = event.data.object as Stripe.Checkout.Session;
     const bookingId = session.metadata?.booking_id;
+    const kind = session.metadata?.kind === "balance" ? "balance" : "deposit";
     after(async () => {
       await emailReceipt(s, session, event.account);
-      if (bookingId) await deliverQueued(bookingId);
+      if (bookingId) await Promise.all([deliverQueued(bookingId), notifyPayment(bookingId, kind)]);
     });
   }
 

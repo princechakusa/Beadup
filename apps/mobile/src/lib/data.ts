@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
 import { apiBaseUrl, supabase } from './supabase';
 
@@ -321,6 +322,7 @@ export async function deleteAccount(): Promise<void> {
     headers: { Authorization: `Bearer ${data.session?.access_token ?? ''}` },
   });
   if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
+  clearCache();
   await db().auth.signOut({ scope: 'local' });
 }
 
@@ -389,34 +391,58 @@ export async function saveQuote(q: {
 
 // ---------------------------------------------------------------------------
 
-export type QueryState<T> = { data: T | undefined; error: Error | null; loading: boolean; refresh: () => void };
+export type QueryState<T> = {
+  data: T | undefined;
+  error: Error | null;
+  loading: boolean;
+  /** True when showing saved (offline) data because the network failed. */
+  stale: boolean;
+  refresh: () => void;
+};
 
 /**
  * Minimal query hook: loads on mount, reloads whenever the screen regains
- * focus, and keeps showing the last data while refreshing.
+ * focus, and keeps showing the last data while refreshing. With `cacheKey`,
+ * the last good result is saved on the device and shown at once on launch
+ * and whenever the network is unavailable (offline schedule).
  */
-export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = []): QueryState<T> {
+export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [], cacheKey?: string): QueryState<T> {
   const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stale, setStale] = useState(false);
   const seq = useRef(0);
   const fnRef = useRef(fn);
   useEffect(() => {
     fnRef.current = fn;
   });
 
-  const key = JSON.stringify(deps);
+  const key = JSON.stringify([deps, cacheKey]);
   const run = useCallback(() => {
     const id = ++seq.current;
+    let settled = false;
     setLoading(true);
+    if (cacheKey) {
+      readCache<T>(cacheKey).then((hit) => {
+        // Only fill in if the network hasn't answered yet.
+        if (hit && !settled && id === seq.current) {
+          setData((d) => d ?? hit.data);
+          setStale(true);
+        }
+      });
+    }
     fnRef
       .current()
       .then((d) => {
+        settled = true;
         if (id !== seq.current) return;
         setData(d);
         setError(null);
+        setStale(false);
+        if (cacheKey) writeCache(cacheKey, d);
       })
       .catch((e: unknown) => {
+        settled = true;
         if (id === seq.current) setError(e instanceof Error ? e : new Error(String(e)));
       })
       .finally(() => {
@@ -427,5 +453,5 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [])
   }, [key]);
 
   useFocusEffect(run);
-  return { data, error, loading, refresh: run };
+  return { data, error, loading, stale, refresh: run };
 }

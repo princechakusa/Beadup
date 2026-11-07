@@ -15,11 +15,11 @@ export default function Money() {
   const monthKey = `${dateKey(new Date(), tz).slice(0, 7)}-01`;
   const monthStart = startOfDay(monthKey, tz);
 
-  const balance = useQuery(fetchBalance);
+  const balance = useQuery(fetchBalance, [], 'balance');
   const month = useQuery(async () => {
     const [payments, bookings] = await Promise.all([fetchPayments(monthStart), fetchBookings(monthStart, new Date())]);
     return { payments, bookings };
-  }, [monthKey, tz]);
+  }, [monthKey, tz], `money-${monthKey}`);
 
   const earned = (month.data?.payments ?? []).filter((p) => p.status === 'succeeded').reduce((n, p) => n + p.amountCents, 0);
   const noShows = (month.data?.bookings ?? []).filter((b) => b.status === 'no_show').length;
@@ -31,6 +31,7 @@ export default function Money() {
     <Screen
       eyebrow="This month"
       title="Money"
+      offline={month.stale}
       refreshing={(balance.loading || month.loading) && !!month.data}
       onRefresh={() => {
         balance.refresh();
