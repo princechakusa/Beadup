@@ -4,6 +4,7 @@ import { Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { BackButton } from '@/components/nav/BackButton';
+import { AiScan } from '@/components/quote/AiScan';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
@@ -24,9 +25,9 @@ const SIZES: { id: Size; label: string }[] = [
 const depositOf = (cents: number) => Math.floor((cents * 3 + 5) / 10); // same rule as the server
 
 /**
- * Quote builder from the detailer's own price list. Photos and the AI
- * suggested quote plug in here in the AI step (M5); the detailer always
- * approves the numbers before anything is sent.
+ * Quote builder from the detailer's own price list, optionally prefilled by
+ * an AI photo scan. Prices always come from the price list, and the
+ * detailer approves every number before anything is sent.
  */
 export default function NewQuote() {
   const catalog = useQuery(fetchCatalog);
@@ -40,6 +41,7 @@ export default function NewQuote() {
   const [extraPrice, setExtraPrice] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quoteId, setQuoteId] = useState<string | null>(null);
 
   const services = (catalog.data?.services ?? []).filter((s) => s.active);
   const addOns = (catalog.data?.addOns ?? []).filter((a) => a.active);
@@ -66,7 +68,7 @@ export default function NewQuote() {
     setBusy(true);
     setError(null);
     try {
-      await saveQuote({ vehicleSize: size, vehicleDesc: vehicle.trim(), items, notes: '', status: 'sent' });
+      await saveQuote({ quoteId, vehicleSize: size, vehicleDesc: vehicle.trim(), items, notes: '', status: 'sent' });
       haptic.success();
       const lines = items.map((i) => `${i.label}: ${usd(i.cents)}`).join('\n');
       const link = profile.data ? `\n\nBook here: ${apiBaseUrl}/${profile.data.handle}` : '';
@@ -84,6 +86,15 @@ export default function NewQuote() {
 
   return (
     <Screen title="New quote" tabs={false} right={<BackButton />}>
+      <AiScan
+        onSuggestion={(s) => {
+          setQuoteId(s.quoteId);
+          setSize(s.vehicleSize);
+          if (s.vehicleDescription && !vehicle) setVehicle(s.vehicleDescription.slice(0, 120));
+          if (s.serviceId) setServiceId(s.serviceId);
+          setAddOnIds(s.addOnIds);
+        }}
+      />
       <View style={styles.segment}>
         {SIZES.map((s) => {
           const on = s.id === size;

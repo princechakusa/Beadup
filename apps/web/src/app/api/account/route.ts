@@ -5,7 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // Account deletion (Apple 5.1.1(v), Google Play User Data; rules.md section 2).
 // Deleting the auth user cascades to the detailer's profile, catalog,
-// clients, bookings, quotes, payments records and messages. The audit log
+// clients, bookings, quotes, payments records and messages; vehicle photos
+// are removed from storage first. The audit log
 // keeps the event with the detailer reference removed. The detailer's own
 // Stripe account belongs to them and is not deleted.
 //
@@ -30,6 +31,16 @@ export async function DELETE(request: Request): Promise<Response> {
   if ((count ?? 0) > 0) return Response.json({ ok: false, error: "upcoming_bookings", count }, { status: 409 });
 
   const { data: detailer } = await db.from("detailers").select("handle").eq("id", userId).maybeSingle();
+
+  // Remove the detailer's vehicle photos first: storage is not covered by
+  // the database cascade.
+  for (;;) {
+    const { data: files, error: listError } = await db.storage.from("quote-photos").list(userId, { limit: 1000 });
+    if (listError) return new Response("error", { status: 500 });
+    if (!files?.length) break;
+    const { error: removeError } = await db.storage.from("quote-photos").remove(files.map((f) => `${userId}/${f.name}`));
+    if (removeError) return new Response("error", { status: 500 });
+  }
 
   await db.from("audit_log").insert({ detailer_id: userId, actor: userId, event: "account.deleted", data: {} });
   const { error } = await db.auth.admin.deleteUser(userId);

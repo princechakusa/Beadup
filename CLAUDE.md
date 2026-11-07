@@ -47,7 +47,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [x] Push notifications (optional, works without), offline schedule cache (token registration activates once an EAS project ID exists)
 - [x] Onboarding: business name, handle, services, prices, Stripe Connect onboarding link
 ### M5: AI quote
-- [ ] Server endpoint: photos (system picker, EXIF stripped, private bucket) → Claude vision → itemized suggested quote from the detailer's own price list. Reject non-vehicle images. Detailer approves before sending. Third-party AI consent screen (Apple 5.1.2(i))
+- [x] Server endpoint: photos (system picker, EXIF stripped, private bucket) → Claude vision → itemized suggested quote from the detailer's own price list. Reject non-vehicle images. Detailer approves before sending. Third-party AI consent screen (Apple 5.1.2(i)) (dev uses a flagged sample suggestion; the live Claude call runs once ANTHROPIC_API_KEY is set)
 - [ ] 🔑 Anthropic API key
 ### M6: Messaging
 - [ ] SMS confirmations, day-before reminders, review request (Twilio), STOP handling, consent logging
@@ -82,4 +82,5 @@ Add trades in this order: pressure washing → window cleaning → mobile pet gr
 - Push: opt-in from Settings only (`src/lib/push.ts`), tokens in `push_tokens` (RLS, token is the primary key so it can't be hijacked), removed on sign-out. Server sends via Expo (`apps/web/src/lib/push.ts`) after payment webhooks; dead tokens pruned. Needs `extra.eas.projectId` in app.json (🔑 Expo/EAS account) before tokens can be issued.
 - Offline: `useQuery(fn, deps, cacheKey)` saves the last good result in the app's documents folder (`src/lib/cache.ts`) and shows it with an "Offline" chip when the network fails; wiped on sign-out and account deletion.
 - Onboarding: `create_detailer_profile()` (one transaction, runs as auth.uid()) + `handle_available()`. The root guard sends signed-in users without a `detailers` row to `/onboarding`; `useAuth().refreshProfile()` flips them into the app.
+- AI quote: `POST /api/quotes/ai` (`apps/web/src/lib/ai-quote.ts`): claude-opus-5-5, effort medium, structured output (Zod) + `fallbacks: "default"`; model returns catalog ids only, the server prices from the DB and saves a draft quote via `create_ai_draft_quote()`. Requires `detailers.ai_consent_at` (set by `record_ai_consent()`). Photos: app re-encodes to ≤1568px JPEG (drops EXIF/GPS), private `quote-photos` bucket under `<uid>/`; account deletion removes them. No key: dev returns a flagged mock, production returns 503.
 - CSP still allows `'unsafe-inline'` scripts. Move to nonces before launch.

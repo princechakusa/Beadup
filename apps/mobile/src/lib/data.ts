@@ -208,7 +208,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...init,
     headers: { ...init.headers, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
   });
-  if (!res.ok) throw new Error(`api ${res.status}`);
+  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
   return (await res.json()) as T;
 }
 
@@ -363,6 +363,8 @@ export type QuoteItem = { label: string; cents: number };
 
 /** Saves a quote (status sent or draft). Totals are whole cents. */
 export async function saveQuote(q: {
+  /** An AI draft created by the server: update it instead of inserting. */
+  quoteId?: string | null;
   vehicleSize: 'sedan' | 'suv' | 'truck';
   vehicleDesc: string;
   items: QuoteItem[];
@@ -370,8 +372,16 @@ export async function saveQuote(q: {
   status: 'draft' | 'sent';
 }): Promise<string> {
   if (!supabase) return 'preview';
-  const { data: user } = await db().auth.getUser();
   const total = q.items.reduce((n, i) => n + i.cents, 0);
+  if (q.quoteId) {
+    const { error } = await db()
+      .from('quotes')
+      .update({ vehicle_size: q.vehicleSize, vehicle_desc: q.vehicleDesc, items: q.items, total_cents: total, notes: q.notes, status: q.status })
+      .eq('id', q.quoteId);
+    if (error) throw error;
+    return q.quoteId;
+  }
+  const { data: user } = await db().auth.getUser();
   const { data, error } = await db()
     .from('quotes')
     .insert({

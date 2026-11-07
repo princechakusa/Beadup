@@ -1,13 +1,14 @@
 import * as Clipboard from 'expo-clipboard';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, Share, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { hasAiConsent, withdrawAiConsent } from '@/lib/ai';
 import { signOut } from '@/lib/auth';
 import { fetchAccount, fetchProfile, startPayoutsSetup, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
@@ -24,6 +25,12 @@ export default function Settings() {
   const [copied, setCopied] = useState(false);
   const [opening, setOpening] = useState(false);
   const [push, setPush] = useState<PushState | null>(null);
+  const [ai, setAi] = useState<boolean | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      hasAiConsent().then(setAi).catch(() => setAi(false));
+    }, []),
+  );
   useEffect(() => {
     pushState().then(setPush).catch(() => setPush('off'));
   }, []);
@@ -152,6 +159,29 @@ export default function Settings() {
             onValueChange={togglePush}
             trackColor={{ true: colors.bead, false: '#262B35' }}
             accessibilityLabel="Booking alerts"
+          />
+        </View>
+        <View style={styles.row}>
+          <Icon name="sparkle" size={20} color={colors.steel} />
+          <View style={{ flex: 1, gap: 1 }}>
+            <Text variant="bodyStrong" style={{ fontSize: 15 }}>
+              AI photo quotes
+            </Text>
+            <Text variant="caption" style={{ fontSize: 12 }}>
+              Photos are sent to our AI provider, Anthropic
+            </Text>
+          </View>
+          <Switch
+            value={!!ai}
+            disabled={ai === null}
+            onValueChange={async (on) => {
+              haptic.select();
+              if (on) return router.push('/ai-consent');
+              await withdrawAiConsent().catch(() => {});
+              setAi(false);
+            }}
+            trackColor={{ true: colors.bead, false: '#262B35' }}
+            accessibilityLabel="AI photo quotes"
           />
         </View>
       </ListCard>
