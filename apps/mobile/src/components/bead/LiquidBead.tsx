@@ -13,9 +13,6 @@ import { useEffect, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import {
   Easing,
-  SensorType,
-  useAnimatedReaction,
-  useAnimatedSensor,
   useDerivedValue,
   useReducedMotion,
   useSharedValue,
@@ -44,8 +41,12 @@ const DROP = 'M60 8 C88 8 110 30 110 60 C110 86 92 104 60 104 C28 104 10 86 10 6
 /**
  * The Beadup water bead, like water beading on fresh ceramic coating:
  * refracted interior, a caustic where light focuses through the drop, a rim
- * light, and a highlight that follows the phone's tilt (gravity sensor).
+ * light, and a highlight that drifts slowly like light moving over water.
  * Breathes gently at rest; respects Reduce Motion.
+ *
+ * No motion sensor: the gravity-sensor tilt crashed the app when this screen
+ * opened in Expo Go (2026-11-07), and the sign-in screen draws this bead, so
+ * a native crash here would stop the whole app.
  */
 export function LiquidBead({ size = 140, dropIn = true, interactive = true }: Props) {
   const reduce = useReducedMotion();
@@ -56,7 +57,6 @@ export function LiquidBead({ size = 140, dropIn = true, interactive = true }: Pr
   const band1 = useMemo(() => Skia.Path.MakeFromSVGString('M8 74 Q60 58 112 74')!, []);
   const band2 = useMemo(() => Skia.Path.MakeFromSVGString('M14 86 Q60 74 106 86')!, []);
 
-  const sensor = useAnimatedSensor(SensorType.GRAVITY, { interval: 32 });
   const breathe = useSharedValue(0);
   const squish = useSharedValue(0); // >0 flattens, <0 stretches
   const fall = useSharedValue(dropIn && live ? -70 : 0);
@@ -76,21 +76,9 @@ export function LiquidBead({ size = 140, dropIn = true, interactive = true }: Pr
     }
   }, [live, dropIn, breathe, squish, fall]);
 
-  // Tilt in -1..1, chased by a spring so the light glides like liquid.
-  // Gravity is ~9.81 m/s^2 along whichever axis points down; +0.6 centres the
-  // highlight for a phone held at a normal reading angle.
-  const tiltX = useSharedValue(0);
-  const tiltY = useSharedValue(0);
-  useAnimatedReaction(
-    () => sensor.sensor.get(),
-    (g) => {
-      if (!live) return;
-      const clamp = (v: number) => Math.max(-1, Math.min(1, v));
-      const cfg = { damping: 14, stiffness: 90 };
-      tiltX.set(withSpring(clamp(g.x / 9.81), cfg));
-      tiltY.set(withSpring(clamp(g.y / 9.81 + 0.6), cfg));
-    },
-  );
+  // Light drift in -1..1: a slow figure-eight off the same breathing clock.
+  const tiltX = useDerivedValue(() => (live ? Math.sin(breathe.get() * 0.5) * 0.45 : 0));
+  const tiltY = useDerivedValue(() => (live ? Math.sin(breathe.get()) * 0.25 : 0));
 
   const body = useDerivedValue(() => {
     const wobble = live ? Math.sin(breathe.get()) * 0.022 : 0;

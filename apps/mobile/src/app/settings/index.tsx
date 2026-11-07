@@ -100,7 +100,7 @@ export default function Settings() {
 
   return (
     <Screen title="Settings" tabs={false} right={<BackButton />}>
-      <Pressable style={styles.profile} onPress={() => router.push('/pro')} accessibilityRole="button" accessibilityLabel={`Plan: ${plan}`}>
+      <Pressable style={styles.profile} onPress={() => router.push('/settings/profile')} accessibilityRole="button" accessibilityLabel={`Edit business profile: ${p?.businessName ?? ''}`}>
         <View style={styles.monogram}>
           <Text variant="heading" tone="beadInk">
             {p ? initials(p.businessName) : ''}
@@ -111,7 +111,7 @@ export default function Settings() {
             {p?.businessName ?? ' '}
           </Text>
           <Text variant="caption" tone="steel" style={{ fontSize: 13 }}>
-            {plan}
+            Edit name, tagline and service area
           </Text>
         </View>
         <Icon name="chevronRight" size={18} color="#5B6371" />
@@ -151,6 +151,10 @@ export default function Settings() {
           </Text>
         </Pressable>
       </View>
+
+      <ListCard>
+        <Row icon="sparkle" label="Plan" detail={plan} onPress={() => router.push('/pro')} />
+      </ListCard>
 
       <ListCard>
         <Row icon="car" label="Services and prices" onPress={() => router.push('/settings/services')} />

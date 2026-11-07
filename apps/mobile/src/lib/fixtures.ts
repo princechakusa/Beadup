@@ -57,6 +57,7 @@ export const fixtures = {
     { id: 'c2', name: 'Dev Patel', phone: '+15125550102', email: null, visits: 1, spentCents: 14000, lastVisit: at(-20, 9), nextBooking: at(0, 13) },
     { id: 'c4', name: 'Kevin Lee', phone: '+15125550104', email: null, visits: 4, spentCents: 52000, lastVisit: at(-120, 9), nextBooking: null },
   ] satisfies ClientSummary[],
+  businessProfile: { businessName: 'Marcus Shine Co.', tagline: 'Mobile detailing · we come to you', serviceArea: 'Austin, TX · 25 mi', handle: 'marcus' },
   paymentDetails: { link: null as string | null, note: 'Zelle: (512) 555-0101' as string | null },
   balance: {
     connected: true,

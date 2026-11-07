@@ -67,6 +67,7 @@ function RootNavigator() {
         <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings/services" />
         <Stack.Screen name="settings/payment" />
+        <Stack.Screen name="settings/profile" />
         <Stack.Screen name="settings/availability" />
         <Stack.Screen name="settings/delete-account" />
         <Stack.Screen name="booking/[id]" />

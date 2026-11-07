@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
+import { BookingLinkCard } from '@/components/BookingLinkCard';
 import { Sparkline } from '@/components/charts/Sparkline';
 import { Icon } from '@/components/ui/Icon';
 import { Badge, EmptyState, ListCard, Screen } from '@/components/ui/Screen';
@@ -126,6 +127,8 @@ export default function Today() {
         <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold />
       </View>
 
+      {profile.data && <BookingLinkCard handle={profile.data.handle} businessName={profile.data.businessName} />}
+
       <View style={styles.rowBetween}>
         <Text variant="heading" style={{ fontSize: 18 }}>
           Next up
@@ -143,7 +146,7 @@ export default function Today() {
         <ListCard>
           <EmptyState
             title={next.loading ? 'Loading your schedule…' : 'No jobs booked yet'}
-            body={next.loading ? '' : 'Share your booking link from Settings and new bookings will show up here.'}
+            body={next.loading ? '' : 'Share your booking link above. When clients book, their jobs show up here.'}
           />
         </ListCard>
       )}

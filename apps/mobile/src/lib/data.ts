@@ -530,3 +530,25 @@ export async function savePaymentDetails(d: PaymentDetails): Promise<void> {
   if (error) throw error;
   await refreshBookingPage();
 }
+
+export type BusinessProfile = { businessName: string; tagline: string; serviceArea: string; handle: string };
+
+export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
+  if (!supabase) return fixtures.businessProfile;
+  const { data, error } = await db().from('detailers').select('business_name, tagline, service_area, handle').maybeSingle();
+  if (error) throw error;
+  return data && { businessName: data.business_name, tagline: data.tagline, serviceArea: data.service_area, handle: data.handle };
+}
+
+/** Name, tagline and service area shown on the booking page (the handle stays fixed so shared links keep working). */
+export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = await db()
+    .from('detailers')
+    .update({ business_name: p.businessName.trim(), tagline: p.tagline.trim(), service_area: p.serviceArea.trim() })
+    .eq('id', user.user.id);
+  if (error) throw error;
+  await refreshBookingPage();
+}
