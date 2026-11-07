@@ -105,6 +105,8 @@ Data **collected and linked to the user**, all for **App Functionality** only (n
 
 Third parties that receive data: Stripe (payments), Twilio (text messages), Anthropic (vehicle photos for quotes, with explicit in-app consent: guideline 5.1.2(i)), Supabase (hosting, acts as processor).
 
+**Update 2026-11-07 (features added since this table):** optional booking alerts store an Expo push token per device. Declare **Identifiers: device ID = Yes** (App Functionality, linked to the user) in App Store Connect and **Device or other IDs = Yes** in Play Data safety. Add **Expo** (push delivery) and **Cloudflare** (Turnstile bot check on booking pages) to the third-party list. The live privacy policy at `/privacy` already lists them.
+
 ### App Review information
 **Sign-in required:** Yes. Provide two demo accounts and keep the backend live:
 - Detailer: `[DEMO DETAILER EMAIL]` / sign-in link or password `[ ]`

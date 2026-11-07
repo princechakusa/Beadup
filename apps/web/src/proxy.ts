@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getDemoDetailer } from "@/lib/demo";
+import { SITE_PAGES } from "@/lib/site-pages";
 
 // Booking pages stream, so a notFound() during render can only send HTTP 200.
 // Checking the handle here, before rendering, gives unknown handles a real 404.
@@ -34,6 +35,7 @@ async function pageExists(handle: string): Promise<boolean> {
 
 export async function proxy(request: NextRequest) {
   const handle = request.nextUrl.pathname.slice(1).toLowerCase();
+  if (SITE_PAGES.has(handle)) return NextResponse.next();
   let exists: boolean;
   try {
     exists = HANDLE_RE.test(handle) && (await pageExists(handle));
