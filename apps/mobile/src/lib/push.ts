@@ -12,7 +12,8 @@ import { supabase } from './supabase';
 // Expo Go has no remote push (removed on Android in SDK 53) and loading the
 // module there reports an error, so it is only loaded in real builds. In Expo
 // Go alerts show as "unavailable" and everything else works.
-const Notifications: typeof NotificationsModule | null = isRunningInExpoGo()
+// The web build (used for previews and store screenshots) has no push either.
+const Notifications: typeof NotificationsModule | null = isRunningInExpoGo() || Platform.OS === 'web'
   ? null
   : // eslint-disable-next-line @typescript-eslint/no-require-imports
     (require('expo-notifications') as typeof NotificationsModule);

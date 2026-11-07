@@ -96,7 +96,7 @@ Vehicle photos are sent to our AI provider, OpenAI, only after you give permissi
 **What's New (1.0):** `First release.` [14]
 
 ### Screenshots (required: 6.9" iPhone, 1290×2796)
-Use real app screens from the TestFlight build, not splash or login only (guideline 2.3.3). One caption per screen:
+Ready: `apps/mobile/assets/store/ios-6.9-1-today.png` to `-6-payment.png` (1290×2796, real app screens in demo mode, how they're made: `apps/mobile/assets/source/screenshots/README.md`). Upload them in number order. One caption per screen:
 
 | # | Screen | Caption |
 |---|---|---|
