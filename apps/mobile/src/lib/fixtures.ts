@@ -18,13 +18,13 @@ const people = [
 ];
 
 const allBookings: Booking[] = [
-  { id: 'b1', startsAt: at(0, 9, 30), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'suv', status: 'confirmed', subtotalCents: 24000, depositCents: 7200, address: '1200 Barton Springs Rd, Austin', addOns: [{ name: 'Pet hair removal (seats and carpets)' }], client: people[0] },
-  { id: 'b2', startsAt: at(0, 13), durationMin: 90, serviceName: 'Interior refresh', vehicleSize: 'truck', status: 'confirmed', subtotalCents: 14000, depositCents: 4200, address: '500 E 6th St, Austin', addOns: [], client: people[1] },
-  { id: 'b3', startsAt: at(0, 16), durationMin: 360, serviceName: 'Ceramic coating', vehicleSize: 'suv', status: 'confirmed', subtotalCents: 75000, depositCents: 22500, address: '2100 S Lamar Blvd, Austin', addOns: [], client: people[2] },
-  { id: 'b4', startsAt: at(1, 8), durationMin: 60, serviceName: 'Express wash', vehicleSize: 'sedan', status: 'confirmed', subtotalCents: 6000, depositCents: 1800, address: '88 Rainey St, Austin', addOns: [], client: people[3] },
-  { id: 'b5', startsAt: at(-1, 10), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'sedan', status: 'completed', subtotalCents: 18000, depositCents: 5400, address: '12 Congress Ave, Austin', addOns: [], client: people[0] },
-  { id: 'b6', startsAt: at(-2, 9, 30), durationMin: 60, serviceName: 'Express wash', vehicleSize: 'suv', status: 'completed', subtotalCents: 7000, depositCents: 2100, address: '700 W 5th St, Austin', addOns: [], client: people[3] },
-  { id: 'b7', startsAt: at(-3, 14, 30), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'truck', status: 'completed', subtotalCents: 23000, depositCents: 6900, address: '4 Lady Bird Ln, Austin', addOns: [], client: people[2] },
+  { id: 'b1', startsAt: at(0, 9, 30), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'suv', status: 'confirmed', subtotalCents: 24000, depositReceived: true, depositCents: 7200, address: '1200 Barton Springs Rd, Austin', addOns: [{ name: 'Pet hair removal (seats and carpets)' }], client: people[0] },
+  { id: 'b2', startsAt: at(0, 13), durationMin: 90, serviceName: 'Interior refresh', vehicleSize: 'truck', status: 'confirmed', subtotalCents: 14000, depositReceived: false, depositCents: 4200, address: '500 E 6th St, Austin', addOns: [], client: people[1] },
+  { id: 'b3', startsAt: at(0, 16), durationMin: 360, serviceName: 'Ceramic coating', vehicleSize: 'suv', status: 'confirmed', subtotalCents: 75000, depositReceived: false, depositCents: 22500, address: '2100 S Lamar Blvd, Austin', addOns: [], client: people[2] },
+  { id: 'b4', startsAt: at(1, 8), durationMin: 60, serviceName: 'Express wash', vehicleSize: 'sedan', status: 'confirmed', subtotalCents: 6000, depositReceived: false, depositCents: 1800, address: '88 Rainey St, Austin', addOns: [], client: people[3] },
+  { id: 'b5', startsAt: at(-1, 10), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'sedan', status: 'completed', subtotalCents: 18000, depositReceived: true, depositCents: 5400, address: '12 Congress Ave, Austin', addOns: [], client: people[0] },
+  { id: 'b6', startsAt: at(-2, 9, 30), durationMin: 60, serviceName: 'Express wash', vehicleSize: 'suv', status: 'completed', subtotalCents: 7000, depositReceived: true, depositCents: 2100, address: '700 W 5th St, Austin', addOns: [], client: people[3] },
+  { id: 'b7', startsAt: at(-3, 14, 30), durationMin: 180, serviceName: 'Full detail', vehicleSize: 'truck', status: 'completed', subtotalCents: 23000, depositReceived: true, depositCents: 6900, address: '4 Lady Bird Ln, Austin', addOns: [], client: people[2] },
 ];
 
 const catalog: { services: CatalogService[]; addOns: CatalogAddOn[] } = {

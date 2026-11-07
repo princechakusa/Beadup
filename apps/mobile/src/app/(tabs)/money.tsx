@@ -36,6 +36,8 @@ function MoneyDirect() {
   const earned = done.reduce((n, b) => n + b.subtotalCents, 0);
   const booked = ahead.reduce((n, b) => n + b.subtotalCents, 0);
   const noShows = jobs.filter((b) => b.status === 'no_show').length;
+  const depositsIn = jobs.filter((b) => b.depositReceived && b.status !== 'cancelled').reduce((n, b) => n + b.depositCents, 0);
+  const depositsDue = ahead.filter((b) => !b.depositReceived).length;
   const { whole, fraction } = usdParts(earned);
   const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
   const recent = [...jobs].sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)).slice(0, 20);
@@ -71,10 +73,13 @@ function MoneyDirect() {
         </View>
         <View style={styles.tile}>
           <Text variant="caption" style={{ fontSize: 12 }}>
-            No-shows
+            Deposits received
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
-            {noShows}
+            {usd(depositsIn, { cents: false })}
+          </Text>
+          <Text variant="caption" style={{ fontSize: 11, color: depositsDue ? colors.gold : colors.steel }}>
+            {depositsDue ? `${depositsDue} still due` : noShows ? `${noShows} no-show${noShows === 1 ? '' : 's'}` : 'All paid'}
           </Text>
         </View>
       </View>

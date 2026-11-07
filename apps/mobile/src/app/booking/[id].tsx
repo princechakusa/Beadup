@@ -6,7 +6,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { cancelBooking, fetchBooking, fetchProfile, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
+import { cancelBooking, fetchBooking, fetchProfile, markDepositReceived, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, usd } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
@@ -58,7 +58,12 @@ export default function BookingDetail() {
 
   const started = now >= Date.parse(b.startsAt);
   const balance = b.subtotalCents - b.paidCents;
-  const s = external && b.status === 'confirmed' ? { label: 'Booked', tone: 'bead' as const } : STATUS[b.status];
+  const s =
+    external && b.status === 'confirmed'
+      ? b.depositReceived
+        ? { label: 'Deposit paid', tone: 'success' as const }
+        : { label: 'Deposit due', tone: 'gold' as const }
+      : STATUS[b.status];
 
   return (
     <Screen eyebrow={`${dayLabel(b.startsAt, tz)} · ${timeOf(b.startsAt, tz)}`} title={b.serviceName} tabs={false} right={<BackButton />}>
@@ -103,7 +108,7 @@ export default function BookingDetail() {
         ))}
         <Line label="Total" value={usd(b.subtotalCents)} strong />
         {external ? (
-          <Line label="Deposit (30%), paid to you directly" value={usd(b.depositCents)} muted />
+          <Line label={b.depositReceived ? 'Deposit received' : 'Deposit (30%), not marked paid yet'} value={usd(b.depositCents)} muted={b.depositReceived} gold={!b.depositReceived} />
         ) : (
           <>
             <Line label="Paid so far" value={usd(b.paidCents)} muted />
@@ -116,6 +121,21 @@ export default function BookingDetail() {
         <Text variant="caption" tone="danger" accessibilityLiveRegion="polite">
           {notice}
         </Text>
+      )}
+
+      {external && b.status !== 'cancelled' && b.status !== 'pending_payment' && (
+        <Button
+          label={b.depositReceived ? 'Undo: deposit not received' : `Deposit received (${usd(b.depositCents)})`}
+          variant={b.depositReceived ? 'ghost' : 'primary'}
+          loading={busy === 'deposit'}
+          onPress={() =>
+            run('deposit', async () => {
+              await markDepositReceived(b.id, !b.depositReceived);
+              if (b.depositReceived) haptic.select();
+              else haptic.success();
+            })
+          }
+        />
       )}
 
       {b.status === 'confirmed' && (

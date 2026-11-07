@@ -22,6 +22,8 @@ export type Booking = {
   status: BookingStatus;
   subtotalCents: number;
   depositCents: number;
+  /** External payments: the detailer marked the deposit as paid to them. */
+  depositReceived: boolean;
   address: string;
   addOns: { name: string; priceCents?: number }[];
   client: { id: string; name: string; phone: string };
@@ -57,7 +59,7 @@ export type Balance = {
 };
 
 const BOOKING_SELECT =
-  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, address, add_ons, client:clients(id, name, phone)';
+  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, deposit_received_at, address, add_ons, client:clients(id, name, phone)';
 
 type BookingRow = {
   id: string;
@@ -68,6 +70,7 @@ type BookingRow = {
   status: BookingStatus;
   subtotal_cents: number;
   deposit_cents: number;
+  deposit_received_at: string | null;
   address: string;
   add_ons: { name: string; priceCents?: number }[] | null;
   client: { id: string; name: string; phone: string } | null;
@@ -82,6 +85,7 @@ const toBooking = (r: BookingRow): Booking => ({
   status: r.status,
   subtotalCents: r.subtotal_cents,
   depositCents: r.deposit_cents,
+  depositReceived: !!r.deposit_received_at,
   address: r.address,
   addOns: r.add_ons ?? [],
   client: r.client ?? { id: '', name: 'Client', phone: '' },
@@ -551,4 +555,12 @@ export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): P
     .eq('id', user.user.id);
   if (error) throw error;
   await refreshBookingPage();
+}
+
+/** External payments: the detailer confirms (or undoes) that the client paid the deposit to them. */
+export async function markDepositReceived(id: string, received: boolean): Promise<void> {
+  if (!supabase) return;
+  const { data, error } = await db().rpc('mark_deposit_received', { p_booking_id: id, p_received: received });
+  if (error) throw error;
+  if (!(data as { ok?: boolean } | null)?.ok) throw new Error('not allowed');
 }

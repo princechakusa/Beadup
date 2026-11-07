@@ -171,7 +171,12 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
             <Text variant="caption" style={{ fontSize: 12, color: '#DCEFF7' }}>
               {timeOf(b.startsAt, tz)} – {timeOf(end, tz)}
             </Text>
-            {!compact && <Badge label={external && b.status === 'confirmed' ? 'Booked' : s.label} tone={s.tone} />}
+            {!compact && (
+              <Badge
+                label={external && b.status === 'confirmed' ? (b.depositReceived ? 'Deposit paid' : 'Deposit due') : s.label}
+                tone={external && b.status === 'confirmed' && !b.depositReceived ? 'gold' : s.tone}
+              />
+            )}
           </View>
           <Text variant="heading" numberOfLines={1} style={{ fontSize: compact ? 15 : 20 }}>
             {b.serviceName}
