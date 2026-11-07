@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 import { getBookingPage } from "@/lib/booking-page";
+import { getPublicConfig } from "@/lib/site";
 
 // Cache Components needs at least one param. "marcus" is the seeded demo
 // detailer used for App Review; other handles render on first visit.
@@ -21,5 +22,6 @@ export default async function BookingPage({ params }: PageProps<"/[handle]">) {
   const detailer = await getBookingPage(handle);
   // A detailer with no active services has nothing to book yet.
   if (!detailer || detailer.services.length === 0) notFound();
-  return <BookingFlow detailer={detailer} />;
+  const { sms_enabled } = await getPublicConfig();
+  return <BookingFlow detailer={detailer} smsEnabled={sms_enabled} />;
 }

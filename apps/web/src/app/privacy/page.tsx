@@ -71,7 +71,8 @@ export default function Privacy() {
           terms and privacy policy apply to them.
         </li>
         <li>
-          <strong>Twilio</strong> delivers text messages.
+          <strong>Twilio</strong> delivers text messages, when Beadup sends them. Text messages are not in use yet; we
+          will update this policy before they are.
         </li>
         <li>
           <strong>Anthropic</strong> provides the AI model that suggests quotes. Vehicle photos and the detailer&apos;s

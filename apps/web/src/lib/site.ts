@@ -10,9 +10,11 @@ const configSchema = z.object({
   free_bookings_per_month: z.number().int().positive(),
   pro_price_display: z.string().nullable().optional(),
   pro_price_period: z.string().optional(),
+  /** Text messages to clients (off until Twilio/10DLC is set up). */
+  sms_enabled: z.boolean().optional().default(false),
 });
 export type PublicConfig = z.infer<typeof configSchema>;
-const FALLBACK: PublicConfig = { free_bookings_per_month: 5, pro_price_display: null, pro_price_period: "month" };
+const FALLBACK: PublicConfig = { free_bookings_per_month: 5, pro_price_display: null, pro_price_period: "month", sms_enabled: false };
 
 /**
  * Plan limits and the marketing price, from the plan_config table. Nothing

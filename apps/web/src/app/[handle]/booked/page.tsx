@@ -5,6 +5,7 @@ import { z } from "zod";
 import { BookedCelebration } from "@/components/booking/BookedCelebration";
 import { formatUsd } from "@/lib/pricing";
 import { stripe } from "@/lib/stripe";
+import { getPublicConfig } from "@/lib/site";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const metadata: Metadata = { title: "Booking confirmation", robots: { index: false, follow: false } };
@@ -81,6 +82,7 @@ async function Receipt({ searchParams }: { searchParams: PageProps<"/[handle]/bo
       when={formatWhen(receipt.startsAt, receipt.timezone)}
       paid={formatUsd(receipt.paidCents)}
       celebrate
+      smsEnabled={(await getPublicConfig()).sms_enabled}
     />
   );
 }

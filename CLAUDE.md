@@ -51,7 +51,7 @@ Repo: https://github.com/princechakusa/Beadup (public, by owner's choice). **Fol
 - [ ] 🔑 Anthropic API key
 ### M6: Messaging
 - [x] SMS confirmations, day-before reminders, review request (Twilio), STOP handling, consent logging (sends once Twilio keys and 10DLC exist)
-- [ ] 🔑 Twilio account + 10DLC registration
+- [ ] 🔑 Twilio account + 10DLC registration. **OWNER DECISION 2026-11-07: launch without texts** ($0 start; Twilio trial accounts can't register A2P and the owner isn't a US resident, so Sole Proprietor brands don't apply). `plan_config.sms_enabled = false` hides the SMS consent box and text copy; clients get Stripe email receipts, detailers get push. Flip to true after Twilio + 10DLC (Standard brand with home-country business registration) or toll-free verification
 ### M7: Business pages and subscriptions
 - [x] Marketing landing page (premium, animated), pricing, privacy policy, terms, support, `/delete-account` (policies written to match the code; have a lawyer review; set `NEXT_PUBLIC_LEGAL_NAME` and `NEXT_PUBLIC_SUPPORT_EMAIL`)
 - [x] Pro subscription ($19/mo) via **in-app purchase on both stores** (Apple IAP + Google Play Billing, same price, via RevenueCat). OWNER DECISION 2026-11-07: no web checkout or "buy on web" links in the app. Free plan limit of 5 bookings/month. Paywall shows price, period, features, cancel info, Restore Purchases, Terms/Privacy links (Apple 3.1.2)

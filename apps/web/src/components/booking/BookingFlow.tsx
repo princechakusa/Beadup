@@ -38,7 +38,8 @@ const detailsSchema = z.object({
     .trim()
     .regex(/^\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/, "Enter a valid US phone number"),
   address: z.string().trim().min(6, "Enter the address where the car will be").max(200),
-  smsConsent: z.literal(true, { error: "Needed so we can text your booking updates" }),
+  // Optional: consent to texts is never a condition of booking.
+  smsConsent: z.boolean(),
 });
 
 type Details = { name: string; phone: string; address: string; smsConsent: boolean };
@@ -77,7 +78,7 @@ function to12h(hhmm: string) {
   return `${((h + 11) % 12) + 1}:${m.toString().padStart(2, "0")} ${suffix}`;
 }
 
-export function BookingFlow({ detailer }: { detailer: Detailer }) {
+export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
   const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
@@ -153,7 +154,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
         name: details.name,
         phone: details.phone,
         address: details.address,
-        smsConsent: details.smsConsent,
+        smsConsent: smsEnabled && details.smsConsent,
         turnstileToken: turnstileToken ?? undefined,
       })
         .then((res) => {
@@ -192,6 +193,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
         paid={formatUsd(paidCents ?? totals.dueToday)}
         serviceName={service.name}
         celebrate
+        smsEnabled={smsEnabled}
       />
     );
   }
@@ -429,6 +431,7 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                   <Field label="Service address" error={errors.address}>
                     <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
                   </Field>
+                  {smsEnabled && (
                   <label className="mt-1 flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-steel">
                     <input
                       type="checkbox"
@@ -438,9 +441,9 @@ export function BookingFlow({ detailer }: { detailer: Detailer }) {
                     />
                     <span>
                       {smsConsentText(detailer.businessName)}
-                      {errors.smsConsent && <span className="mt-1 block text-[#ff8a8a]">{errors.smsConsent}</span>}
                     </span>
                   </label>
+                  )}
                   <button type="submit" className="sr-only">Continue</button>
                 </form>
               </>

@@ -8,6 +8,7 @@ import { bookingPageTag, getBookingPage, HANDLE_RE } from "@/lib/booking-page";
 import { VEHICLE_SIZES } from "@/lib/booking-types";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
+import { getPublicConfig } from "@/lib/site";
 import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -130,6 +131,8 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
   const parsed = bookingInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const input = parsed.data;
+  // While texts are off, never record SMS consent (it would be for nothing).
+  if (!(await getPublicConfig()).sms_enabled) input.smsConsent = false;
 
   const h = await headers();
   const ip = h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";

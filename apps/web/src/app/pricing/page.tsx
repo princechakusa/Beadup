@@ -24,7 +24,7 @@ export default async function Pricing() {
     "Your booking link with deposits",
     "AI photo quotes from your price list",
     "Calendar, clients and money in one app",
-    "Confirmations, reminders and receipts by text",
+    "Automatic email receipts for every payment",
     "Clients pay the card fee, you keep the full deposit",
   ];
 

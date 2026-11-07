@@ -28,8 +28,8 @@ const FEATURES = [
     body: "Today's jobs, the next address, and one tap to start the route, text or call the client.",
   },
   {
-    title: "Reminders and receipts",
-    body: "Clients get a confirmation, a reminder the day before and a receipt, automatically. Only with their consent.",
+    title: "Automatic receipts",
+    body: "Every deposit and balance comes with an email receipt for your client, sent automatically. Nothing to chase.",
   },
   {
     title: "Paid in full, on the spot",

@@ -26,6 +26,7 @@ export function BookedCelebration({
   paid,
   serviceName,
   celebrate = false,
+  smsEnabled = false,
 }: {
   businessName: string;
   when: string;
@@ -33,6 +34,8 @@ export function BookedCelebration({
   serviceName: string;
   /** Play the chime and success haptic on mount (best effort: browsers may block audio without a gesture). */
   celebrate?: boolean;
+  /** Mention texts only when they are actually sent. */
+  smsEnabled?: boolean;
 }) {
   const reduce = useReducedMotion();
   useEffect(() => {
@@ -124,7 +127,9 @@ export function BookedCelebration({
         </div>
 
         <p className="mt-6 text-[13px] leading-relaxed text-steel">
-          Your receipt and confirmation are on their way by text and email. You&apos;ll get a reminder the day before.
+          {smsEnabled
+            ? "Your receipt and confirmation are on their way by text and email. You'll get a reminder the day before."
+            : "Your receipt is on its way by email. Need to change anything? Contact the detailer directly."}
         </p>
       </motion.div>
     </div>
