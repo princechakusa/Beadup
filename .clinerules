@@ -1,0 +1,32 @@
+# Rules for Cline in the Beadup repo
+
+Read these first, every session:
+- `CLAUDE.md`: product, approved decisions, roadmap, and notes on how each part works.
+- `rules.md`: Apple/Google policy and security rules. Every change must follow it.
+
+Other agents (Claude Code) work in this same checkout. Before you start: `git fetch && git status` and
+`git log --oneline -10`. Only stage the files you changed (`git add <paths>`), never `git add -A`.
+
+## Working rules
+- Work on the roadmap item you were given. Don't change approved decisions (name, palette, fonts,
+  Stripe, in-app purchase for Pro, launch without SMS, OpenAI for AI quotes) without the owner.
+- Never commit secrets. Keys go only in `.env.local` (git-ignored). Never paste keys into chat.
+- Never hardcode the Pro price or plan limits: they come from `plan_config`.
+- No emoji in the product. Dark glass look, springs, line icons.
+- Database changes are new files in `supabase/migrations/` with RLS on every table, explicit grants,
+  and pgTAP tests in `supabase/tests/database/`. Never edit a migration that is already committed.
+- Next.js 16 (`apps/web`): read `node_modules/next/dist/docs/` before using a Next API.
+- Expo SDK 58 (`apps/mobile`): React Compiler is on, so write Reanimated shared values with
+  `.set()` / `.get()`, never `.value`. Install packages with `npx expo install`.
+
+## Before every commit, all of these must pass
+```
+npx supabase test db                      # repo root, needs Docker + `npx supabase start`
+cd apps/web && npx tsc --noEmit && npm run lint && npm run build
+cd apps/mobile && npx tsc --noEmit && npm run lint && npx expo export --platform ios --no-bytecode --output-dir <temp dir>
+```
+Commit with a clear message, then tick the roadmap box in `CLAUDE.md` only when the item is fully done.
+
+## When you stop (out of tokens or done)
+Append a short entry to `docs/HANDOFF.md`: what you finished, what is half-done (file paths), what you
+tested, and anything that failed. Another agent continues from there.
