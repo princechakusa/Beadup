@@ -8,7 +8,7 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://bczhuwibozwsynrlfqrq.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_epPuZ63STF-LsmxLQjDmNg_YqrwU6qd",
-        "EXPO_PUBLIC_API_URL": "https://beadup.app"
+        "EXPO_PUBLIC_API_URL": "https://beadup.netlify.app"
       }
     },
     "preview": {

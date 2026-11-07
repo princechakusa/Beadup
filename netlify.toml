@@ -1,0 +1,10 @@
+# Netlify: the web app (booking links, website, API for the mobile app).
+# Secrets are set in the Netlify UI (Site configuration > Environment variables),
+# never here. See .env.example for the list.
+[build]
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
