@@ -9,3 +9,8 @@ half-done (file paths), what was tested, what failed. Newest at the bottom.
 - Good for Cline: M8 Playwright E2E tests for the booking flow (`apps/web`, new files only), outreach
   drafts for US detailers (drafts only, owner approves before anything is sent).
 - Waiting on the owner: Supabase "Deploy to production" toggle, OPENAI_API_KEY in apps/web/.env.local.
+
+## 2026-11-07 (later), Claude Code
+- Done: M8 security review (`docs/SECURITY_REVIEW.md`), CI + Dependabot + gitleaks, IP trust fix, refund retries.
+- **Cline: start with `docs/CLINE_TASKS.md`** (Tasks 1-4 in order). Claude Code reviews each one.
+- Claude Code next: 3D app icon (Blender), App Review demo sign-in, deployment setup.
