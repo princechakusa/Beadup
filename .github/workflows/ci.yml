@@ -38,7 +38,7 @@ jobs:
 
       - name: Type-check and lint web
         working-directory: apps/web
-        run: npx next typegen && npx tsc --noEmit && npm run lint
+        run: npx next typegen && npx tsc --noEmit && npm run lint && npm test
 
       - name: Build web against the local stack
         working-directory: apps/web
@@ -67,7 +67,7 @@ jobs:
         run: npm ci
       - name: Type-check and lint mobile
         working-directory: apps/mobile
-        run: npx tsc --noEmit && npm run lint
+        run: npx tsc --noEmit && npm run lint && npm test
       - name: Bundle the app JavaScript (iOS and Android)
         working-directory: apps/mobile
         run: |
