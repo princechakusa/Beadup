@@ -8,3 +8,8 @@
 
 [build.environment]
   NODE_VERSION = "24"
+
+# Next.js runtime (server functions, middleware/proxy, caching). Named
+# explicitly because auto-detection skips it when the app is in a subfolder.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
