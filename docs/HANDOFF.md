@@ -70,3 +70,11 @@ so `--clear-cache` alone won't fix it.
 Availability (US, CA, UK, AU; no EU, DSA "not a trader"), App Privacy (9 types, App Functionality, linked,
 no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all countries). See
 `docs/store-submission.md` for the checklist.
+
+## 2026-11-08, Claude Code: iOS build FIXED and succeeded
+- `react-native-purchases` pinned to 10.16.0 (PurchasesHybridCommon 19.17.0 is on CocoaPods; 20.x still isn't).
+  Move back to 11.x only once a 20.x pod is published on trunk.
+- `apps/mobile/app.json` `web.output` changed `server` -> `single`: the server export in EAS's EAGER_BUNDLE phase ran
+  Supabase + SecureStore in Node and crashed. Check locally with `npx expo export:embed --eager --platform ios --dev false`.
+- Build `2bc169fe-a45d-47d1-a5f8-29066893e53f` FINISHED (1.0.0, build 4). Not submitted yet: owner runs
+  `cd apps/mobile && npx eas-cli@latest submit --platform ios --latest` to send it to TestFlight.
