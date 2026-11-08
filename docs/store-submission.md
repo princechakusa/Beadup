@@ -25,7 +25,9 @@ Done in the owner's account:
 - [ ] App Review info: demo account, contact, review notes (section 1)
 - [ ] Pricing and availability: Free, United States first
 - [ ] Screenshots (6.9" iPhone): from the real build
-- [ ] In-App Purchase: create subscription `beadup_pro_monthly`. **Price is set only here (and per country) and must never be hardcoded in the app**
+- [x] In-App Purchase (2026-11-08): group "Beadup Pro", subscription `beadup_pro_monthly` (Apple ID 6832323640), 1 month, US $19.00 (Apple set the other 174 countries), available everywhere the app is, display name "Beadup Pro" / "Unlimited bookings for your detailing business". **Price lives only here and must never be hardcoded in the app.** Still to add before review: the paywall screenshot (from the TestFlight build). Paid Apps Agreement: Active
+- [x] Screenshots (2026-11-08): six 6.9" images uploaded to Asset Library (`apps/mobile/assets/store/`); arrange in order when adding to the version
+- [ ] RevenueCat: project, App Store connection (In-App Purchase key), entitlement `pro`, offering with the monthly package; public iOS key into `eas.json` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`); webhook to `https://beadup.netlify.app/api/revenuecat/webhook` with `REVENUECAT_WEBHOOK_AUTH`
 - [ ] 🔑 Apple banner: the **Account Holder must accept the updated Apple Developer Program License Agreement** (deadline Nov 14, 2026). Also the EU trader status declaration if distributing in the EU
 - [ ] Upload a build (EAS, see `docs/DEPLOY.md`) and submit for review
 
