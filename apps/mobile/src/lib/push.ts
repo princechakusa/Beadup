@@ -76,8 +76,16 @@ export async function enablePush(): Promise<PushState> {
   if (!user.user) return 'off';
   const { error } = await supabase
     .from('push_tokens')
-    .upsert({ token: t, detailer_id: user.user.id, platform: Platform.OS === 'ios' ? 'ios' : 'android' }, { onConflict: 'token' });
+    // ON CONFLICT DO NOTHING: the app may only insert/delete tokens (no UPDATE
+    // grant), and a plain upsert needs UPDATE even when nothing conflicts.
+    .upsert(
+      { token: t, detailer_id: user.user.id, platform: Platform.OS === 'ios' ? 'ios' : 'android' },
+      { onConflict: 'token', ignoreDuplicates: true },
+    );
   if (error) return 'off';
+  // Confirm the token is registered to this account (not still to another one).
+  const { data: mine } = await supabase.from('push_tokens').select('token').eq('token', t).maybeSingle();
+  if (!mine) return 'off';
   currentToken = t;
   return 'on';
 }
