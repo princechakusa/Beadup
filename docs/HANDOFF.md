@@ -31,3 +31,42 @@ half-done (file paths), what was tested, what failed. Newest at the bottom.
 - Waiting on the owner: Apple agreement, Supabase auth settings, demo account, TestFlight build, listing text update
   in App Store Connect.
 - Claude Code next: 3D app icon (Blender).
+
+## 2026-11-08, Claude Code: first iOS build FAILED, fix needed before building again
+**Build:** EAS `f84baf62-65bb-4714-ae5d-f5bedee17e04` (iOS, profile `production`, SDK 58), failed in the
+**INSTALL_PODS** phase. Credentials were created fine (distribution certificate, provisioning profile).
+
+**Exact error (from the EAS log):**
+```
+[!] CocoaPods could not find compatible versions for pod "PurchasesHybridCommon":
+  RNPurchases (from `../node_modules/react-native-purchases`) was resolved to 11.0.1, which depends on
+    PurchasesHybridCommon (= 20.4.0)
+None of your spec sources contain a spec satisfying the dependency: `PurchasesHybridCommon (= 20.4.0)`.
+```
+
+**Cause (checked 2026-11-08):** every `react-native-purchases` 11.x release depends on a
+`PurchasesHybridCommon` 20.x pod, and **no 20.x version is published on CocoaPods trunk**
+(`https://trunk.cocoapods.org/api/v1/pods/PurchasesHybridCommon`, newest is 19.17.0). Not a cache problem,
+so `--clear-cache` alone won't fix it.
+
+**Fix (do this):**
+1. `cd apps/mobile && npm install react-native-purchases@10.16.0 --save-exact`
+   (10.16.0 depends on PurchasesHybridCommon 19.17.0, which is published; peer deps OK: RN >= 0.73).
+   Re-check the trunk URL first: if a 20.x pod has since been published, staying on 11.x is fine instead.
+2. Check the API we use still exists in 10.x (it should): `Purchases.configure`, `logIn`, `logOut`,
+   `getOfferings`, `purchasePackage`, `restorePurchases`, `getCustomerInfo`, types `CustomerInfo`,
+   `PurchasesPackage` (`apps/mobile/src/lib/purchases.ts`, paywall `src/app/pro.tsx`).
+3. `npx tsc --noEmit && npm run lint && npx vitest run && npx expo export --platform ios --no-bytecode`
+   (hermesc crashes on this Windows PC, hence `--no-bytecode`; real builds use EAS).
+4. Commit + push, then the owner runs (needs Apple login, so not from an agent):
+   `cd apps/mobile && npx eas-cli@latest build --platform ios --profile production --auto-submit --clear-cache`
+5. If another pod conflict appears, read the INSTALL_PODS section of the log:
+   `npx eas-cli@latest build:view <id> --json` gives `logFiles` URLs (brotli-encoded: use `curl --compressed`).
+
+**Also pending (unrelated to the failure):** RevenueCat isn't set up yet (owner creates the account; keys go in
+`eas.json` / Netlify), so Pro purchases will show "not available" in this first TestFlight build. That's expected.
+
+**Done this session:** App Store Connect listing text, 6 screenshots (Asset Library), Pricing (Free) and
+Availability (US, CA, UK, AU; no EU, DSA "not a trader"), App Privacy (9 types, App Functionality, linked,
+no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all countries). See
+`docs/store-submission.md` for the checklist.
