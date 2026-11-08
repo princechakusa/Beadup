@@ -78,3 +78,12 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   Supabase + SecureStore in Node and crashed. Check locally with `npx expo export:embed --eager --platform ios --dev false`.
 - Build `2bc169fe-a45d-47d1-a5f8-29066893e53f` FINISHED (1.0.0, build 4). Not submitted yet: owner runs
   `cd apps/mobile && npx eas-cli@latest submit --platform ios --latest` to send it to TestFlight.
+
+## 2026-11-09, Claude Code: RevenueCat live, build 5 on TestFlight
+- RevenueCat project "Beadup" (`18ad6efa`): App Store app `com.beadup.app` with In-App Purchase key 8HKLGT77L9 (valid),
+  product `beadup_pro_monthly` -> entitlement `pro`, offering `default` (current) with a Monthly package.
+  Public iOS SDK key in `apps/mobile/eas.json` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`). No Android app in RevenueCat yet.
+- Webhook -> `https://beadup.netlify.app/api/revenuecat/webhook`; RevenueCat test event returns 200.
+  Netlify has `REVENUECAT_WEBHOOK_AUTH` (bare token, no "Bearer " prefix, same value as in RevenueCat) and `REVENUECAT_SECRET_KEY`.
+- Build 5 (1.0.0) submitted to TestFlight. Version 1.0 has six 6.3" screenshots.
+- Still needed before App Review: paywall screenshot on the subscription's Review Information (from TestFlight build 5).
