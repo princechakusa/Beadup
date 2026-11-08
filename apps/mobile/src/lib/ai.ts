@@ -3,7 +3,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 
 import { api, ApiError } from './data';
-import { supabase } from './supabase';
+import { apiBaseUrl, supabase } from './supabase';
 
 // AI photo quotes (rules.md sections 3 and 5): system photo picker only (no
 // full library access), photos re-encoded on the phone (which drops EXIF and
@@ -40,6 +40,23 @@ export async function aiConsentStatus(): Promise<{ provider: AiProviderId; conse
   if (error || !data) return { provider: 'openai', consented: false };
   const d = data as { provider: string; consented: boolean };
   return { provider: d.provider === 'anthropic' ? 'anthropic' : 'openai', consented: d.consented };
+}
+
+/**
+ * Whether the server can run AI photo quotes (has a provider key). Only an
+ * explicit "no" hides the scan; offline or errors keep it visible so the
+ * normal error message and the manual quote still apply.
+ */
+export async function aiAvailable(): Promise<boolean> {
+  if (!supabase) return true; // preview build uses the flagged mock
+  try {
+    const res = await fetch(`${apiBaseUrl}/api/quotes/ai`, { method: 'GET' });
+    if (!res.ok) return true;
+    const body = (await res.json()) as { available?: unknown };
+    return body.available !== false;
+  } catch {
+    return true;
+  }
 }
 
 export async function hasAiConsent(): Promise<boolean> {

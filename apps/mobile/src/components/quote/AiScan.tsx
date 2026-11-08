@@ -10,7 +10,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Icon } from '@/components/ui/Icon';
 import { Badge } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { hasAiConsent, MAX_PHOTOS, pickPhotos, suggestFromPhotos, takePhoto, uploadPhotos, type AiSuggestion } from '@/lib/ai';
+import { aiAvailable, hasAiConsent, MAX_PHOTOS, pickPhotos, suggestFromPhotos, takePhoto, uploadPhotos, type AiSuggestion } from '@/lib/ai';
 import { ApiError } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
@@ -25,6 +25,7 @@ const ERRORS: Record<string, string> = {
 /** "AI scan": photos in, suggested service and add-ons out (an estimate the detailer reviews). */
 export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => void }) {
   const [consent, setConsent] = useState<boolean | null>(null);
+  const [available, setAvailable] = useState<boolean | null>(null);
   const [uris, setUris] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
   useFocusEffect(
     useCallback(() => {
       hasAiConsent().then(setConsent).catch(() => setConsent(false));
+      aiAvailable().then(setAvailable);
     }, []),
   );
 
@@ -62,6 +64,8 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
     }
   };
 
+  // No AI on the server: show nothing; the manual quote below still works.
+  if (available !== true) return null;
   if (consent === false) {
     return (
       <GlassCard>

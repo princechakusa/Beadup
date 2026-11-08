@@ -22,6 +22,19 @@ const body = z.object({
 
 const SIZES = ["sedan", "suv", "truck"] as const;
 
+// GET /api/quotes/ai: whether AI photo quotes work on this server, so the app
+// can hide the scan instead of showing a feature that fails (App Review 2.1).
+// Reveals nothing beyond a boolean; dev without a key still has the mock.
+export async function GET(): Promise<Response> {
+  const db = supabaseAdmin();
+  let available = process.env.NODE_ENV !== "production";
+  if (db) {
+    const { data } = await db.rpc("current_ai_provider");
+    available = available || aiConfigured(data === "anthropic" ? "anthropic" : "openai");
+  }
+  return Response.json({ available }, { headers: { "Cache-Control": "no-store" } });
+}
+
 export async function POST(request: Request): Promise<Response> {
   const userId = await detailerFromRequest(request);
   if (!userId) return new Response("unauthorized", { status: 401 });
