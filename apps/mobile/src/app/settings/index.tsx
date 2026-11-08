@@ -26,6 +26,10 @@ export default function Settings() {
   const [copied, setCopied] = useState(false);
   const [opening, setOpening] = useState(false);
   const [push, setPush] = useState<PushState | null>(null);
+  // The switch shows the requested value while registering (permission,
+  // token, save take a second or two), so it doesn't look like it failed.
+  const [pushBusy, setPushBusy] = useState<boolean | null>(null);
+  const [pushFailed, setPushFailed] = useState(false);
   const [ai, setAi] = useState<boolean | null>(null);
   const [aiProvider, setAiProvider] = useState<AiProviderId>('openai');
   const paymentsMode = usePaymentsMode();
@@ -53,14 +57,28 @@ export default function Settings() {
   }, []);
 
   const togglePush = async (on: boolean) => {
+    if (pushBusy !== null) return;
     haptic.select();
-    if (on) {
-      const s = await enablePush();
-      setPush(s);
-      if (s === 'denied') Linking.openSettings();
-    } else {
-      await disablePush();
-      setPush('off');
+    setPushBusy(on);
+    setPushFailed(false);
+    try {
+      if (on) {
+        const s = await enablePush();
+        setPush(s);
+        if (s === 'denied') Linking.openSettings();
+        else if (s !== 'on') {
+          setPushFailed(true);
+          haptic.error();
+        }
+      } else {
+        await disablePush();
+        setPush('off');
+      }
+    } catch {
+      setPush(await pushState().catch(() => 'off' as const));
+      setPushFailed(on);
+    } finally {
+      setPushBusy(null);
     }
   };
 
@@ -186,16 +204,20 @@ export default function Settings() {
               Booking alerts
             </Text>
             <Text variant="caption" style={{ fontSize: 12 }}>
-              {push === 'denied'
-                ? 'Turned off in your phone settings'
-                : push === 'unavailable'
-                  ? 'Available in the App Store and Play Store builds'
-                  : 'Optional. The app works without them'}
+              {pushBusy === true
+                ? 'Turning on…'
+                : pushFailed
+                  ? 'Couldn’t turn on alerts. Check your connection and try again.'
+                  : push === 'denied'
+                    ? 'Turned off in your phone settings'
+                    : push === 'unavailable'
+                      ? 'Available in the App Store and Play Store builds'
+                      : 'Optional. The app works without them'}
             </Text>
           </View>
           <Switch
-            value={push === 'on'}
-            disabled={push === null || push === 'unavailable'}
+            value={pushBusy ?? push === 'on'}
+            disabled={push === null || push === 'unavailable' || pushBusy !== null}
             onValueChange={togglePush}
             trackColor={{ true: colors.bead, false: '#262B35' }}
             accessibilityLabel="Booking alerts"
