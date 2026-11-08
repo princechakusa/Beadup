@@ -96,7 +96,7 @@ export default function Pro() {
           <View style={{ gap: space.md }}>
             {[
               'Unlimited bookings every month',
-              'Everything in Free: booking link, deposits, AI photo quotes, reminders and receipts',
+              'Everything in Free: booking link, deposits, AI photo quotes, calendar and booking alerts',
             ].map((f) => (
               <View key={f} style={styles.feature}>
                 <Icon name="check" size={18} color={colors.bead} strokeWidth={2.6} />
