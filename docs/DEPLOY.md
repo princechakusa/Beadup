@@ -26,8 +26,22 @@ Owner decisions 2026-11-07: host on **Netlify free** (commercial use allowed), f
 | `EXPO_ACCESS_TOKEN` (**secret**, optional) | expo.dev → Access tokens | push alerts |
 | `NEXT_PUBLIC_LEGAL_NAME`, `NEXT_PUBLIC_SUPPORT_EMAIL` | your business name and support email | privacy policy, terms |
 
+| `NEXT_PUBLIC_APP_STORE_URL` (optional) | the App Store listing URL once the app is live | website "Download on the App Store" buttons (until set they say "Coming soon") |
+
 Not needed while texts are off: `TWILIO_*`. The 15-minute job is
 `apps/web/netlify/functions/cron-messages.mts` (runs on its own once `CRON_SECRET` is set).
+
+### Security headers and the CSP (no action needed)
+- `npm run build` runs `next build` and then `scripts/verify-csp.mjs`, which fails the deploy if a
+  prerendered page shell would need `'unsafe-inline'`. If a Next/React upgrade trips it, the
+  message names the new inline script; add its hash to `src/lib/csp-hashes.json` only if it is a
+  framework constant (see `docs/SECURITY_REVIEW.md`).
+- Every page is rendered per request (for the CSP nonce) but data is still cached, so a change in
+  `plan_config` (Pro price, free booking limit) shows on the website within the cache lifetime
+  (about an hour) **without a redeploy**, as before. `NEXT_PUBLIC_*` values (site URL, App Store
+  URL, legal name, support email) are build-time and need a redeploy.
+- After a deploy, check https://developer.mozilla.org/en-US/observatory and
+  https://securityheaders.com: both should show A+.
 
 ## 2. Supabase dashboard (owner, production project)
 - Authentication → URL Configuration: Site URL `https://beadup.netlify.app`; Redirect URLs

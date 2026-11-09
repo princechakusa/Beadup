@@ -391,7 +391,7 @@ function Showcase() {
         </SectionHead>
       </div>
       <Reveal className="relative mt-14">
-        <ul className="mx-auto flex w-full max-w-[1400px] snap-x snap-mandatory gap-6 overflow-x-auto px-[max(20px,calc(50vw-140px))] pb-6 [scrollbar-width:none] sm:gap-8 lg:justify-center lg:overflow-visible lg:px-8">
+        <ul tabIndex={0} aria-label="App screens" className="mx-auto flex w-full max-w-[1400px] snap-x snap-mandatory gap-6 overflow-x-auto px-[max(20px,calc(50vw-140px))] pb-6 [scrollbar-width:none] sm:gap-8 lg:justify-center lg:overflow-visible lg:px-8">
           {screens.map((s, i) => (
             <li
               key={s.screen}

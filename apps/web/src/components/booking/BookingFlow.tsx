@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, MotionConfig, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
@@ -9,7 +9,7 @@ import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
-import { useHydrated } from "@/lib/use-hydrated";
+import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
 
@@ -88,6 +88,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   // Animation start states only after hydration: the server HTML must not
   // carry style="" attributes (CSP without 'unsafe-inline').
   const hydrated = useHydrated();
+  const nonce = useCspNonce();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [serviceId, setServiceId] = useState(detailer.services[1]?.id ?? detailer.services[0].id);
@@ -217,6 +218,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   };
 
   return (
+    <MotionConfig nonce={nonce}>
     <main id="main" className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-40 pt-6">
       <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(77,216,255,0.16),transparent)]" />
       {/* Header */}
@@ -550,6 +552,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         </div>
       </div>
     </main>
+    </MotionConfig>
   );
 }
 
