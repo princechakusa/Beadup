@@ -101,3 +101,15 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   PC), so the web build was run with the production public URL/key instead of `.env.local`.
 - Next store build (native, not OTA): add `expo-store-review` and ask for a rating after a job is marked paid (once every
   few months at most); bump `version` in app.json when adding it.
+
+## 2026-11-09 (night), Claude Code: opening animation, next store build checklist
+- Opening animation `apps/mobile/src/components/LaunchIntro.tsx`, mounted over the app in `src/app/_layout.tsx`
+  (cold start only; the native splash hides once the intro's first frame, identical to it, is on screen, or after 0.6 s).
+  Design preview: https://claude.ai/artifact/VqHakbuschmewmFTPoFk21
+- Version A (bead from the launch screen) plays on runtime 1.0.0. Version B (falling drop) plays on any later runtime.
+- **Next store build (1.0.1) must:**
+  1. Bump `expo.version` in `apps/mobile/app.json` to `1.0.1` (runtimeVersion policy appVersion; old binaries keep getting 1.0.0 OTAs only).
+  2. Make the launch screen plain Midnight for B: in the `expo-splash-screen` plugin, replace `image` with a fully transparent PNG
+     (e.g. `./assets/images/splash-blank.png`, 1x1 transparent) and keep `backgroundColor: "#0A0C10"`.
+  3. `npx expo install expo-store-review` and ask for a rating after a job is marked paid (at most once every few months).
+  4. EAS build + submit (owner).

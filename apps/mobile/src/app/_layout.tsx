@@ -4,14 +4,18 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { LaunchIntro } from '@/components/LaunchIntro';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { listenForNotificationTaps } from '@/lib/push';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// The opening animation plays once per cold start (not when returning from the background).
+let introPlayed = false;
 
 const theme = {
   ...DarkTheme,
@@ -37,12 +41,16 @@ function RootNavigator() {
     Inter_700Bold,
   });
   const ready = (fontsLoaded || !!fontError) && !loading;
+  const [introDone, setIntroDone] = useState(introPlayed);
+  const [introShown, setIntroShown] = useState(false);
 
   useEffect(() => {
     // Keep the splash until fonts and the stored session are ready, so the
     // user never sees a flash of the sign-in screen while already signed in.
-    if (ready) SplashScreen.hideAsync().catch(() => {});
-  }, [ready]);
+    // With the opening animation, also wait until its first frame (identical
+    // to the launch screen) is on screen, so the hand-off is invisible.
+    if (ready && (introDone || introShown)) SplashScreen.hideAsync().catch(() => {});
+  }, [ready, introDone, introShown]);
 
   // Development builds without a backend open straight into the app preview.
   const signedIn = !!session || (offline && __DEV__ && demoSignedIn);
@@ -52,32 +60,48 @@ function RootNavigator() {
   if (!ready) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.midnight } }}>
-      <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="sign-in" />
-      </Stack.Protected>
-      <Stack.Protected guard={signedIn && !hasProfile}>
-        <Stack.Screen name="onboarding" />
-      </Stack.Protected>
-      <Stack.Protected guard={signedIn && hasProfile} redirectTo={signedIn ? '/onboarding' : '/sign-in'}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="quote" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="ai-consent" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="settings/services" />
-        <Stack.Screen name="settings/payment" />
-        <Stack.Screen name="settings/profile" />
-        <Stack.Screen name="settings/invite" />
-        <Stack.Screen name="settings/availability" />
-        <Stack.Screen name="settings/delete-account" />
-        <Stack.Screen name="booking/[id]" />
-        <Stack.Screen name="client/[id]" />
-        <Stack.Screen name="reviews" />
-        <Stack.Screen name="paid/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-      </Stack.Protected>
-      <Stack.Screen name="auth/callback" options={{ animation: 'fade' }} />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.midnight },
+        }}>
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="sign-in" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && !hasProfile}>
+          <Stack.Screen name="onboarding" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && hasProfile} redirectTo={signedIn ? '/onboarding' : '/sign-in'}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="quote" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="ai-consent" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings/index" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings/services" />
+          <Stack.Screen name="settings/payment" />
+          <Stack.Screen name="settings/profile" />
+          <Stack.Screen name="settings/invite" />
+          <Stack.Screen name="settings/availability" />
+          <Stack.Screen name="settings/delete-account" />
+          <Stack.Screen name="booking/[id]" />
+          <Stack.Screen name="client/[id]" />
+          <Stack.Screen name="reviews" />
+          <Stack.Screen name="paid/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+        </Stack.Protected>
+        <Stack.Screen name="auth/callback" options={{ animation: 'fade' }} />
+      </Stack>
+      {/* The app is already mounted underneath, so data loads while this plays. */}
+      {!introDone && (
+        <LaunchIntro
+          onImageReady={() => setIntroShown(true)}
+          onDone={() => {
+            introPlayed = true;
+            setIntroDone(true);
+          }}
+        />
+      )}
+    </>
   );
 }
 
