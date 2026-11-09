@@ -16,7 +16,12 @@ const contextSchema = z.object({
 });
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 py-10">{children}</main>;
+  return (
+    <main id="main" className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 py-10">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(77,216,255,0.16),transparent)]" />
+      <div className="glass glass-edge w-full rounded-[32px] px-6 py-10 sm:px-8">{children}</div>
+    </main>
+  );
 }
 
 async function Review({ params }: { params: PageProps<"/r/[token]">["params"] }) {
@@ -59,7 +64,7 @@ async function Review({ params }: { params: PageProps<"/r/[token]">["params"] })
 export default function ReviewPage(props: PageProps<"/r/[token]">) {
   return (
     <Shell>
-      <Suspense fallback={<p className="text-steel">Loading…</p>}>
+      <Suspense fallback={<p className="text-center text-steel" aria-busy="true">Loading…</p>}>
         <Review params={props.params} />
       </Suspense>
     </Shell>

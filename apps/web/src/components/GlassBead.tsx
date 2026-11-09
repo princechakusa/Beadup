@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { useEffect, useId, type ReactNode } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /**
  * A water bead resting on fresh ceramic: refracted interior (SVG displacement),
@@ -10,6 +11,8 @@ import { useEffect, useId, type ReactNode } from "react";
  */
 export function GlassBead({ size = 132, children }: { size?: number; children?: ReactNode }) {
   const reduce = useReducedMotion();
+  // Motion-value styles only after hydration: server HTML carries no style="" (CSP).
+  const live = useHydrated();
   const id = useId().replace(/:/g, "");
 
   // -1..1 light direction, smoothed by springs so it feels liquid.
@@ -49,14 +52,13 @@ export function GlassBead({ size = 132, children }: { size?: number; children?: 
   const drop = "M60 8 C88 8 110 30 110 60 C110 86 92 104 60 104 C28 104 10 86 10 60 C10 30 32 8 60 8Z";
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div className="relative inline-block align-middle leading-none">
       <motion.svg
         viewBox="0 0 120 120"
         width={size}
         height={size}
         aria-hidden="true"
-        className="absolute inset-0 overflow-visible"
-        style={{ originY: 0.87 }}
+        className="block origin-[50%_87%] overflow-visible"
         animate={reduce ? undefined : { scaleX: [1, 1.025, 0.99, 1], scaleY: [1, 0.975, 1.01, 1] }}
         transition={reduce ? undefined : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -102,15 +104,26 @@ export function GlassBead({ size = 132, children }: { size?: number; children?: 
         </g>
 
         {/* Caustic: light focused through the bead lands low, opposite the highlight */}
-        <motion.ellipse cx="60" cy="88" rx="26" ry="11" fill={`url(#caustic-${id})`} style={{ x: cx, y: cy }} clipPath={`url(#clip-${id})`} />
+        {live ? (
+          <motion.ellipse cx="60" cy="88" rx="26" ry="11" fill={`url(#caustic-${id})`} style={{ x: cx, y: cy }} clipPath={`url(#clip-${id})`} />
+        ) : (
+          <ellipse cx="60" cy="88" rx="26" ry="11" fill={`url(#caustic-${id})`} clipPath={`url(#clip-${id})`} />
+        )}
 
         <path d={drop} fill="none" stroke={`url(#rim-${id})`} strokeWidth="1.6" />
 
         {/* Specular highlight */}
-        <motion.g style={{ x: hx, y: hy }}>
-          <ellipse cx="42" cy="32" rx="13" ry="8" fill="#fff" opacity="0.85" transform="rotate(-28 42 32)" filter={`url(#soft-${id})`} />
-          <circle cx="78" cy="26" r="2.4" fill="#fff" opacity="0.7" />
-        </motion.g>
+        {live ? (
+          <motion.g style={{ x: hx, y: hy }}>
+            <ellipse cx="42" cy="32" rx="13" ry="8" fill="#fff" opacity="0.85" transform="rotate(-28 42 32)" filter={`url(#soft-${id})`} />
+            <circle cx="78" cy="26" r="2.4" fill="#fff" opacity="0.7" />
+          </motion.g>
+        ) : (
+          <g>
+            <ellipse cx="42" cy="32" rx="13" ry="8" fill="#fff" opacity="0.85" transform="rotate(-28 42 32)" filter={`url(#soft-${id})`} />
+            <circle cx="78" cy="26" r="2.4" fill="#fff" opacity="0.7" />
+          </g>
+        )}
       </motion.svg>
       {children && <div className="absolute inset-0 flex items-center justify-center pb-[8%]">{children}</div>}
     </div>

@@ -3,6 +3,9 @@ import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@beadup.app";
+/** The public sample booking page linked from the website. */
+export const SAMPLE_PAGE = "/beadup-demo-detailing";
+
 /** The legal entity named in the policies. Set before launch. */
 export const LEGAL_NAME = process.env.NEXT_PUBLIC_LEGAL_NAME ?? "Beadup";
 

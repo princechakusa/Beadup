@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, MotionConfig, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
@@ -9,8 +9,13 @@ import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
+import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
+
+// Zod's fast path compiles validators with `new Function`, which the CSP
+// forbids (no 'unsafe-eval'). Same validation, without the eval probe.
+z.config({ jitless: true });
 
 const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string> = {
   invalid: "Something in the booking didn't check out. Please review your details.",
@@ -80,9 +85,14 @@ function to12h(hhmm: string) {
 
 export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
   const reduce = useReducedMotion();
+  // Animation start states only after hydration: the server HTML must not
+  // carry style="" attributes (CSP without 'unsafe-inline').
+  const hydrated = useHydrated();
+  const nonce = useCspNonce();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const [serviceId, setServiceId] = useState(detailer.services[1]?.id ?? detailer.services[0].id);
+  // Nothing is preselected: the client picks a detail before any price shows.
+  const [serviceId, setServiceId] = useState<string | null>(null);
   const [size, setSize] = useState<VehicleSize>("suv");
   const [addOns, setAddOns] = useState<string[]>([]);
   // Computed only once the visitor reaches the time step, so the current date
@@ -105,12 +115,12 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [bookError, setBookError] = useState<string | null>(null);
   const [paidCents, setPaidCents] = useState<number | null>(null);
 
-  const service = detailer.services.find((s) => s.id === serviceId)!;
+  const service = detailer.services.find((s) => s.id === serviceId);
   // Launch mode: the client pays the deposit to the detailer directly (no card form, no booking fee).
   const external = detailer.payments === "external";
   const shortName = detailer.businessName.replace(/\.+$/, "");
   const totals = useMemo(() => {
-    const base = service.priceCents[size];
+    const base = service ? service.priceCents[size] : 0;
     const extras = detailer.addOns.filter((a) => addOns.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const total = base + extras;
     const deposit = depositCents(total);
@@ -149,7 +159,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       setBookError(null);
       createBooking({
         handle: detailer.handle,
-        serviceId,
+        serviceId: serviceId ?? "", // always set by the review step (Continue needs a pick)
         vehicleSize: size,
         addOnIds: addOns,
         date: dayKey ?? "",
@@ -195,7 +205,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
         paid={formatUsd(paidCents ?? totals.dueToday)}
         payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
-        serviceName={service.name}
+        serviceName={service?.name ?? ""}
         celebrate
         smsEnabled={smsEnabled}
       />
@@ -209,17 +219,19 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   };
 
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-40 pt-6">
+    <MotionConfig nonce={nonce}>
+    <main id="main" className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-40 pt-6">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(77,216,255,0.16),transparent)]" />
       {/* Header */}
       <header className="flex items-center gap-3.5">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-paint font-display text-xl font-extrabold text-midnight">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-b from-white to-[#cfd8e4] font-display text-xl font-extrabold text-midnight shadow-[0_10px_30px_-8px_rgba(77,216,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.12)]">
           {initials(detailer.businessName)}
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[19px] font-bold">{detailer.businessName}</h1>
           <p className="truncate text-[13px] text-steel">{detailer.tagline}</p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1.5 text-[13px] font-semibold">
+        <div className="glass flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-semibold">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFB547" strokeWidth="2.4" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 3.5l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.1l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" />
           </svg>
@@ -246,23 +258,20 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             aria-label={`Step ${i + 1}: ${label}`}
             className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08] enabled:cursor-pointer"
           >
-            <motion.span
-              className="absolute inset-y-0 left-0 rounded-full bg-bead shadow-[0_0_12px_rgba(77,216,255,0.7)]"
-              initial={false}
-              animate={{ width: i <= step ? "100%" : "0%" }}
-              transition={spring}
+            <span
+              className={`absolute inset-0 origin-left rounded-full bg-gradient-to-r from-[#7fe4ff] to-bead shadow-[0_0_12px_rgba(77,216,255,0.7)] transition-transform duration-500 ease-(--ease-spring) ${i <= step ? "scale-x-100" : "scale-x-0"}`}
             />
           </button>
         ))}
       </nav>
 
       <div className="relative mt-6 flex-1">
-        <AnimatePresence mode="popLayout" custom={dir} initial={false}>
+        <AnimatePresence mode="popLayout" custom={dir}>
           <motion.section
             key={step}
             custom={dir}
             variants={variants}
-            initial="enter"
+            initial={hydrated ? "enter" : undefined}
             animate="center"
             exit="exit"
             transition={spring}
@@ -282,7 +291,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         aria-checked={active}
                         onClick={() => { haptic(); setServiceId(s.id); }}
                         whileTap={{ scale: 0.98 }}
-                        className="relative flex items-center gap-3.5 rounded-[22px] border border-line bg-gunmetal p-4 text-left"
+                        className="relative flex items-center gap-3.5 rounded-[22px] border border-white/[0.07] bg-gradient-to-b from-[#1a1f27] to-gunmetal p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                       >
                         {active && (
                           <motion.span
@@ -310,7 +319,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             {step === 1 && (
               <>
                 <StepTitle eyebrow={`Step 2 of ${STEPS.length}`} title="Your vehicle" />
-                <div className="mt-5 grid grid-cols-3 gap-1 rounded-[20px] border border-line bg-panel p-1" role="radiogroup" aria-label="Vehicle size">
+                <div className="glass mt-5 grid grid-cols-3 gap-1 rounded-[20px] p-1" role="radiogroup" aria-label="Vehicle size">
                   {SIZES.map((s) => {
                     const active = s.id === size;
                     return (
@@ -322,7 +331,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         onClick={() => { haptic(); setSize(s.id); }}
                         className={`relative h-12 rounded-2xl text-[15px] font-semibold transition-colors ${active ? "text-bead-ink" : "text-steel"}`}
                       >
-                        {active && <motion.span layoutId="size-pill" transition={spring} className="absolute inset-0 rounded-2xl bg-bead" />}
+                        {active && <motion.span layoutId="size-pill" transition={spring} className="absolute inset-0 rounded-2xl bg-bead shadow-[0_8px_24px_-6px_rgba(77,216,255,0.6)]" />}
                         <span className="relative">{s.label}</span>
                       </button>
                     );
@@ -456,13 +465,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             {step === 4 && (
               <>
                 <StepTitle eyebrow={`Step 5 of ${STEPS.length}`} title="Review and book" />
-                <div className="mt-5 rounded-[24px] border border-white/[0.08] bg-panel p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                  <p className="font-display text-lg font-bold">{service.name}</p>
+                <div className="glass glass-edge mt-5 rounded-[24px] p-5">
+                  <p className="font-display text-lg font-bold">{service?.name}</p>
                   <p className="mt-1 text-sm text-steel">
                     {SIZES.find((s) => s.id === size)?.label} · {day?.label} · {slot && to12h(slot)}
                   </p>
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label={service.name} value={formatUsd(totals.base)} />
+                  <Row label={service?.name ?? ""} value={formatUsd(totals.base)} />
                   {detailer.addOns
                     .filter((a) => addOns.includes(a.id))
                     .map((a) => (
@@ -509,7 +518,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       {/* Sticky action bar */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-midnight from-60% to-transparent pt-10">
         <div className="pointer-events-auto mx-auto max-w-md px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-3 rounded-[26px] border border-white/10 bg-[rgba(28,33,42,0.72)] p-3 pl-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+          <div className="glass flex items-center gap-3 rounded-[26px] p-3 pl-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_rgba(0,0,0,0.55)]">
             {step > 0 && (
               <button type="button" onClick={() => go(step - 1)} aria-label="Back" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-steel hover:text-paint">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -518,8 +527,14 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
-              <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} />
+              {service ? (
+                <>
+                  <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
+                  <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} />
+                </>
+              ) : (
+                <p className="text-sm text-steel">Pick a detail to see the price</p>
+              )}
             </div>
             <motion.button
               type="button"
@@ -527,7 +542,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               disabled={!canContinue || paying}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 700, damping: 25 }}
-              className="flex h-[52px] items-center gap-2 rounded-[18px] bg-bead px-6 font-bold text-bead-ink shadow-[0_10px_30px_rgba(77,216,255,0.35)] disabled:opacity-40 disabled:shadow-none"
+              className="btn-sheen flex h-[52px] items-center gap-2 rounded-[18px] bg-bead px-6 font-bold text-bead-ink shadow-[0_10px_30px_rgba(77,216,255,0.35)] disabled:opacity-40 disabled:shadow-none"
             >
               {paying ? (
                 <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="block h-5 w-5 rounded-full border-2 border-bead-ink border-t-transparent" aria-label="Processing" />
@@ -543,7 +558,8 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           </p>
         </div>
       </div>
-    </div>
+    </main>
+    </MotionConfig>
   );
 }
 
@@ -551,7 +567,7 @@ function StepTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-bead">{eyebrow}</p>
-      <h2 className="mt-1.5 font-display text-[32px] font-extrabold leading-[1.1] tracking-[-0.03em]">{title}</h2>
+      <h2 className="text-gradient mt-1.5 font-display text-[32px] font-extrabold leading-[1.1] tracking-[-0.035em]">{title}</h2>
     </div>
   );
 }
@@ -561,7 +577,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     <label className="block">
       <span className="mb-1.5 block text-[13px] font-medium text-steel">{label}</span>
       <span
-        className={`block rounded-2xl border bg-gunmetal transition-colors focus-within:border-bead [&>input]:h-[52px] [&>input]:w-full [&>input]:bg-transparent [&>input]:px-4 [&>input]:text-base [&>input]:outline-none ${error ? "border-[#ff8a8a]" : "border-line"}`}
+        className={`block rounded-2xl border bg-gunmetal transition-[border-color,box-shadow] focus-within:border-bead focus-within:shadow-[0_0_0_4px_rgba(77,216,255,0.12)] [&>input]:h-[52px] [&>input]:w-full [&>input]:bg-transparent [&>input]:px-4 [&>input]:text-base [&>input]:outline-none ${error ? "border-[#ff8a8a]" : "border-line"}`}
       >
         {children}
       </span>
@@ -579,16 +595,16 @@ function Row({ label, value, strong, muted }: { label: string; value: string; st
   );
 }
 
-function AnimatedPrice({ cents }: { cents: number }) {
+function AnimatedPrice({ cents, animate }: { cents: number; animate: boolean }) {
   return (
-    <AnimatePresence mode="popLayout" initial={false}>
+    <AnimatePresence mode="popLayout">
       <motion.p
         key={cents}
-        initial={{ y: 14, opacity: 0, filter: "blur(4px)" }}
+        initial={animate ? { y: 14, opacity: 0, filter: "blur(4px)" } : undefined}
         animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
         exit={{ y: -14, opacity: 0, filter: "blur(4px)" }}
         transition={{ type: "spring", stiffness: 500, damping: 32 }}
-        className="font-display text-2xl font-extrabold tracking-tight"
+        className="font-display text-2xl font-extrabold tracking-tight text-gold"
       >
         {formatUsd(cents)}
       </motion.p>

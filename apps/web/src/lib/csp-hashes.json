@@ -1,0 +1,4 @@
+{
+  "//": "SHA-256 of the only inline script in the prerendered shells (React's streaming timer). scripts/verify-csp.mjs fails the build if a shell has any other inline script or style.",
+  "script": ["sha256-7mu4H06fwDCjmnxxr/xNHyuQC6pLTHr4M2E4jXw5WZs="]
+}

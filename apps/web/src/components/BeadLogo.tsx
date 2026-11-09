@@ -2,25 +2,30 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { useId } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /**
  * The Beadup water bead. On mount it drops in, squashes on impact and
  * wobbles to rest like water on a fresh ceramic coat (spring physics).
+ * The drop plays once hydrated, so the server HTML has no inline styles (CSP).
  */
 export function BeadLogo({ size = 40, animate = true }: { size?: number; animate?: boolean }) {
   const reduce = useReducedMotion();
+  const hydrated = useHydrated();
   const gid = useId().replace(/:/g, "");
-  const live = animate && !reduce;
+  const live = animate && !reduce && hydrated;
 
   return (
     <motion.svg
+      // Remount once hydrated so the drop-in starts from its initial state.
+      key={live ? "live" : "still"}
       width={size}
       height={size}
       viewBox="0 0 48 48"
       role="img"
       aria-label="Beadup"
-      style={{ originY: 1 }}
-      initial={live ? { y: -size * 0.6, scaleX: 0.85, scaleY: 1.15, opacity: 0 } : false}
+      className="origin-bottom"
+      initial={live ? { y: -size * 0.6, scaleX: 0.85, scaleY: 1.15, opacity: 0 } : undefined}
       animate={
         live
           ? { y: 0, opacity: 1, scaleX: [0.85, 1.22, 0.92, 1.05, 1], scaleY: [1.15, 0.78, 1.08, 0.97, 1] }
