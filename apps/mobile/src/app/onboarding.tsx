@@ -12,7 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { signOut, useAuth } from '@/lib/auth';
 import { Icon } from '@/components/ui/Icon';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
-import { startPayoutsSetup, usePaymentsMode } from '@/lib/data';
+import { claimReferral, startPayoutsSetup, usePaymentsMode } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
@@ -59,6 +59,7 @@ export default function Onboarding() {
   const [handle, setHandle] = useState('');
   const [handleEdited, setHandleEdited] = useState(false);
   const [area, setArea] = useState('');
+  const [referral, setReferral] = useState('');
   const [handleOk, setHandleOk] = useState<boolean | null>(null);
   const [services, setServices] = useState(TEMPLATES);
   const [addOns, setAddOns] = useState(ADD_ONS);
@@ -122,6 +123,9 @@ export default function Onboarding() {
       }
       return setError('Something in your setup didn’t check out. Check the prices and try again.');
     }
+    // Optional "referred by" code. Never blocks setup: a wrong code can be
+    // fixed later in Settings > Invite & earn.
+    if (referral.trim()) await claimReferral(referral.trim()).catch(() => null);
     haptic.success();
     go(3);
   };
@@ -194,6 +198,15 @@ export default function Onboarding() {
                   </Text>
                 </View>
                 <Field label="Service area" value={area} onChangeText={setArea} placeholder="e.g. Austin, TX · 25 mi" maxLength={80} />
+                <Field
+                  label="Referred by a detailer? (optional)"
+                  value={referral}
+                  onChangeText={setReferral}
+                  placeholder="Their code, e.g. marcus"
+                  maxLength={120}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
                 <Text variant="caption">Times are in your timezone: {timezone.replace(/_/g, ' ')}</Text>
                 <Button label="Continue" onPress={() => go(1)} disabled={!name.trim() || !handleValid} />
               </>

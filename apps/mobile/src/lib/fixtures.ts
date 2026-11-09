@@ -58,6 +58,11 @@ export const fixtures = {
     { id: 'c4', name: 'Kevin Lee', phone: '+15125550104', email: null, visits: 4, spentCents: 52000, lastVisit: at(-120, 9), nextBooking: null },
   ] satisfies ClientSummary[],
   businessProfile: { businessName: 'Marcus Shine Co.', tagline: 'Mobile detailing · we come to you', serviceArea: 'Austin, TX · 25 mi', handle: 'marcus', country: 'US' as const },
+  reviews: [
+    { id: 'r1', rating: 5, body: 'Car looks brand new. On time and super careful with the leather.', createdAt: '2026-11-02T18:00:00Z', clientName: 'Jenna R.' },
+    { id: 'r2', rating: 5, body: 'Got all the dog hair out of the back seats. Booking took a minute.', createdAt: '2026-10-28T20:30:00Z', clientName: 'Chris M.' },
+    { id: 'r3', rating: 4, body: '', createdAt: '2026-10-21T16:10:00Z', clientName: 'Dana K.' },
+  ],
   paymentDetails: { link: null as string | null, note: 'Zelle: (512) 555-0101' as string | null },
   balance: {
     connected: true,

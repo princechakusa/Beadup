@@ -579,3 +579,73 @@ export async function markDepositReceived(id: string, received: boolean): Promis
   if (error) throw error;
   if (!(data as { ok?: boolean } | null)?.ok) throw new Error('not allowed');
 }
+
+export type ReviewLink = { url: string; reviewed: boolean };
+
+/**
+ * The client's private review page for a completed job (/r/<token>). Clients
+ * can rate a job once; the detailer sends the link themselves (texts from
+ * Beadup are off), from their own Messages app.
+ */
+export async function fetchReviewLink(bookingId: string): Promise<ReviewLink | null> {
+  if (!supabase) return { url: `${apiBaseUrl}/r/${'0'.repeat(48)}`, reviewed: false };
+  const { data, error } = await db()
+    .from('bookings')
+    .select('review_token, status, reviews(id)')
+    .eq('id', bookingId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data || data.status !== 'completed' || !data.review_token) return null;
+  const reviews = data.reviews as unknown;
+  const reviewed = Array.isArray(reviews) ? reviews.length > 0 : !!reviews;
+  return { url: `${apiBaseUrl}/r/${data.review_token}`, reviewed };
+}
+
+export type Review = { id: string; rating: number; body: string; createdAt: string; clientName: string };
+
+/** The detailer's reviews, newest first (read-only: detailers can't edit or hide them). */
+export async function fetchReviews(): Promise<Review[]> {
+  if (!supabase) return fixtures.reviews;
+  const { data, error } = await db()
+    .from('reviews')
+    .select('id, rating, body, created_at, booking:bookings(client:clients(name))')
+    .eq('hidden', false)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return (data ?? []).map((r) => {
+    const booking = (Array.isArray(r.booking) ? r.booking[0] : r.booking) as { client?: { name?: string } | { name?: string }[] } | null;
+    const client = Array.isArray(booking?.client) ? booking?.client[0] : booking?.client;
+    const full = client?.name ?? 'Client';
+    const [first, last] = full.split(' ');
+    return { id: r.id, rating: r.rating, body: r.body, createdAt: r.created_at, clientName: last ? `${first} ${last[0]}.` : first };
+  });
+}
+
+export type ReferralStatus = {
+  code: string;
+  invited: number;
+  rewarded: number;
+  bonusProUntil: string | null;
+  referredBy: string | null;
+  canClaim: boolean;
+};
+
+/** Invite & earn: your code (your handle), how many invites paid off, and whether you can still enter who referred you. */
+export async function fetchReferralStatus(): Promise<ReferralStatus | null> {
+  if (!supabase) return { code: 'marcus', invited: 2, rewarded: 1, bonusProUntil: null, referredBy: null, canClaim: true };
+  const { data, error } = await db().rpc('referral_status');
+  if (error) throw error;
+  return (data as ReferralStatus | null) ?? null;
+}
+
+export type ClaimError = 'self' | 'not_found' | 'already_claimed' | 'too_late' | 'no_profile' | 'unavailable';
+
+/** Records who referred this detailer (a handle, or a booking link ending in one). */
+export async function claimReferral(code: string): Promise<{ ok: true } | { ok: false; error: ClaimError }> {
+  if (!supabase) return { ok: true };
+  const { data, error } = await db().rpc('claim_referral', { p_code: code });
+  if (error) return { ok: false, error: 'unavailable' };
+  const res = data as { ok: boolean; error?: ClaimError };
+  return res.ok ? { ok: true } : { ok: false, error: res.error ?? 'unavailable' };
+}

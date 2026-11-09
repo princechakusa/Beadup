@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LiquidBead } from '@/components/bead/LiquidBead';
 import { BackButton } from '@/components/nav/BackButton';
+import { AskReviewButton } from '@/components/AskReviewButton';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Text } from '@/components/ui/Text';
@@ -123,6 +124,9 @@ export default function Paid() {
         </GlassCard>
         )}
 
+        {b && (
+          <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? 'us'} />
+        )}
         {nextJob && (
           <Button
             label={`Next job · ${dateKey(new Date(nextJob.startsAt), tz) === dateKey(new Date(), tz) ? timeOf(nextJob.startsAt, tz) : dayLabel(nextJob.startsAt, tz)}`}

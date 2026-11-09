@@ -94,7 +94,7 @@ export default function Today() {
       }>
       {/* Earnings */}
       <View style={styles.earnCard} onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}>
-        <View style={styles.rowBetween}>
+        <View style={[styles.rowBetween, styles.earnHead]}>
           <Text variant="caption" style={{ fontSize: 13 }}>
             Earned this week
           </Text>
@@ -124,7 +124,7 @@ export default function Today() {
       <View style={styles.stats}>
         <Stat value={String(jobs.length)} label="Jobs this week" />
         <Stat value={money(avgTicket, { cents: false })} label="Avg ticket" />
-        <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold />
+        <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold onPress={() => router.push('/reviews')} />
       </View>
 
       {profile.data && <BookingLinkCard handle={profile.data.handle} businessName={profile.data.businessName} />}
@@ -173,16 +173,22 @@ export default function Today() {
   );
 }
 
-function Stat({ value, label, gold }: { value: string; label: string; gold?: boolean }) {
+function Stat({ value, label, gold, onPress }: { value: string; label: string; gold?: boolean; onPress?: () => void }) {
   return (
-    <View style={styles.stat}>
+    <Pressable
+      style={({ pressed }) => [styles.stat, pressed && onPress && { opacity: 0.75 }]}
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? `${label} ${value}. Opens reviews` : undefined}
+    >
       <Text variant="heading" tone={gold ? 'gold' : 'paint'}>
         {value}
       </Text>
       <Text variant="caption" style={{ fontSize: 12 }}>
         {label}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -261,8 +267,10 @@ const panel = { backgroundColor: '#11151B', borderWidth: 1, borderColor: colors.
 const styles = StyleSheet.create({
   round: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gunmetal, borderWidth: 1, borderColor: '#262B35', alignItems: 'center', justifyContent: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  // Same inset as the amount below it, clear of the card's 32 pt corner radius.
+  earnHead: { paddingHorizontal: 20, minHeight: 26 },
   earnCard: { ...panel, borderRadius: 32, paddingTop: 20, paddingBottom: 14, gap: 6, overflow: 'hidden' },
-  trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(91,227,164,0.12)', marginRight: 20 },
+  trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(91,227,164,0.12)' },
   bigMoney: { fontFamily: 'Sora_800ExtraBold', fontSize: 52, letterSpacing: -2.5, lineHeight: 56, color: colors.paint, paddingHorizontal: 20 },
   bigFraction: { fontSize: 30, color: '#5B6371' },
   days: { flexDirection: 'row', paddingHorizontal: 20 },

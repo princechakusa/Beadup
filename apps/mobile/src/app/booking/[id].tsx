@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Linking, Share, StyleSheet, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
+import { AskReviewButton } from '@/components/AskReviewButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -136,6 +137,10 @@ export default function BookingDetail() {
             })
           }
         />
+      )}
+
+      {b.status === 'completed' && (
+        <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? 'us'} />
       )}
 
       {b.status === 'confirmed' && (

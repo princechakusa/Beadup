@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BeadLogo } from "@/components/BeadLogo";
 import { GlassBead } from "@/components/GlassBead";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import {
@@ -67,8 +68,11 @@ function Hero({ config, external }: { config: PublicConfig; external: boolean })
   return (
     <section aria-labelledby="hero-title" className="relative mx-auto grid w-full max-w-6xl items-center gap-16 px-5 pb-10 pt-12 sm:px-8 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] lg:gap-10 lg:pt-24">
       <div className="relative z-10 flex flex-col items-start gap-7">
-        <span className="enter glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-mist">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-bead shadow-[0_0_10px_#4dd8ff]" />
+        <span className="enter glass glass-edge inline-flex items-center gap-2.5 rounded-full py-1.5 pl-2 pr-4 text-[13px] font-semibold tracking-[0.01em] text-mist">
+          {/* The brand's water bead, not a status dot. */}
+          <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-bead/10 ring-1 ring-bead/25">
+            <BeadLogo size={14} animate={false} />
+          </span>
           Built for mobile car detailers
         </span>
         <h1

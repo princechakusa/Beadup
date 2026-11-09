@@ -172,6 +172,7 @@ export default function Settings() {
 
       <ListCard>
         <Row icon="sparkle" label="Plan" detail={plan} onPress={() => router.push('/pro')} />
+        <Row icon="clients" label="Invite & earn" detail="Free months of Pro" onPress={() => router.push('/settings/invite')} />
       </ListCard>
 
       <ListCard>
