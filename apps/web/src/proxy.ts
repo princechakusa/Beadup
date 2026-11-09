@@ -1,9 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { documentCsp, newNonce } from "@/lib/csp";
 import { getDemoDetailer } from "@/lib/demo";
 import { SITE_PAGES } from "@/lib/site-pages";
 
-// Booking pages stream, so a notFound() during render can only send HTTP 200.
-// Checking the handle here, before rendering, gives unknown handles a real 404.
+// 1. Every HTML page gets a per-request CSP nonce (no 'unsafe-inline').
+//    Next.js reads it from the request's CSP header and applies it to the
+//    scripts it renders; the same policy goes on the response.
+// 2. Booking pages stream, so a notFound() during render can only send HTTP
+//    200. Checking the handle here, before rendering, gives unknown handles a
+//    real 404.
 
 const HANDLE_RE = /^[a-z0-9][a-z0-9-]{1,39}$/i;
 const TTL_MS = 60_000;
@@ -33,20 +38,34 @@ async function pageExists(handle: string): Promise<boolean> {
   return exists;
 }
 
-export async function proxy(request: NextRequest) {
-  const handle = request.nextUrl.pathname.slice(1).toLowerCase();
-  if (SITE_PAGES.has(handle)) return NextResponse.next();
-  let exists: boolean;
+/** Only one-segment paths can be booking handles ("/marcus"). */
+async function isUnknownHandle(pathname: string): Promise<boolean> {
+  const segment = pathname.slice(1);
+  if (!segment || segment.includes("/")) return false;
+  const handle = segment.toLowerCase();
+  if (SITE_PAGES.has(handle)) return false;
   try {
-    exists = HANDLE_RE.test(handle) && (await pageExists(handle));
+    return !(HANDLE_RE.test(handle) && (await pageExists(handle)));
   } catch {
-    exists = true; // timeout or network error: fall through to the page
+    return false; // timeout or network error: fall through to the page
   }
-  if (exists) return NextResponse.next();
-  return NextResponse.rewrite(new URL("/_not-found", request.url), { status: 404 });
+}
+
+export async function proxy(request: NextRequest) {
+  const nonce = newNonce();
+  const csp = documentCsp(nonce);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = (await isUnknownHandle(request.nextUrl.pathname))
+    ? NextResponse.rewrite(new URL("/_not-found", request.url), { status: 404, request: { headers: requestHeaders } })
+    : NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 }
 
 export const config = {
-  // Single path segments only (the booking pages), skipping Next internals and files.
-  matcher: ["/((?!_next|api)[^/.]+)"],
+  // Every page. Skips Next's static files, the image optimizer, API routes
+  // and anything with a file extension (favicon, images, robots.txt).
+  matcher: ["/((?!_next/static|_next/image|api/|.*\\.[a-zA-Z0-9]+$).*)"],
 };
