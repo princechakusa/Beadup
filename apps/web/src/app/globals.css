@@ -11,13 +11,28 @@
   --color-gold: #ffb547;
   --color-paint: #f4f6fa;
   --color-steel: #9aa3b2;
+  --color-mist: #c9d0dc;
   --color-mint: #6ee7a8;
+  --color-danger: #ff8a8a;
   --font-display: var(--font-sora);
   --font-sans: var(--font-inter);
+
+  /* Spring easings (CSS linear() approximations of a damped spring) */
+  --ease-spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.067, 1.089 24.8%, 1.084 27.6%, 1.035 34.2%, 1.008 39.2%, 0.994 44.9%, 0.998 59.6%, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-drift: drift 18s ease-in-out infinite;
 }
 
 :root {
   color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
@@ -29,6 +44,8 @@ body {
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
 }
 
 ::selection {
@@ -41,35 +58,321 @@ body {
   border-radius: 12px;
 }
 
+/* ---------- Surfaces ---------- */
+
+/* Dark glass: translucent gunmetal, hairline rim light, deep soft shadow. */
+@utility glass {
+  background: linear-gradient(180deg, rgb(28 33 42 / 0.72), rgb(17 21 27 / 0.6));
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    0 24px 60px -24px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* A glass card whose border picks up a bead-blue sheen at the top. */
+@utility glass-edge {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(160deg, rgb(77 216 255 / 0.45), rgb(255 255 255 / 0.06) 35%, rgb(255 255 255 / 0.02) 70%, rgb(77 216 255 / 0.18));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+@utility text-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #dfe6f0 55%, #9fb3c8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-bead-gradient {
+  background: linear-gradient(100deg, #b9f2ff 0%, #4dd8ff 45%, #2fa8d8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Fine noise-free grid that fades out, used behind sections. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%);
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -4%, 0) scale(1.08);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Entrance on first paint (hero). Delay with the .d-* helpers. */
+.enter {
+  animation: rise 0.9s var(--ease-spring) both;
+}
+.pop {
+  animation: pop 0.8s var(--ease-spring) both;
+}
+.d-1 { animation-delay: 60ms; }
+.d-2 { animation-delay: 120ms; }
+.d-3 { animation-delay: 180ms; }
+.d-4 { animation-delay: 240ms; }
+.d-5 { animation-delay: 320ms; }
+.d-6 { animation-delay: 420ms; }
+.d-8 { animation-delay: 900ms; }
+.d-10 { animation-delay: 1200ms; }
+
+/* Scroll reveal: <Reveal> hides content below the fold after hydration and
+   shows it as it scrolls in. Without JavaScript everything stays visible. */
+[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 0.7s var(--ease-soft),
+    transform 1s var(--ease-spring),
+    filter 0.7s var(--ease-soft);
+}
+
+/* A light sweep across primary buttons on hover. */
+.btn-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .btn-sheen:hover::after {
+    animation: sheen 0.9s var(--ease-soft);
+  }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.ripple {
+  animation: ripple 1.2s var(--ease-soft) 0.25s both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }
 
-/* Long-form documents (privacy, terms, support) */
+/* ---------- Long-form documents (privacy, terms, support) ---------- */
+.doc {
+  color: #c9d0dc;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.doc > * + * {
+  margin-top: 1.1em;
+}
 .doc h2 {
-  margin-top: 2.5rem;
+  scroll-margin-top: 104px;
+  margin-top: 3.25rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid rgb(255 255 255 / 0.06);
   font-family: var(--font-sora), system-ui, sans-serif;
-  font-size: 1.375rem;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   font-weight: 700;
   color: var(--color-paint);
 }
+.doc h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.doc h3 {
+  margin-top: 2rem;
+  font-family: var(--font-sora), system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-paint);
+}
 .doc ul {
-  list-style: disc;
-  padding-left: 1.25rem;
+  padding-left: 0;
+  list-style: none;
+}
+.doc ul > li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.doc ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #e8fbff, #4dd8ff 55%, #0b4f7a);
+  box-shadow: 0 0 10px rgb(77 216 255 / 0.5);
 }
 .doc li + li {
-  margin-top: 0.4rem;
+  margin-top: 0.55rem;
 }
 .doc a {
   color: var(--color-bead);
   text-decoration: underline;
+  text-decoration-color: rgb(77 216 255 / 0.4);
   text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.doc a:hover {
+  text-decoration-color: var(--color-bead);
 }
 .doc strong {
   color: var(--color-paint);
+  font-weight: 600;
+}
+
+/* Booking confirmation */
+@keyframes celebrate-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.celebrate-pop {
+  animation: celebrate-pop 0.9s var(--ease-spring) both;
+}
+.draw-check {
+  stroke-dasharray: 1;
+  animation: draw 0.5s ease-out 0.3s both;
+}
+
+/* Floating notification chip (hero): nearly opaque so text never clashes with what's behind. */
+@utility toast {
+  background: linear-gradient(180deg, rgb(30 36 46 / 0.96), rgb(20 24 31 / 0.94));
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 20px 50px -12px rgb(0 0 0 / 0.8),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }

@@ -1,31 +1,34 @@
 import type { Metadata } from "next";
-import { DocPage } from "@/components/site/SiteChrome";
+import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { DeletionForm } from "./DeletionForm";
 
 export const metadata: Metadata = {
   title: "Delete your account",
   description: "How to delete your Beadup account and data.",
+  alternates: { canonical: "/delete-account" },
 };
+
+const TOC = ["The fastest way: in the app", "No access to the app? Ask us", "What gets deleted", "What is kept"];
 
 export default function DeleteAccount() {
   return (
-    <DocPage title="Delete your account">
-      <h2>The fastest way: in the app</h2>
+    <DocPage eyebrow="Account" title="Delete your account" toc={TOC}>
+      <H2>The fastest way: in the app</H2>
       <p>Open Beadup, go to Settings, then Delete account. Your account and data are deleted right away.</p>
 
-      <h2>No access to the app? Ask us</h2>
+      <H2>No access to the app? Ask us</H2>
       <p>Send a request below. We&apos;ll confirm it&apos;s your account by email, then delete it.</p>
       <DeletionForm supportEmail={SUPPORT_EMAIL} />
 
-      <h2>What gets deleted</h2>
+      <H2>What gets deleted</H2>
       <ul>
         <li>Your account and sign-in</li>
         <li>Your business profile and booking link</li>
         <li>Services, prices, availability, clients, bookings, quotes and photos</li>
         <li>Messages and payment history stored in Beadup</li>
       </ul>
-      <h2>What is kept</h2>
+      <H2>What is kept</H2>
       <ul>
         <li>A security record that the account was deleted, without your details.</li>
         <li>Payment records Stripe and the card networks must keep by law. Your Stripe account is yours and isn&apos;t deleted.</li>

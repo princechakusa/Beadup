@@ -88,7 +88,12 @@ async function Receipt({ searchParams }: { searchParams: PageProps<"/[handle]/bo
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 text-center">{children}</main>;
+  return (
+    <main id="main" className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 text-center">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(77,216,255,0.16),transparent)]" />
+      {children}
+    </main>
+  );
 }
 
 function NotFound() {
@@ -96,7 +101,7 @@ function NotFound() {
     <Shell>
       <h1 className="font-display text-3xl font-extrabold">Booking not found</h1>
       <p className="mt-3 text-steel">This confirmation link isn&apos;t valid. Check the text or email we sent you.</p>
-      <Link href="/" className="mt-6 text-bead underline-offset-4 hover:underline">
+      <Link href="/" className="mt-8 inline-flex h-12 items-center rounded-[16px] border border-white/[0.12] bg-white/[0.04] px-5 font-semibold text-paint hover:bg-white/[0.08]">
         Go to Beadup
       </Link>
     </Shell>

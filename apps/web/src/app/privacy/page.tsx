@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DocPage } from "@/components/site/SiteChrome";
+import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { getPublicConfig, LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Privacy policy" };
+export const metadata: Metadata = {
+  title: "Privacy policy",
+  description: "What information Beadup collects, why, who we share it with and the choices you have.",
+  alternates: { canonical: "/privacy" },
+};
 
 // Written to match what the code actually does (see docs/store-submission.md
 // for the store privacy answers). Have it reviewed by a lawyer before launch,
 // and update it whenever data use changes (rules.md section 3).
+const TOC = ["What we collect", "How we use it", "Who we share it with", "How long we keep it", "Your choices and rights", "Security", "Children", "Changes"];
+
 export default async function Privacy() {
   const { ai_provider, payments_mode } = await getPublicConfig();
   const external = payments_mode === "external";
   const ai = ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
   return (
-    <DocPage title="Privacy policy" updated="November 7, 2026">
+    <DocPage eyebrow="Legal" title="Privacy policy" updated="November 7, 2026" toc={TOC}>
       <p>
         Beadup is an app for mobile car detailers to quote jobs, take bookings and get paid. This policy explains what
         information {LEGAL_NAME} (&quot;Beadup&quot;, &quot;we&quot;) collects, why, who we share it with and the choices
@@ -23,7 +29,7 @@ export default async function Privacy() {
         Questions: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 
-      <h2>What we collect</h2>
+      <H2>What we collect</H2>
       <p>
         <strong>From detailers</strong>
       </p>
@@ -65,7 +71,7 @@ export default async function Privacy() {
         short time to limit repeated requests, and booking pages use Cloudflare Turnstile to check for automated bots.
       </p>
 
-      <h2>How we use it</h2>
+      <H2>How we use it</H2>
       <ul>
         <li>To run the service: booking pages, scheduling, quotes, payments, receipts and reminders.</li>
         <li>To send booking texts to clients who agreed to receive them. Reply STOP to any text to opt out.</li>
@@ -77,7 +83,7 @@ export default async function Privacy() {
         We do not sell personal information, show ads, or track you across other companies&apos; apps or websites.
       </p>
 
-      <h2>Who we share it with</h2>
+      <H2>Who we share it with</H2>
       <p>We share information only with the service providers that run parts of Beadup, and only what they need:</p>
       <ul>
         {!external && (
@@ -116,7 +122,7 @@ export default async function Privacy() {
         information if the law requires it.
       </p>
 
-      <h2>How long we keep it</h2>
+      <H2>How long we keep it</H2>
       <p>
         We keep account information for as long as the account is open. When a detailer deletes their account, we delete
         their profile, clients, bookings, quotes, photos and messages from Beadup. We keep a short security record that an
@@ -124,7 +130,7 @@ export default async function Privacy() {
         {!external && "Stripe and the card networks keep payment records they are required to keep by law. "}Deleted data can remain in encrypted backups for a limited time before it is overwritten.
       </p>
 
-      <h2>Your choices and rights</h2>
+      <H2>Your choices and rights</H2>
       <ul>
         <li>Detailers can delete their account in the app under Settings, Delete account, or from our <Link href="/delete-account">account deletion page</Link>.</li>
         <li>Detailers can turn off AI photo quotes and booking alerts in Settings at any time.</li>
@@ -136,16 +142,16 @@ export default async function Privacy() {
         </li>
       </ul>
 
-      <h2>Security</h2>
+      <H2>Security</H2>
       <p>
         Information is encrypted in transit. Each detailer can only access their own data, enforced in our database.
         Photos are stored privately. Card numbers never touch our servers.
       </p>
 
-      <h2>Children</h2>
+      <H2>Children</H2>
       <p>Beadup is for businesses and their customers and is not directed to children under 13.</p>
 
-      <h2>Changes</h2>
+      <H2>Changes</H2>
       <p>
         If we change this policy we will update the date above, and tell detailers in the app when the change is
         significant.

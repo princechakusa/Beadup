@@ -35,8 +35,20 @@ export default function BookingPage({ params }: PageProps<"/[handle]">) {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-dvh items-center justify-center" aria-busy="true">
-          <p className="text-steel">Loading…</p>
+        <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-4 px-4 pt-6" aria-busy="true">
+          <p className="sr-only">Loading…</p>
+          <div className="flex items-center gap-3.5">
+            <div className="h-14 w-14 animate-pulse rounded-[18px] bg-white/[0.06]" />
+            <div className="flex flex-1 flex-col gap-2">
+              <div className="h-4 w-2/3 animate-pulse rounded-full bg-white/[0.06]" />
+              <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+            </div>
+          </div>
+          <div className="mt-6 h-1.5 animate-pulse rounded-full bg-white/[0.06]" />
+          <div className="mt-6 h-8 w-3/4 animate-pulse rounded-xl bg-white/[0.06]" />
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-20 animate-pulse rounded-[22px] bg-white/[0.04]" />
+          ))}
         </main>
       }
     >
