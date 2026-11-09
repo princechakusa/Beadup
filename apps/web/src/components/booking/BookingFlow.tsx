@@ -18,6 +18,9 @@ import { Turnstile, turnstileEnabled } from "./Turnstile";
 // forbids (no 'unsafe-eval'). Same validation, without the eval probe.
 z.config({ jitless: true });
 
+// Shown when Cloudflare wants a tick (or is still checking) and Book is tapped.
+const VERIFY_FIRST = "Tick “Verify you are human” above, then tap Book again.";
+
 const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string> = {
   invalid: "Something in the booking didn't check out. Please review your details.",
   rate_limited: "Too many attempts. Please wait a few minutes and try again.",
@@ -155,7 +158,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       // Creates the booking server-side (held for 30 min). Card payment is
       // wired to the processor in the next milestone.
       if (turnstileEnabled && !turnstileToken) {
-        setBookError(BOOK_ERRORS.bot_check);
+        // Cloudflare sometimes asks for a tick (or is still checking): say so,
+        // and bring the box and this message into view above the sticky bar.
+        setBookError(VERIFY_FIRST);
+        requestAnimationFrame(() => document.getElementById("book-alert")?.scrollIntoView({ block: "center", behavior: "smooth" }));
         return;
       }
       primeAudio(); // inside the click, so the chime is allowed to play later
@@ -521,9 +527,14 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     </p>
                   </>
                 )}
-                <Turnstile onToken={setTurnstileToken} />
+                <Turnstile
+                  onToken={(t) => {
+                    setTurnstileToken(t);
+                    if (t) setBookError((e) => (e === VERIFY_FIRST ? null : e)); // ticked: clear the hint
+                  }}
+                />
                 {bookError && (
-                  <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
+                  <p id="book-alert" role="alert" className="mt-4 scroll-mb-40 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
                     {bookError}
                   </p>
                 )}
