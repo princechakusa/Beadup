@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_SPACE } from '@/components/nav/GlassTabBar';
 import { colors, space } from '@/theme/tokens';
 
+import { Icon } from './Icon';
 import { Text } from './Text';
 
 type Props = {
@@ -52,7 +53,7 @@ export function Screen({ eyebrow, title, right, children, refreshing = false, on
       </View>
       {offline && (
         <View style={styles.offline} accessibilityLiveRegion="polite">
-          <View style={styles.offlineDot} />
+          <Icon name="offline" size={14} color={colors.steel} strokeWidth={2} />
           <Text variant="caption" style={{ fontSize: 12 }}>
             Offline · showing your saved schedule
           </Text>
@@ -109,5 +110,4 @@ const styles = StyleSheet.create({
   sep: { height: 1, marginHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)' },
   empty: { alignItems: 'center', gap: 6, paddingVertical: space.xxl, paddingHorizontal: space.xl },
   offline: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: colors.lineStrong },
-  offlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.steel },
 });

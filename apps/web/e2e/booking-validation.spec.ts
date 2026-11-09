@@ -17,7 +17,7 @@ test("details step rejects an empty name, a bad phone and a short address", asyn
   await continueButton(page).click();
 
   await expect(page.getByText("Enter your name")).toBeVisible();
-  await expect(page.getByText("Enter a valid US phone number")).toBeVisible();
+  await expect(page.getByText("Enter a valid mobile number")).toBeVisible();
   await expect(page.getByText("Enter the address where the car will be")).toBeVisible();
   await expect(heading).toBeVisible();
 });

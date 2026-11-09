@@ -441,6 +441,7 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [],
   const [loading, setLoading] = useState(true);
   const [stale, setStale] = useState(false);
   const seq = useRef(0);
+  const hasData = useRef(false);
   const fnRef = useRef(fn);
   useEffect(() => {
     fnRef.current = fn;
@@ -453,10 +454,12 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [],
     setLoading(true);
     if (cacheKey) {
       readCache<T>(cacheKey).then((hit) => {
-        // Only fill in if the network hasn't answered yet.
+        // Show the saved copy while the network answers, without calling it
+        // "offline": that label only appears if the fetch actually fails
+        // (otherwise it flickers on every open).
         if (hit && !settled && id === seq.current) {
+          hasData.current = true;
           setData((d) => d ?? hit.data);
-          setStale(true);
         }
       });
     }
@@ -465,6 +468,7 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [],
       .then((d) => {
         settled = true;
         if (id !== seq.current) return;
+        hasData.current = true;
         setData(d);
         setError(null);
         setStale(false);
@@ -472,7 +476,10 @@ export function useQuery<T>(fn: () => Promise<T>, deps: readonly unknown[] = [],
       })
       .catch((e: unknown) => {
         settled = true;
-        if (id === seq.current) setError(e instanceof Error ? e : new Error(String(e)));
+        if (id !== seq.current) return;
+        setError(e instanceof Error ? e : new Error(String(e)));
+        // The network failed: whatever is on screen is the last saved copy.
+        if (hasData.current) setStale(true);
       })
       .finally(() => {
         if (id === seq.current) setLoading(false);
