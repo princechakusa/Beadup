@@ -37,7 +37,7 @@ Solo and small mobile car detailing businesses (mobile detailers, ceramic coatin
 - [Pricing](${SITE_URL}/pricing)
 - [Support and FAQ](${SITE_URL}/support)
 - [Privacy policy](${SITE_URL}/privacy)
-- [Sample booking page](${SITE_URL}/beadup-demo-detailing)
+- [Sample booking page](${SITE_URL}/beadup-demo-detailing)${process.env.NEXT_PUBLIC_APP_STORE_URL ? `\n- [Beadup on the App Store](${process.env.NEXT_PUBLIC_APP_STORE_URL})` : ""}
 
 ## Guides
 ${GUIDES.map((g) => `- [${g.title}](${SITE_URL}/blog/${g.slug}): ${g.answer}`).join("\n")}

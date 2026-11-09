@@ -11,7 +11,7 @@ Items in `[BRACKETS]` need a real value before submitting. Re-check Apple's and 
 - **AI photo quotes use OpenAI**, after an in-app consent screen.
 - **Hosting:** https://beadup.netlify.app until a domain is bought. Legal name: Prince Chakusa.
 
-**Status (2026-11-07):** Apple developer account exists. **Nothing is submitted.** Google Play account exists (owner).
+**Status (2026-11-09):** **Approved and live on the US App Store**: https://apps.apple.com/us/app/beadup/id6831768099 (Apple ID 6831768099). `NEXT_PUBLIC_APP_STORE_URL` is set on Netlify (site buttons say "Download", Safari Smart App Banner on marketing pages). Google Play: not submitted yet.
 
 ### App Store Connect progress
 Done in the owner's account:
