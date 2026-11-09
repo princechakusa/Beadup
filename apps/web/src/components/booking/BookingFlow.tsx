@@ -19,7 +19,7 @@ import { Turnstile, turnstileEnabled } from "./Turnstile";
 z.config({ jitless: true });
 
 // Shown when Cloudflare wants a tick (or is still checking) and Book is tapped.
-const VERIFY_FIRST = "Tick “Verify you are human” above, then tap Book again.";
+const VERIFY_FIRST = "Just a quick check that you're not a bot. If a “Verify you are human” box appears above, tick it, then tap Book again.";
 
 const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string> = {
   invalid: "Something in the booking didn't check out. Please review your details.",
