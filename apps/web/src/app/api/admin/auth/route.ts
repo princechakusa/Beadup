@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { authClient, clearAdminSession, isAdminEmail, sameOrigin, setAdminSession } from "@/lib/admin";
 import { clientIp } from "@/lib/client-ip";
@@ -11,6 +12,23 @@ const body = z.discriminatedUnion("step", [
 ]);
 
 const hash = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 32);
+
+/** Creates the allow-listed admin's login if missing and marks the email confirmed. */
+async function ensureConfirmedUser(db: SupabaseClient, email: string) {
+  const created = await db.auth.admin.createUser({ email, email_confirm: true });
+  if (!created.error) return;
+  // Already registered: find it and confirm it if a signup was left pending.
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage: 200 });
+    if (error || !data.users.length) return;
+    const user = data.users.find((u) => u.email?.toLowerCase() === email);
+    if (user) {
+      if (!user.email_confirmed_at) await db.auth.admin.updateUserById(user.id, { email_confirm: true });
+      return;
+    }
+    if (data.users.length < 200) return;
+  }
+}
 
 /**
  * Admin sign-in: "send" emails a one-time code (only to ADMIN_EMAILS), "verify"
@@ -32,8 +50,13 @@ export async function POST(request: Request): Promise<Response> {
   const email = parsed.data.email.toLowerCase();
   if (parsed.data.step === "send") {
     // Same answer either way, so the form can't be used to find admin emails.
-    // Only allow-listed emails ever get here, so creating the login is safe.
-    if (isAdminEmail(email)) await auth.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    if (isAdminEmail(email)) {
+      // A brand-new or unconfirmed address would get Supabase's "Confirm
+      // signup" email (a link, no code). Make sure the admin's login exists
+      // and is confirmed first, so they get the "sign-in code" email.
+      await ensureConfirmedUser(db, email);
+      await auth.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    }
     return Response.json({ ok: true });
   }
 
