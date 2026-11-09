@@ -104,3 +104,25 @@ New sign-ups · finished onboarding · links shared (QR + share taps) · booking
 the free limit · Pro subscribers (RevenueCat) · `utm_source=booking_page` visits to the landing page.
 Visits and UTM numbers need analytics, which isn't installed yet (privacy labels would need updating first). Until then,
 count from Supabase (`bookings`, `detailers`) and RevenueCat.
+
+## 8. Tracked App Store links (use these, not the plain listing link)
+
+Each link shows up as its own campaign in App Store Connect → Analytics → Campaigns (numbers appear once at least 5 different
+Apple Accounts install through it). Provider token `129220014` is public and safe to share.
+
+| Where | Link |
+|---|---|
+| website | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=website&mt=8 |
+| instagram-bio | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=instagram-bio&mt=8 |
+| instagram-dm | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=instagram-dm&mt=8 |
+| tiktok | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=tiktok&mt=8 |
+| youtube | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=youtube&mt=8 |
+| facebook-groups | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=facebook-groups&mt=8 |
+| reddit | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=reddit&mt=8 |
+| email | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=email&mt=8 |
+| qr-flyer | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=qr-flyer&mt=8 |
+| van-decal | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=van-decal&mt=8 |
+| creator | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=creator&mt=8 |
+| referral | https://apps.apple.com/app/apple-store/id6831768099?pt=129220014&ct=referral&mt=8 |
+
+New channel? Copy any link and change the `ct=` value (max 40 characters, letters, numbers and dashes).
