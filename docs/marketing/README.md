@@ -5,6 +5,19 @@ card payments in the app (deposits go to the detailer directly), no texts to cli
 approves. Re-check before posting if any of that changes. **Nothing here is posted or sent by an agent**: the owner
 approves and posts.
 
+**Files:** `launch-checklist.md` (day-by-day, first 30 days), `week-1-content.md` (videos, captions, replies),
+`accounts.md` (which social and search accounts to create).
+
+## Countries
+
+**Market in the USA only at launch.** The app is set to be available in the US, Canada, UK and Australia, but the booking
+page only accepts US/Canadian phone numbers (+1) and shows prices in US dollars. A UK or Australian detailer could sign up
+and their clients could not book. So:
+- **USA:** launch market, all marketing.
+- **Canada:** works (same +1 numbers, "$" prices), no active marketing yet.
+- **UK and Australia:** remove from App Store availability until local phone numbers and currency (GBP/AUD) are supported.
+  Then add them in the roadmap order: UK, Canada, Australia.
+
 ## 1. Positioning (use these words everywhere)
 
 - **One line:** Quote, book and get paid, built for mobile car detailers.
