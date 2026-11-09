@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { fetchCatalog, fetchProfile, saveQuote, useQuery, type QuoteItem } from '@/lib/data';
 import { currencySymbol, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
 
@@ -71,10 +72,10 @@ export default function NewQuote() {
       await saveQuote({ quoteId, vehicleSize: size, vehicleDesc: vehicle.trim(), items, notes: '', status: 'sent' });
       haptic.success();
       const lines = items.map((i) => `${i.label}: ${money(i.cents)}`).join('\n');
-      const link = profile.data ? `\n\nBook here: ${apiBaseUrl}/${profile.data.handle}` : '';
-      await Share.share({
-        message: `Quote from ${profile.data?.businessName ?? 'your detailer'}${vehicle ? ` for your ${vehicle.trim()}` : ''}\n\n${lines}\nTotal: ${money(total)} (30% deposit ${money(depositOf(total))})${link}`,
-      });
+      const text = `Quote from ${profile.data?.businessName ?? 'your detailer'}${vehicle ? ` for your ${vehicle.trim()}` : ''}\n\n${lines}\nTotal: ${money(total)} (30% deposit ${money(depositOf(total))})`;
+      // With a booking link, share it as a link so the client sees the detailer's preview card.
+      if (profile.data) await shareLink(`${text}\n\nBook here:`, `${apiBaseUrl}/${profile.data.handle}`);
+      else await Share.share({ message: text });
       router.back();
     } catch {
       haptic.error();

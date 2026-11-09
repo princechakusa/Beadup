@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { LiquidBead } from '@/components/bead/LiquidBead';
@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/Text';
 import { claimReferral, fetchReferralStatus, useQuery, type ClaimError } from '@/lib/data';
 import { dayLabel } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
 
@@ -41,12 +42,13 @@ export default function Invite() {
 
   const site = apiBaseUrl.replace(/^https?:\/\//, '');
   const message = s
-    ? `I run my detailing bookings on Beadup: quotes from photos, one booking link, deposits straight to me. Get it at ${apiBaseUrl} and enter my code "${s.code}" when you set up. We both get a free month of Pro.`
+    ? `I run my detailing bookings on Beadup: quotes from photos, one booking link, deposits straight to me. Enter my code "${s.code}" when you set up and we both get a free month of Pro.`
     : '';
 
   const share = () => {
     haptic.select();
-    Share.share({ message }).catch(() => {});
+    // The site link carries the Beadup preview card (logo + app screens).
+    shareLink(message, apiBaseUrl);
   };
   const copy = async () => {
     if (!s) return;
@@ -91,7 +93,8 @@ export default function Invite() {
           <GlassCard>
             <Text variant="eyebrow">Your invite code</Text>
             <View style={styles.codeRow}>
-              <Text style={styles.code} numberOfLines={1}>
+              {/* Long codes shrink to fit instead of being cut off. */}
+              <Text style={styles.code} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.4}>
                 {s.code}
               </Text>
               <Pressable onPress={copy} style={styles.copy} accessibilityRole="button" accessibilityLabel={copied ? 'Code copied' : 'Copy invite code'}>

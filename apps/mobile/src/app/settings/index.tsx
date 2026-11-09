@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, Share, StyleSheet, Switch, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Icon, type IconName } from '@/components/ui/Icon';
@@ -13,6 +13,7 @@ import { signOut } from '@/lib/auth';
 import { fetchAccount, fetchPaymentDetails, fetchPlanUsage, fetchProfile, startPayoutsSetup, usePaymentsMode, useQuery } from '@/lib/data';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
@@ -160,7 +161,7 @@ export default function Settings() {
           accessibilityRole="button"
           onPress={() => {
             haptic.tap();
-            Share.share({ message: `Book your next detail with ${p?.businessName ?? 'me'}: ${fullUrl}` });
+            shareLink(`Book your next detail with ${p?.businessName ?? 'me'}:`, fullUrl);
           }}
           style={styles.shareBtn}>
           <Icon name="share" size={18} color={colors.beadInk} strokeWidth={2.2} />

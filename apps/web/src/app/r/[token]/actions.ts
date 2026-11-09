@@ -2,6 +2,8 @@
 
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
+import { after } from "next/server";
+import { notifyReview } from "@/lib/push";
 import { clientIp } from "@/lib/client-ip";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -37,5 +39,7 @@ export async function submitReview(raw: z.input<typeof input>): Promise<ReviewRe
   const res = data as { ok: boolean; error?: string; handle?: string };
   if (!res.ok) return { ok: false, error: res.error === "already_reviewed" ? "already_reviewed" : "invalid" };
   if (res.handle) updateTag(bookingPageTag(res.handle)); // the rating on the booking page
+  // Tell the detailer right away, with the reason (best effort, never blocks the client).
+  after(() => notifyReview(parsed.data.token, parsed.data.rating, parsed.data.body));
   return { ok: true };
 }

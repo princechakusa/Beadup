@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Linking, Share, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { AskReviewButton } from '@/components/AskReviewButton';
@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { cancelBooking, fetchBooking, fetchProfile, markDepositReceived, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { useNow } from '@/lib/time';
 import { space } from '@/theme/tokens';
 
@@ -154,7 +155,7 @@ export default function BookingDetail() {
                   const link = await requestBalanceLink(b.id);
                   haptic.success();
                   setNotice(null);
-                  await Share.share({ message: `Thanks for choosing us! Pay your balance here: ${link.url}` });
+                  await shareLink('Thanks for choosing us! Pay your balance here:', link.url);
                 })
               }
             />

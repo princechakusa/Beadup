@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-named-as-default -- the package's types only declare a default export
 import qrcode from 'qrcode-generator';
 import { useMemo } from 'react';
-import { Modal, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -9,6 +9,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { colors } from '@/theme/tokens';
 
 /** One SVG path for every dark module: fast to draw and crisp at any size. */
@@ -33,7 +34,7 @@ export function QrSheet({ visible, onClose, url, businessName }: { visible: bool
 
   const share = () => {
     haptic.select();
-    Share.share({ message: `Book your next detail with ${businessName}: ${url}` }).catch(() => {});
+    shareLink(`Book your next detail with ${businessName}:`, url);
   };
 
   return (

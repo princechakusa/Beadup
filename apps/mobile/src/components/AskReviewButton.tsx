@@ -1,8 +1,9 @@
-import { Linking, Share } from 'react-native';
+import { Linking } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { fetchReviewLink, useQuery } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 
 /**
  * "Ask for a review" on a completed job. Opens the detailer's own Messages app
@@ -37,7 +38,7 @@ export function AskReviewButton({
     } catch {
       // fall through to the share sheet
     }
-    Share.share({ message }).catch(() => {});
+    shareLink(`Hi ${first}, thanks for choosing ${businessName}! If you have 30 seconds, a quick rating helps a lot:`, link.data!.url);
   };
 
   return <Button label="Ask for a review" variant="glass" onPress={ask} />;

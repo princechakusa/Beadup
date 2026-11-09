@@ -1,11 +1,12 @@
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { QrSheet } from '@/components/QrSheet';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
+import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
 
@@ -22,7 +23,7 @@ export function BookingLinkCard({ handle, businessName }: { handle: string; busi
 
   const share = () => {
     haptic.select();
-    Share.share({ message: `Book your next detail with ${businessName}: ${url}` }).catch(() => {});
+    shareLink(`Book your next detail with ${businessName}:`, url);
   };
   const copy = async () => {
     await Clipboard.setStringAsync(url);

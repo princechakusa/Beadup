@@ -1,4 +1,5 @@
 import "server-only";
+import { formatMoney, type Country } from "./countries";
 import { supabaseAdmin } from "./supabase-admin";
 
 // Booking alerts to the detailer's phone via the Expo push service.
@@ -41,7 +42,7 @@ export async function notifyPayment(bookingId: string, kind: "deposit" | "balanc
   if (!db) return;
   const { data } = await db
     .from("bookings")
-    .select("detailer_id, service_name, starts_at, subtotal_cents, deposit_cents, client:clients(name), detailer:detailers(timezone)")
+    .select("detailer_id, service_name, starts_at, subtotal_cents, deposit_cents, client:clients(name), detailer:detailers(timezone, country)")
     .eq("id", bookingId)
     .maybeSingle();
   if (!data) return;
@@ -52,13 +53,13 @@ export async function notifyPayment(bookingId: string, kind: "deposit" | "balanc
     subtotal_cents: number;
     deposit_cents: number;
     client: { name: string } | null;
-    detailer: { timezone: string } | null;
+    detailer: { timezone: string; country: Country } | null;
   };
   const tz = b.detailer?.timezone ?? "America/Chicago";
   const [first, last] = (b.client?.name ?? "A client").split(" ");
   const who = last ? `${first} ${last[0]}.` : first;
   const when = new Date(b.starts_at).toLocaleString("en-US", { timeZone: tz, weekday: "short", hour: "numeric", minute: "2-digit" });
-  const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
+  const usd = (c: number) => formatMoney(c, b.detailer?.country ?? "US"); // the detailer's own currency
 
   if (kind === "booked") {
     // External payments: the client pays the deposit to the detailer directly.
@@ -68,4 +69,17 @@ export async function notifyPayment(bookingId: string, kind: "deposit" | "balanc
   } else {
     await sendToDetailer(b.detailer_id, `${who} paid you`, `${b.service_name} paid in full, ${usd(b.subtotal_cents)}.`, `/paid/${bookingId}`);
   }
+}
+
+/** "New 2-star review" alert, with the start of what the client wrote. Opens the Reviews screen. */
+export async function notifyReview(token: string, rating: number, body: string): Promise<void> {
+  const db = supabaseAdmin();
+  if (!db) return;
+  const { data } = await db.from("bookings").select("detailer_id, client:clients(name)").eq("review_token", token).maybeSingle();
+  if (!data) return;
+  const client = (Array.isArray(data.client) ? data.client[0] : data.client) as { name?: string } | null;
+  const first = (client?.name ?? "A client").split(" ")[0];
+  const text = body.trim();
+  const said = text ? `: "${text.length > 90 ? `${text.slice(0, 89)}…` : text}"` : ".";
+  await sendToDetailer(data.detailer_id as string, `New ${rating}-star review`, `${first} rated your detail ${rating} out of 5${said}`, "/reviews");
 }

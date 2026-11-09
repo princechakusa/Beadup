@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getBookingPage } from "@/lib/booking-page";
 import { formatMoney } from "@/lib/countries";
+import { OG_LOGO } from "@/lib/og-logo";
 
 // The preview card shown when a detailer pastes their link into a text,
 // iMessage, Instagram DM or Facebook: business name, area, rating and
@@ -32,15 +33,8 @@ export default async function Image({ params }: { params: Promise<{ handle: stri
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div
-            style={{
-              width: 56,
-              height: 60,
-              borderRadius: 999,
-              background: "radial-gradient(circle at 35% 30%, #ffffff, #4DD8FF 45%, #0B4F7A 100%)",
-              boxShadow: "0 0 40px rgba(77,216,255,0.55)",
-            }}
-          />
+          {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain <img> */}
+          <img src={OG_LOGO} width={64} height={64} alt="" style={{ borderRadius: 16, boxShadow: "0 0 40px rgba(77,216,255,0.45)" }} />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontSize: 22, color: "#9AA3B2", letterSpacing: 4, textTransform: "uppercase" }}>Book online</span>
             {d?.serviceArea ? <span style={{ fontSize: 26, color: "#C9D0DB" }}>{`Mobile detailing · ${d.serviceArea}`}</span> : null}
@@ -79,7 +73,11 @@ export default async function Image({ params }: { params: Promise<{ handle: stri
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 26, color: "#4DD8FF", fontWeight: 700 }}>beadup</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain <img> */}
+            <img src={OG_LOGO} width={30} height={30} alt="" style={{ borderRadius: 8 }} />
+            <span style={{ fontSize: 26, color: "#F4F6FA", fontWeight: 700 }}>beadup</span>
+          </div>
         </div>
       </div>
     ),

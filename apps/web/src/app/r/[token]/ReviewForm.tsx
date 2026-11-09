@@ -87,11 +87,18 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
       </p>
 
       <label className="flex w-full flex-col gap-2 text-left">
-        <span className="text-[13px] text-steel">Anything to add? (optional)</span>
+        <span className="text-[13px] text-steel">
+          {rating === 0
+            ? "Anything to add? (optional)"
+            : rating <= 3
+              ? "What could have been better? Your detailer reads every review."
+              : "What did you like most? (optional)"}
+        </span>
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, 1000))}
           rows={4}
+          placeholder={rating > 0 && rating <= 3 ? "For example: arrived late, missed a spot on the wheels" : "For example: on time, interior looks brand new"}
           className="w-full resize-none rounded-2xl border border-line bg-black/30 p-4 text-base text-paint outline-none transition-[border-color,box-shadow] focus:border-bead/70 focus:shadow-[0_0_0_4px_rgba(77,216,255,0.12)]"
         />
       </label>
