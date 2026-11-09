@@ -8,7 +8,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchCatalog, refreshBookingPage, useQuery, type CatalogService } from '@/lib/data';
-import { usd } from '@/lib/format';
+import { money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
@@ -116,7 +116,7 @@ export default function Services() {
                 {s.name}
               </Text>
               <Text variant="caption">
-                {usd(s.priceCents.sedan)} / {usd(s.priceCents.suv)} / {usd(s.priceCents.truck)} · {s.durationMin / 60} h
+                {money(s.priceCents.sedan)} / {money(s.priceCents.suv)} / {money(s.priceCents.truck)} · {s.durationMin / 60} h
               </Text>
             </Pressable>
             <Switch
@@ -171,7 +171,7 @@ export default function Services() {
               <Text variant="bodyStrong" style={{ color: a.active ? colors.paint : colors.steel }}>
                 {a.name}
               </Text>
-              <Text variant="caption">{usd(a.priceCents)}</Text>
+              <Text variant="caption">{money(a.priceCents)}</Text>
             </View>
             <Switch
               value={pending[a.id] ?? a.active}

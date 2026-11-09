@@ -11,7 +11,7 @@ import { Icon } from '@/components/ui/Icon';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchCatalog, fetchProfile, saveQuote, useQuery, type QuoteItem } from '@/lib/data';
-import { usd } from '@/lib/format';
+import { currencySymbol, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
@@ -70,10 +70,10 @@ export default function NewQuote() {
     try {
       await saveQuote({ quoteId, vehicleSize: size, vehicleDesc: vehicle.trim(), items, notes: '', status: 'sent' });
       haptic.success();
-      const lines = items.map((i) => `${i.label}: ${usd(i.cents)}`).join('\n');
+      const lines = items.map((i) => `${i.label}: ${money(i.cents)}`).join('\n');
       const link = profile.data ? `\n\nBook here: ${apiBaseUrl}/${profile.data.handle}` : '';
       await Share.share({
-        message: `Quote from ${profile.data?.businessName ?? 'your detailer'}${vehicle ? ` for your ${vehicle.trim()}` : ''}\n\n${lines}\nTotal: ${usd(total)} (30% deposit ${usd(depositOf(total))})${link}`,
+        message: `Quote from ${profile.data?.businessName ?? 'your detailer'}${vehicle ? ` for your ${vehicle.trim()}` : ''}\n\n${lines}\nTotal: ${money(total)} (30% deposit ${money(depositOf(total))})${link}`,
       });
       router.back();
     } catch {
@@ -137,7 +137,7 @@ export default function NewQuote() {
                 <Text variant="caption">{s.description}</Text>
               </View>
               <Text variant="bodyStrong" tone="gold" style={{ fontFamily: fonts.display }}>
-                {usd(s.priceCents[size])}
+                {money(s.priceCents[size])}
               </Text>
             </Pressable>
           );
@@ -161,7 +161,7 @@ export default function NewQuote() {
                   }}
                   style={[styles.chip, on && styles.chipOn]}>
                   <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontFamily: fonts.bodySemi }}>
-                    {a.name.split(' (')[0]} · {usd(a.priceCents)}
+                    {a.name.split(' (')[0]} · {money(a.priceCents)}
                   </Text>
                 </Pressable>
               );
@@ -183,10 +183,10 @@ export default function NewQuote() {
         <TextInput
           value={extraPrice}
           onChangeText={setExtraPrice}
-          placeholder="$"
+          placeholder={currencySymbol()}
           keyboardType="decimal-pad"
           placeholderTextColor="rgba(154,163,178,0.6)"
-          accessibilityLabel="Custom line price in dollars"
+          accessibilityLabel="Custom line price"
           style={[styles.input, { width: 90 }]}
         />
         <Pressable accessibilityRole="button" accessibilityLabel="Add line" onPress={addExtra} style={styles.addBtn}>
@@ -200,16 +200,16 @@ export default function NewQuote() {
             <Text variant="body" style={{ flex: 1 }}>
               {i.label}
             </Text>
-            <Text variant="bodyStrong">{usd(i.cents)}</Text>
+            <Text variant="bodyStrong">{money(i.cents)}</Text>
           </Animated.View>
         ))}
         <View style={styles.totalRow}>
           <View style={{ flex: 1 }}>
             <Text variant="bodyStrong">Total</Text>
-            <Text variant="caption">30% deposit {usd(depositOf(total))}</Text>
+            <Text variant="caption">30% deposit {money(depositOf(total))}</Text>
           </View>
           <Text variant="money" style={{ fontSize: 28 }}>
-            {usd(total)}
+            {money(total)}
           </Text>
         </View>
       </ListCard>

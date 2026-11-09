@@ -3,13 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
+import { isCountry, setMoneyCountry, type Country } from './format';
 import { apiBaseUrl, supabase } from './supabase';
 
 // Data access for the detailer app. Every query runs as the signed-in
 // detailer, so row level security limits it to their own rows; no query
 // filters by detailer id client-side for security.
 
-export type Profile = { id: string; handle: string; businessName: string; timezone: string };
+export type Profile = { id: string; handle: string; businessName: string; timezone: string; country: Country };
 
 export type BookingStatus = 'pending_payment' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 
@@ -98,9 +99,14 @@ function db() {
 
 export async function fetchProfile(): Promise<Profile | null> {
   if (!supabase) return fixtures.profile;
-  const { data, error } = await db().from('detailers').select('id, handle, business_name, timezone').maybeSingle();
+  // "*" rather than a column list: works before and after the country column
+  // exists, so an app update can never get ahead of the database.
+  const { data, error } = await db().from('detailers').select('*').maybeSingle();
   if (error) throw error;
-  return data && { id: data.id, handle: data.handle, businessName: data.business_name, timezone: data.timezone };
+  if (!data) return null;
+  const country: Country = isCountry(data.country) ? data.country : 'US';
+  setMoneyCountry(country);
+  return { id: data.id, handle: data.handle, businessName: data.business_name, timezone: data.timezone, country };
 }
 
 /** Bookings starting in [from, to), excluding unpaid holds and cancellations. */
@@ -535,13 +541,21 @@ export async function savePaymentDetails(d: PaymentDetails): Promise<void> {
   await refreshBookingPage();
 }
 
-export type BusinessProfile = { businessName: string; tagline: string; serviceArea: string; handle: string };
+export type BusinessProfile = { businessName: string; tagline: string; serviceArea: string; handle: string; country: Country };
 
 export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
   if (!supabase) return fixtures.businessProfile;
-  const { data, error } = await db().from('detailers').select('business_name, tagline, service_area, handle').maybeSingle();
+  const { data, error } = await db().from('detailers').select('*').maybeSingle();
   if (error) throw error;
-  return data && { businessName: data.business_name, tagline: data.tagline, serviceArea: data.service_area, handle: data.handle };
+  return (
+    data && {
+      businessName: data.business_name,
+      tagline: data.tagline,
+      serviceArea: data.service_area,
+      handle: data.handle,
+      country: isCountry(data.country) ? data.country : 'US',
+    }
+  );
 }
 
 /** Name, tagline and service area shown on the booking page (the handle stays fixed so shared links keep working). */
@@ -551,9 +565,10 @@ export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): P
   if (!user.user) throw new Error('signed out');
   const { error } = await db()
     .from('detailers')
-    .update({ business_name: p.businessName.trim(), tagline: p.tagline.trim(), service_area: p.serviceArea.trim() })
+    .update({ business_name: p.businessName.trim(), tagline: p.tagline.trim(), service_area: p.serviceArea.trim(), country: p.country })
     .eq('id', user.user.id);
   if (error) throw error;
+  setMoneyCountry(p.country);
   await refreshBookingPage();
 }
 

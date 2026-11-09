@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Text } from '@/components/ui/Text';
 import { fetchBalance, fetchBooking, fetchNextBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery } from '@/lib/data';
-import { dateKey, dayLabel, startOfDay, timeOf, usd } from '@/lib/format';
+import { dateKey, dayLabel, startOfDay, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
 
@@ -75,12 +75,12 @@ export default function Paid() {
           <Text variant="body" tone="steel" style={{ marginTop: space.lg }}>
             {b ? (external ? `Job done for ${name}` : `${name} paid you`) : ' '}
           </Text>
-          <Text style={styles.amount} accessibilityLabel={b ? `${usd(shown)} ${external ? 'job total' : 'paid'}` : undefined}>
-            {usd(amount, { cents: true })}
+          <Text style={styles.amount} accessibilityLabel={b ? `${money(shown)} ${external ? 'job total' : 'paid'}` : undefined}>
+            {money(amount, { cents: true })}
           </Text>
           {b && (
             <Text variant="caption" style={{ textAlign: 'center' }}>
-              {b.serviceName} · {SIZE_LABEL[b.vehicleSize]} · incl. {usd(b.depositCents)} deposit
+              {b.serviceName} · {SIZE_LABEL[b.vehicleSize]} · incl. {money(b.depositCents)} deposit
             </Text>
           )}
         </Animated.View>
@@ -93,14 +93,14 @@ export default function Paid() {
             <Text variant="body" tone="steel">
               Deposit
             </Text>
-            <Text variant="bodyStrong">{usd(b.depositCents)}</Text>
+            <Text variant="bodyStrong">{money(b.depositCents)}</Text>
           </View>
           <View style={[styles.rowBetween, { marginTop: space.md }]}>
             <Text variant="body" tone="steel">
               Balance to collect
             </Text>
             <Text variant="bodyStrong" tone="gold">
-              {usd(b.subtotalCents - b.depositCents)}
+              {money(b.subtotalCents - b.depositCents)}
             </Text>
           </View>
         </GlassCard>
@@ -117,7 +117,7 @@ export default function Paid() {
               Today&apos;s total
             </Text>
             <Text variant="bodyStrong" tone="gold">
-              {usd(todayTotal, { cents: false })}
+              {money(todayTotal, { cents: false })}
             </Text>
           </View>
         </GlassCard>

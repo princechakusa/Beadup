@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getBookingPage } from "@/lib/booking-page";
+import { formatMoney } from "@/lib/countries";
 
 // The preview card shown when a detailer pastes their link into a text,
 // iMessage, Instagram DM or Facebook: business name, area, rating and
@@ -8,7 +9,6 @@ export const alt = "Book online with this detailer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const usd = (cents: number) => `$${Math.round(cents / 100)}`;
 
 export default async function Image({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
@@ -75,7 +75,7 @@ export default async function Image({ params }: { params: Promise<{ handle: stri
                 }}
               >
                 <span style={{ fontSize: 22, color: "#C9D0DB" }}>{s.name.length > 22 ? `${s.name.slice(0, 21)}…` : s.name}</span>
-                <span style={{ fontSize: 34, fontWeight: 800, color: "#FFB547" }}>{`from ${usd(s.priceCents.sedan)}`}</span>
+                <span style={{ fontSize: 34, fontWeight: 800, color: "#FFB547" }}>{`from ${formatMoney(Math.round(s.priceCents.sedan / 100) * 100, d?.country ?? "US")}`}</span>
               </div>
             ))}
           </div>

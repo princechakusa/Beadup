@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge, EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchClientBookings, fetchClients, fetchProfile, useQuery } from '@/lib/data';
-import { dayLabel, timeOf, usd } from '@/lib/format';
+import { dayLabel, timeOf, money } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
 
 const STATUS = {
@@ -45,7 +45,7 @@ export default function ClientDetail() {
                 Spent with you
               </Text>
               <Text variant="heading" tone="gold" style={{ fontSize: 22 }}>
-                {usd(c.spentCents, { cents: false })}
+                {money(c.spentCents, { cents: false })}
               </Text>
             </View>
           </View>
@@ -84,7 +84,7 @@ export default function ClientDetail() {
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                   <Text variant="bodyStrong" style={{ fontFamily: fonts.display, fontSize: 15, color: colors.gold }}>
-                    {usd(b.subtotalCents)}
+                    {money(b.subtotalCents)}
                   </Text>
                   <Badge label={s.label} tone={s.tone} />
                 </View>

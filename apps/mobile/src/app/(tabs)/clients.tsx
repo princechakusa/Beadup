@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/Icon';
 import { EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchClients, fetchProfile, useQuery, type ClientSummary } from '@/lib/data';
-import { dayLabel, initials, timeOf, usd } from '@/lib/format';
+import { dayLabel, initials, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { colors, fonts } from '@/theme/tokens';
@@ -100,7 +100,7 @@ export default function Clients() {
                 key={c.id}
                 onPress={() => router.push(`/client/${c.id}`)}
                 accessibilityRole="button"
-                accessibilityLabel={`${c.name}, ${c.visits} visits, ${usd(c.spentCents)} spent`}
+                accessibilityLabel={`${c.name}, ${c.visits} visits, ${money(c.spentCents)} spent`}
                 style={styles.row}>
                 <View style={[styles.avatar, { backgroundColor: `${tint}1F` }]}>
                   <Text variant="bodyStrong" style={{ color: tint, fontFamily: fonts.display }}>
@@ -117,7 +117,7 @@ export default function Clients() {
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 2 }}>
                   <Text variant="bodyStrong" tone="gold" style={{ fontFamily: fonts.display, fontSize: 15 }}>
-                    {usd(c.spentCents, { cents: false })}
+                    {money(c.spentCents, { cents: false })}
                   </Text>
                   <Text variant="caption" style={{ fontSize: 11, color: s.color }}>
                     {s.text}

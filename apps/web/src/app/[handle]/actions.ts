@@ -14,15 +14,10 @@ import { notifyPayment } from "@/lib/push";
 import { getPublicConfig } from "@/lib/site";
 import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { toE164 } from "@/lib/countries";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 /** Turns US numbers like "(512) 555-0199" into E.164 "+15125550199". */
-function toE164(raw: string): string | null {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return null;
-}
 
 const bookingInput = z.object({
   handle: z.string().regex(HANDLE_RE),
@@ -32,7 +27,8 @@ const bookingInput = z.object({
   date: z.iso.date(),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   name: z.string().trim().min(2).max(80),
-  phone: z.string().trim().max(30).transform(toE164).pipe(z.string()),
+  // Normalised to E.164 below, once the detailer's country is known.
+  phone: z.string().trim().min(6).max(30),
   address: z.string().trim().min(6).max(200),
   smsConsent: z.boolean(),
   turnstileToken: z.string().max(2048).optional(),
@@ -152,6 +148,9 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
 
   const detailer = await getBookingPage(input.handle);
   if (!detailer) return { ok: false, error: "unavailable" };
+  const phone = toE164(input.phone, detailer.country);
+  if (!phone) return { ok: false, error: "invalid" };
+  input.phone = phone;
 
   const db = supabaseAdmin();
   if (!db) {

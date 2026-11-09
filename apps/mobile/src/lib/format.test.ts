@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dateKey, initials, mondayOf, minutesOfDay, startOfDay, usd, usdParts, weekdayIndex } from './format';
+import { dateKey, initials, mondayOf, minutesOfDay, startOfDay, money, moneyParts, weekdayIndex } from './format';
 
 // Reference instants below were confirmed with the browser/Node Intl engine
 // for the 2026 DST transitions in America/Chicago:
@@ -67,27 +67,27 @@ describe('weekdayIndex / mondayOf', () => {
   });
 });
 
-describe('usd', () => {
+describe('money', () => {
   it('hides cents on whole dollars', () => {
-    expect(usd(6000)).toBe('$60');
-    expect(usd(21000)).toBe('$210');
+    expect(money(6000)).toBe('$60');
+    expect(money(21000)).toBe('$210');
   });
   it('shows cents otherwise', () => {
-    expect(usd(999999)).toBe('$9,999.99');
-    expect(usd(1234)).toBe('$12.34');
-    expect(usd(6300)).toBe('$63');
+    expect(money(999999)).toBe('$9,999.99');
+    expect(money(1234)).toBe('$12.34');
+    expect(money(6300)).toBe('$63');
   });
   it('honours opts.cents', () => {
-    expect(usd(6000, { cents: true })).toBe('$60.00');
-    expect(usd(6000, { cents: false })).toBe('$60');
+    expect(money(6000, { cents: true })).toBe('$60.00');
+    expect(money(6000, { cents: false })).toBe('$60');
   });
 });
 
-describe('usdParts', () => {
+describe('moneyParts', () => {
   it('splits whole dollars and a fraction', () => {
-    expect(usdParts(184000)).toEqual({ whole: '$1,840', fraction: '.00' });
-    expect(usdParts(184034)).toEqual({ whole: '$1,840', fraction: '.34' });
-    expect(usdParts(999)).toEqual({ whole: '$9', fraction: '.99' });
+    expect(moneyParts(184000)).toEqual({ whole: '$1,840', fraction: '.00' });
+    expect(moneyParts(184034)).toEqual({ whole: '$1,840', fraction: '.34' });
+    expect(moneyParts(999)).toEqual({ whole: '$9', fraction: '.99' });
   });
 });
 
@@ -99,5 +99,15 @@ describe('initials', () => {
   });
   it('falls back for empty input', () => {
     expect(initials('   ')).toBe('?');
+  });
+});
+describe('money in the detailer currency', () => {
+  it('follows the country set from the profile', async () => {
+    const { setMoneyCountry, money: m, currencySymbol } = await import('./format');
+    setMoneyCountry('GB');
+    expect(m(6050)).toBe('£60.50');
+    expect(currencySymbol()).toBe('£');
+    setMoneyCountry('nonsense');
+    expect(m(18000)).toBe('$180');
   });
 });

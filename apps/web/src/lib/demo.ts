@@ -11,6 +11,7 @@ const DETAILERS: Record<string, Detailer> = {
     tagline: "Mobile detailing · we come to you",
     serviceArea: "Austin, TX · 25 mi",
     timezone: "America/Chicago",
+    country: "US",
     rating: 4.7,
     reviewCount: 3,
     payments: "external",

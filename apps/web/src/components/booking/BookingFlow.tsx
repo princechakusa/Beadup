@@ -8,7 +8,8 @@ import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
-import { bookingFeeCents, depositCents, formatUsd } from "@/lib/pricing";
+import { COUNTRIES, formatMoney, toE164, type Country } from "@/lib/countries";
+import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
@@ -36,12 +37,14 @@ const SIZES: { id: VehicleSize; label: string }[] = [
   { id: "truck", label: "Truck" },
 ];
 
-const detailsSchema = z.object({
+// Phone numbers are read the way people write them in the detailer's country.
+const detailsSchemaFor = (country: Country) =>
+  z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
   phone: z
     .string()
     .trim()
-    .regex(/^\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/, "Enter a valid US phone number"),
+    .refine((p) => toE164(p, country) !== null, "Enter a valid mobile number"),
   address: z.string().trim().min(6, "Enter the address where the car will be").max(200),
   // Optional: consent to texts is never a condition of booking.
   smsConsent: z.boolean(),
@@ -84,6 +87,7 @@ function to12h(hhmm: string) {
 }
 
 export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
+  const money = (cents: number) => formatMoney(cents, detailer.country);
   const reduce = useReducedMotion();
   // Animation start states only after hydration: the server HTML must not
   // carry style="" attributes (CSP without 'unsafe-inline').
@@ -138,7 +142,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
   function next() {
     if (step === 3) {
-      const parsed = detailsSchema.safeParse(details);
+      const parsed = detailsSchemaFor(detailer.country).safeParse(details);
       if (!parsed.success) {
         const e: Partial<Record<keyof Details, string>> = {};
         for (const issue of parsed.error.issues) e[issue.path[0] as keyof Details] ??= issue.message;
@@ -203,7 +207,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       <BookedCelebration
         businessName={detailer.businessName}
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
-        paid={formatUsd(paidCents ?? totals.dueToday)}
+        paid={money(paidCents ?? totals.dueToday)}
         payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
         serviceName={service?.name ?? ""}
         celebrate
@@ -321,7 +325,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                           </span>
                         </span>
                         <span className={`relative text-[17px] font-bold ${active ? "text-bead" : ""}`}>
-                          from {formatUsd(s.priceCents.sedan)}
+                          from {money(s.priceCents.sedan)}
                         </span>
                       </motion.button>
                     );
@@ -378,7 +382,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                           )}
                         </motion.span>
                         <span className="min-w-0 flex-1 font-semibold leading-snug">{a.name}</span>
-                        <span className="shrink-0 font-semibold text-steel">+{formatUsd(a.priceCents)}</span>
+                        <span className="shrink-0 font-semibold text-steel">+{money(a.priceCents)}</span>
                       </motion.button>
                     );
                   })}
@@ -453,7 +457,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     <input autoComplete="name" value={details.name} maxLength={80} onChange={(e) => setDetails({ ...details, name: e.target.value })} />
                   </Field>
                   <Field label="Mobile number" error={errors.phone}>
-                    <input type="tel" inputMode="tel" autoComplete="tel" value={details.phone} maxLength={20} onChange={(e) => setDetails({ ...details, phone: e.target.value })} />
+                    <input type="tel" inputMode="tel" autoComplete="tel" placeholder={COUNTRIES[detailer.country].phoneExample} value={details.phone} maxLength={20} onChange={(e) => setDetails({ ...details, phone: e.target.value })} />
                   </Field>
                   <Field label="Service address" error={errors.address}>
                     <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
@@ -485,21 +489,21 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     {SIZES.find((s) => s.id === size)?.label} · {day?.label} · {slot && to12h(slot)}
                   </p>
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label={service?.name ?? ""} value={formatUsd(totals.base)} />
+                  <Row label={service?.name ?? ""} value={money(totals.base)} />
                   {detailer.addOns
                     .filter((a) => addOns.includes(a.id))
                     .map((a) => (
-                      <Row key={a.id} label={a.name} value={formatUsd(a.priceCents)} />
+                      <Row key={a.id} label={a.name} value={money(a.priceCents)} />
                     ))}
-                  <Row label="Total" value={formatUsd(totals.total)} strong />
+                  <Row label="Total" value={money(totals.total)} strong />
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label="Deposit (30%)" value={formatUsd(totals.deposit)} />
-                  {!external && <Row label="Booking fee" value={formatUsd(totals.fee)} muted />}
-                  <Row label={`Pay ${formatUsd(totals.total - totals.deposit)} after the job`} value="" muted />
+                  <Row label="Deposit (30%)" value={money(totals.deposit)} />
+                  {!external && <Row label="Booking fee" value={money(totals.fee)} muted />}
+                  <Row label={`Pay ${money(totals.total - totals.deposit)} after the job`} value="" muted />
                 </div>
                 {external ? (
                   <p className="mt-4 text-[13px] leading-relaxed text-steel">
-                    After you book, you&apos;ll pay the {formatUsd(totals.deposit)} deposit to {shortName} directly. Beadup
+                    After you book, you&apos;ll pay the {money(totals.deposit)} deposit to {shortName} directly. Beadup
                     never takes your card. Deposits, changes and refunds are handled by {shortName}.
                   </p>
                 ) : (
@@ -544,7 +548,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               {service ? (
                 <>
                   <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
-                  <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} />
+                  <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} country={detailer.country} />
                 </>
               ) : (
                 <p className="text-sm text-steel">Pick a detail to see the price</p>
@@ -613,7 +617,7 @@ function Row({ label, value, strong, muted }: { label: string; value: string; st
   );
 }
 
-function AnimatedPrice({ cents, animate }: { cents: number; animate: boolean }) {
+function AnimatedPrice({ cents, animate, country }: { cents: number; animate: boolean; country: Country }) {
   return (
     <AnimatePresence mode="popLayout">
       <motion.p
@@ -624,7 +628,7 @@ function AnimatedPrice({ cents, animate }: { cents: number; animate: boolean }) 
         transition={{ type: "spring", stiffness: 500, damping: 32 }}
         className="font-display text-2xl font-extrabold tracking-tight text-gold"
       >
-        {formatUsd(cents)}
+        {formatMoney(cents, country)}
       </motion.p>
     </AnimatePresence>
   );

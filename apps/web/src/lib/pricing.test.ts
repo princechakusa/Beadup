@@ -37,5 +37,6 @@ describe("bookingFeeCents", () => {
       const expected = Math.floor((1000 * (c + 30) + 970) / 971) - c;
       expect(bookingFeeCents(c)).toBe(expected);
     }
-  });
+    // 200k expect() calls: ~2 s normally, slower on a busy machine or CI runner.
+  }, 30_000);
 });

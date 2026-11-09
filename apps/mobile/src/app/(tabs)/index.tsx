@@ -18,7 +18,7 @@ import {
   useQuery,
   type Booking,
 } from '@/lib/data';
-import { addDaysKey, dateKey, greeting, mondayOf, startOfDay, timeOf, usd, usdParts, weekdayIndex } from '@/lib/format';
+import { addDaysKey, dateKey, greeting, mondayOf, startOfDay, timeOf, money, moneyParts, weekdayIndex } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { colors, space } from '@/theme/tokens';
@@ -67,7 +67,7 @@ export default function Today() {
   const change = lastWeek > 0 ? Math.round(((earned - lastWeek) / lastWeek) * 100) : null;
   const jobs = week.data?.bookings ?? [];
   const avgTicket = jobs.length ? Math.round(jobs.reduce((n, b) => n + b.subtotalCents, 0) / jobs.length) : 0;
-  const { whole, fraction } = usdParts(earned);
+  const { whole, fraction } = moneyParts(earned);
 
   const upcoming = next.data ?? [];
   const [first, ...rest] = upcoming;
@@ -107,7 +107,7 @@ export default function Today() {
             </View>
           )}
         </View>
-        <Text style={styles.bigMoney} accessibilityLabel={`Earned this week ${usd(earned)}`}>
+        <Text style={styles.bigMoney} accessibilityLabel={`Earned this week ${money(earned)}`}>
           {whole}
           <Text style={styles.bigFraction}>{fraction}</Text>
         </Text>
@@ -123,7 +123,7 @@ export default function Today() {
 
       <View style={styles.stats}>
         <Stat value={String(jobs.length)} label="Jobs this week" />
-        <Stat value={usd(avgTicket, { cents: false })} label="Avg ticket" />
+        <Stat value={money(avgTicket, { cents: false })} label="Avg ticket" />
         <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold />
       </View>
 
@@ -216,7 +216,7 @@ function NextUpCard({ booking: b, tz, now }: { booking: Booking; tz: string; now
           </Text>
         </View>
         <Text variant="heading" tone="gold" style={{ fontSize: 18 }}>
-          {usd(b.subtotalCents)}
+          {money(b.subtotalCents)}
         </Text>
       </View>
       <View style={styles.timeRow}>

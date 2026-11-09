@@ -1,22 +1,52 @@
 // Formatting helpers. Money is integer cents; times are shown in the
 // detailer's own timezone (their business), not the phone's.
 
-export function usd(cents: number, opts: { cents?: boolean } = {}): string {
+/** Countries Beadup works in; keep in step with apps/web/src/lib/countries.ts and the database. */
+export const COUNTRIES = {
+  US: { name: 'United States', currency: 'USD', locale: 'en-US' },
+  CA: { name: 'Canada', currency: 'CAD', locale: 'en-CA' },
+  GB: { name: 'United Kingdom', currency: 'GBP', locale: 'en-GB' },
+  AU: { name: 'Australia', currency: 'AUD', locale: 'en-AU' },
+} as const;
+export type Country = keyof typeof COUNTRIES;
+export const isCountry = (c: unknown): c is Country => typeof c === 'string' && c in COUNTRIES;
+
+// The signed-in detailer's country, set when their profile loads. Every money
+// amount in the app is in their own currency.
+let current: Country = 'US';
+export function setMoneyCountry(c: string | null | undefined) {
+  current = isCountry(c) ? c : 'US';
+}
+export const moneyCountry = () => current;
+
+/** "$180", "£60.50", in the detailer's currency. */
+export function money(cents: number, opts: { cents?: boolean } = {}): string {
   const showCents = opts.cents ?? cents % 100 !== 0;
-  return new Intl.NumberFormat('en-US', {
+  const c = COUNTRIES[current];
+  return new Intl.NumberFormat(c.locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: c.currency,
     minimumFractionDigits: showCents ? 2 : 0,
     maximumFractionDigits: showCents ? 2 : 0,
   }).format(cents / 100);
 }
 
 /** "$1,840" and ".00" separately, for the big money numbers in the design. */
-export function usdParts(cents: number): { whole: string; fraction: string } {
-  const whole = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(
+export function moneyParts(cents: number): { whole: string; fraction: string } {
+  const c = COUNTRIES[current];
+  const whole = new Intl.NumberFormat(c.locale, { style: 'currency', currency: c.currency, maximumFractionDigits: 0 }).format(
     Math.floor(cents / 100),
   );
   return { whole, fraction: `.${String(Math.abs(cents) % 100).padStart(2, '0')}` };
+}
+
+/** The currency symbol on its own ("$", "£"), for price inputs. */
+export function currencySymbol(): string {
+  const c = COUNTRIES[current];
+  return (
+    new Intl.NumberFormat(c.locale, { style: 'currency', currency: c.currency }).formatToParts(0).find((p) => p.type === 'currency')?.value ??
+    '$'
+  );
 }
 
 export function timeOf(iso: string, timeZone: string): string {

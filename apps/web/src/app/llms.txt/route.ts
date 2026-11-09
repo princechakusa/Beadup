@@ -12,7 +12,7 @@ export async function GET() {
   const ai = c.ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
   const text = `# Beadup
 
-> Beadup is an iPhone app for solo mobile car detailers in the USA. Detailers send quotes, get booked from one link, and take deposits that cut no-shows. Their clients book in any web browser with no app and no account.
+> Beadup is an iPhone app for solo mobile car detailers in the United States, Canada, the United Kingdom and Australia. Detailers send quotes, get booked from one link, and take deposits that cut no-shows. Their clients book in any web browser with no app and no account.
 
 ## What it does
 - Booking link: every detailer gets a public page (${SITE_URL}/<handle>) where clients pick a service, vehicle size (sedan, SUV, truck), add-ons and an open time, then enter their name, phone and address.
@@ -30,7 +30,7 @@ export async function GET() {
 - Beadup Pro: optional monthly subscription bought in the app through the App Store, removing the booking limit. The current price is shown in the App Store and at ${SITE_URL}/pricing.
 
 ## Who it's for
-Solo and small mobile car detailing businesses (mobile detailers, ceramic coating installers, mobile car wash operators) in the United States.
+Solo and small mobile car detailing businesses (mobile detailers, ceramic coating installers, mobile car wash operators) in the United States, Canada, the United Kingdom and Australia. Prices show in the detailer's own currency (USD, CAD, GBP or AUD) and clients enter local phone numbers.
 
 ## Key pages
 - [Home](${SITE_URL}/)

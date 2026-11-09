@@ -7,7 +7,7 @@ import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { Badge, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchBookings, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
-import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, timeOf, usd } from '@/lib/format';
+import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
 
@@ -200,7 +200,7 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
                   </Text>
                 </View>
                 <Text variant="heading" tone="gold" style={{ fontSize: 18 }}>
-                  {usd(b.subtotalCents)}
+                  {money(b.subtotalCents)}
                 </Text>
               </View>
             </>

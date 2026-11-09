@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { cancelBooking, fetchBooking, fetchProfile, markDepositReceived, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
-import { dayLabel, timeOf, usd } from '@/lib/format';
+import { dayLabel, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { space } from '@/theme/tokens';
@@ -102,17 +102,17 @@ export default function BookingDetail() {
       </ListCard>
 
       <ListCard>
-        <Line label={b.serviceName} value={usd(b.subtotalCents - b.addOns.reduce((n, a) => n + (a.priceCents ?? 0), 0))} />
+        <Line label={b.serviceName} value={money(b.subtotalCents - b.addOns.reduce((n, a) => n + (a.priceCents ?? 0), 0))} />
         {b.addOns.map((a) => (
-          <Line key={a.name} label={a.name} value={a.priceCents != null ? usd(a.priceCents) : ''} muted />
+          <Line key={a.name} label={a.name} value={a.priceCents != null ? money(a.priceCents) : ''} muted />
         ))}
-        <Line label="Total" value={usd(b.subtotalCents)} strong />
+        <Line label="Total" value={money(b.subtotalCents)} strong />
         {external ? (
-          <Line label={b.depositReceived ? 'Deposit received' : 'Deposit (30%), not marked paid yet'} value={usd(b.depositCents)} muted={b.depositReceived} gold={!b.depositReceived} />
+          <Line label={b.depositReceived ? 'Deposit received' : 'Deposit (30%), not marked paid yet'} value={money(b.depositCents)} muted={b.depositReceived} gold={!b.depositReceived} />
         ) : (
           <>
-            <Line label="Paid so far" value={usd(b.paidCents)} muted />
-            {balance > 0 && b.status !== 'cancelled' && <Line label="Balance due after the job" value={usd(balance)} gold />}
+            <Line label="Paid so far" value={money(b.paidCents)} muted />
+            {balance > 0 && b.status !== 'cancelled' && <Line label="Balance due after the job" value={money(balance)} gold />}
           </>
         )}
       </ListCard>
@@ -125,7 +125,7 @@ export default function BookingDetail() {
 
       {external && b.status !== 'cancelled' && b.status !== 'pending_payment' && (
         <Button
-          label={b.depositReceived ? 'Undo: deposit not received' : `Deposit received (${usd(b.depositCents)})`}
+          label={b.depositReceived ? 'Undo: deposit not received' : `Deposit received (${money(b.depositCents)})`}
           variant={b.depositReceived ? 'ghost' : 'primary'}
           loading={busy === 'deposit'}
           onPress={() =>
@@ -177,7 +177,7 @@ export default function BookingDetail() {
               <Text variant="body">
                 {external
                   ? `Cancel ${b.client.name.split(' ')[0]}’s booking? If they paid you a deposit, refund it to them directly.`
-                  : `Cancel and refund ${b.client.name.split(' ')[0]} ${usd(b.paidCents + b.bookingFeeCents)} in full? They’ll get it back on their card.`}
+                  : `Cancel and refund ${b.client.name.split(' ')[0]} ${money(b.paidCents + b.bookingFeeCents)} in full? They’ll get it back on their card.`}
               </Text>
               <Button
                 label={external ? 'Yes, cancel booking' : 'Yes, cancel and refund'}

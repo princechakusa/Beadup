@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/Icon';
 import { EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchBalance, fetchBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
-import { dateKey, dayLabel, startOfDay, timeOf, usd, usdParts } from '@/lib/format';
+import { dateKey, dayLabel, startOfDay, timeOf, money, moneyParts } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
 
 export default function Money() {
@@ -38,7 +38,7 @@ function MoneyDirect() {
   const noShows = jobs.filter((b) => b.status === 'no_show').length;
   const depositsIn = jobs.filter((b) => b.depositReceived && b.status !== 'cancelled').reduce((n, b) => n + b.depositCents, 0);
   const depositsDue = ahead.filter((b) => !b.depositReceived).length;
-  const { whole, fraction } = usdParts(earned);
+  const { whole, fraction } = moneyParts(earned);
   const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
   const recent = [...jobs].sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)).slice(0, 20);
   const STATUS_TEXT: Partial<Record<Booking['status'], string>> = { completed: 'done', confirmed: 'booked', no_show: 'no-show' };
@@ -50,7 +50,7 @@ function MoneyDirect() {
         <Text variant="caption" style={{ fontSize: 13 }}>
           Earned in {monthName}
         </Text>
-        <Text style={styles.bigMoney} accessibilityLabel={`Earned ${usd(earned)}`}>
+        <Text style={styles.bigMoney} accessibilityLabel={`Earned ${money(earned)}`}>
           {whole}
           <Text style={styles.fraction}>{fraction}</Text>
         </Text>
@@ -68,7 +68,7 @@ function MoneyDirect() {
             Still booked this month
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
-            {usd(booked, { cents: false })}
+            {money(booked, { cents: false })}
           </Text>
         </View>
         <View style={styles.tile}>
@@ -76,7 +76,7 @@ function MoneyDirect() {
             Deposits received
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
-            {usd(depositsIn, { cents: false })}
+            {money(depositsIn, { cents: false })}
           </Text>
           <Text variant="caption" style={{ fontSize: 11, color: depositsDue ? colors.gold : colors.steel }}>
             {depositsDue ? `${depositsDue} still due` : noShows ? `${noShows} no-show${noShows === 1 ? '' : 's'}` : 'All paid'}
@@ -103,7 +103,7 @@ function MoneyDirect() {
                 </Text>
               </View>
               <Text variant="bodyStrong" style={{ fontFamily: fonts.display, fontSize: 15, color: b.status === 'completed' ? colors.paint : colors.steel }}>
-                {usd(b.subtotalCents)}
+                {money(b.subtotalCents)}
               </Text>
             </Pressable>
           ))}
@@ -132,7 +132,7 @@ function MoneyStripe() {
   const earned = (month.data?.payments ?? []).filter((p) => p.status === 'succeeded').reduce((n, p) => n + p.amountCents, 0);
   const noShows = (month.data?.bookings ?? []).filter((b) => b.status === 'no_show').length;
   const b = balance.data;
-  const { whole, fraction } = usdParts(b?.availableCents ?? 0);
+  const { whole, fraction } = moneyParts(b?.availableCents ?? 0);
   const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
 
   return (
@@ -159,7 +159,7 @@ function MoneyStripe() {
           </View>
         ) : (
           <>
-            <Text style={styles.bigMoney} accessibilityLabel={`Available ${usd(b?.availableCents ?? 0)}`}>
+            <Text style={styles.bigMoney} accessibilityLabel={`Available ${money(b?.availableCents ?? 0)}`}>
               {whole}
               <Text style={styles.fraction}>{fraction}</Text>
             </Text>
@@ -169,7 +169,7 @@ function MoneyStripe() {
                 {b?.nextPayout
                   ? `Next payout ${dayLabel(b.nextPayout.arrivalDate, tz).toLowerCase()}${b.bankLast4 ? ` to ••${b.bankLast4}` : ''}`
                   : b?.pendingCents
-                    ? `${usd(b.pendingCents)} on its way from recent payments`
+                    ? `${money(b.pendingCents)} on its way from recent payments`
                     : 'Payouts go to your bank automatically'}
               </Text>
             </View>
@@ -183,7 +183,7 @@ function MoneyStripe() {
             Earned in {monthName}
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
-            {usd(earned, { cents: false })}
+            {money(earned, { cents: false })}
           </Text>
         </View>
         <View style={styles.tile}>
@@ -224,7 +224,7 @@ function MoneyStripe() {
                 </View>
                 <Text variant="bodyStrong" style={{ fontFamily: fonts.display, fontSize: 15, color: refunded ? colors.steel : colors.paint }}>
                   {refunded ? '-' : '+'}
-                  {usd(p.amountCents)}
+                  {money(p.amountCents)}
                 </Text>
               </Pressable>
             );

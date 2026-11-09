@@ -1,4 +1,5 @@
 import type { Detailer } from "@/lib/booking-types";
+import { COUNTRIES, formatMoney } from "@/lib/countries";
 import { absoluteUrl } from "@/lib/seo";
 
 /**
@@ -9,14 +10,15 @@ import { absoluteUrl } from "@/lib/seo";
 export function BusinessMicrodata({ detailer }: { detailer: Detailer }) {
   const url = absoluteUrl(`/${detailer.handle}`);
   const prices = detailer.services.map((s) => s.priceCents.sedan).filter((c) => c > 0);
-  const from = prices.length ? Math.min(...prices) / 100 : null;
+  const from = prices.length ? Math.min(...prices) : null;
+  const currency = COUNTRIES[detailer.country].currency;
   return (
     <div itemScope itemType="https://schema.org/AutoWash" className="hidden">
       <meta itemProp="name" content={detailer.businessName} />
       {detailer.tagline && <meta itemProp="description" content={detailer.tagline} />}
       <link itemProp="url" href={url} />
       {detailer.serviceArea && <meta itemProp="areaServed" content={detailer.serviceArea} />}
-      {from !== null && <meta itemProp="priceRange" content={`From $${from}`} />}
+      {from !== null && <meta itemProp="priceRange" content={`From ${formatMoney(from, detailer.country)}`} />}
       <span itemProp="potentialAction" itemScope itemType="https://schema.org/ReserveAction">
         <link itemProp="target" href={url} />
       </span>
@@ -32,7 +34,7 @@ export function BusinessMicrodata({ detailer }: { detailer: Detailer }) {
         {detailer.services.map((s) => (
           <span key={s.id} itemProp="itemListElement" itemScope itemType="https://schema.org/Offer">
             <meta itemProp="price" content={(s.priceCents.sedan / 100).toFixed(2)} />
-            <meta itemProp="priceCurrency" content="USD" />
+            <meta itemProp="priceCurrency" content={currency} />
             <span itemProp="itemOffered" itemScope itemType="https://schema.org/Service">
               <meta itemProp="name" content={s.name} />
               {s.description && <meta itemProp="description" content={s.description} />}
