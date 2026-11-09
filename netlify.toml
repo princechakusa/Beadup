@@ -13,3 +13,29 @@
 # explicitly because auto-detection skips it when the app is in a subfolder.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Security headers for files Netlify's CDN serves directly (Next.js never sees
+# these requests, so next.config.ts headers don't reach them). Pages, API
+# routes and Next-served files get theirs from next.config.ts / src/proxy.ts.
+# Keep in sync with securityHeaders and STATIC_CSP there.
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Cross-Origin-Opener-Policy = "same-origin"
+    X-Permitted-Cross-Domain-Policies = "none"
+
+[[headers]]
+  for = "/app/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Cross-Origin-Opener-Policy = "same-origin"
+    X-Permitted-Cross-Domain-Policies = "none"
