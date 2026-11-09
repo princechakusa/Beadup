@@ -2,13 +2,20 @@ import "server-only";
 
 /**
  * Verifies a Cloudflare Turnstile token (bot protection on the public booking
- * page, rules.md section 7). Fails closed in production. In development,
- * with no secret configured, it is skipped so the flow works offline.
- * Cloudflare publishes test keys for local use: see .env.example.
+ * page, rules.md section 7). Cloudflare publishes test keys for local use: see
+ * .env.example.
+ *
+ * - Both keys set: the token must verify (fails closed on any error).
+ * - Neither key set (Turnstile not set up yet): skipped; the Postgres rate
+ *   limits on every booking (per IP and per phone) still apply. Owner decision
+ *   2026-11-09, after failing closed here blocked every live booking. Adding
+ *   both keys on Netlify turns the check back on with no code change.
+ * - Only the site key set (half-configured): fails closed in production, so a
+ *   missing secret is noticed instead of silently disabling the check.
  */
 export async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return process.env.NODE_ENV !== "production";
+  if (!secret) return !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.NODE_ENV !== "production";
   if (!token) return false;
 
   try {
