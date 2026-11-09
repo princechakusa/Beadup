@@ -87,3 +87,17 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   Netlify has `REVENUECAT_WEBHOOK_AUTH` (bare token, no "Bearer " prefix, same value as in RevenueCat) and `REVENUECAT_SECRET_KEY`.
 - Build 5 (1.0.0) submitted to TestFlight. Version 1.0 has six 6.3" screenshots.
 - Still needed before App Review: paywall screenshot on the subscription's Review Information (from TestFlight build 5).
+
+## 2026-11-09 (evening), Claude Code: marketing, SEO/AEO, QR code (OTA)
+- Web (ships on push via Netlify): 4 guides at `/blog`, schema.org microdata on home/support/guides/booking pages,
+  sitemap with booking pages, AI-crawler-friendly robots, `/llms.txt`, per-detailer link preview image, booking page
+  titles "Book X · Mobile detailing in <area>", "Add to calendar" on the booked screen, "Powered by beadup" referral link,
+  Smart App Banner hook (`NEXT_PUBLIC_APP_STORE_URL`). `scripts/verify-csp.mjs` fixed for Windows paths.
+- Mobile (OTA, JS only): QR code sheet for the booking link (Today > booking link card > QR button).
+- Marketing kit: `docs/marketing/README.md` (positioning, ASO text, 30-day plan, video scripts, guide ideas).
+- Tested: web tsc/lint/vitest (incl. `ics.test.ts`), `next build` + CSP check, smoke test of every new route on
+  `next start` against production Supabase; mobile tsc/lint/vitest, `expo export --platform ios`.
+- Local Supabase: the API gateway on :54321 didn't answer (another project's Supabase containers are restart-looping on this
+  PC), so the web build was run with the production public URL/key instead of `.env.local`.
+- Next store build (native, not OTA): add `expo-store-review` and ask for a rating after a job is marked paid (once every
+  few months at most); bump `version` in app.json when adding it.

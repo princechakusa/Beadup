@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BookingFlow } from "@/components/booking/BookingFlow";
+import { BusinessMicrodata } from "@/components/booking/BusinessMicrodata";
 import { getBookingPage } from "@/lib/booking-page";
 import { getPublicConfig } from "@/lib/site";
 
@@ -15,7 +16,16 @@ export async function generateMetadata({ params }: PageProps<"/[handle]">): Prom
   const { handle } = await params;
   const d = await getBookingPage(handle);
   if (!d) return { title: "Not found" };
-  return { title: `Book ${d.businessName}`, description: `${d.tagline}. Book and pay a deposit in under a minute.` };
+  const title = `Book ${d.businessName}${d.serviceArea ? ` · Mobile detailing in ${d.serviceArea}` : ""}`;
+  const description = `${d.tagline ? `${d.tagline}. ` : ""}See prices and open times, then book online in under a minute. No app needed.`;
+  const url = `/${d.handle}`;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", title, description, url },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 // The handle lookup runs inside <Suspense>: handles that aren't prerendered
@@ -28,7 +38,12 @@ async function Booking({ params }: { params: PageProps<"/[handle]">["params"] })
   // A detailer with no active services has nothing to book yet.
   if (!detailer || detailer.services.length === 0) notFound();
   const { sms_enabled } = await getPublicConfig();
-  return <BookingFlow detailer={detailer} smsEnabled={sms_enabled} />;
+  return (
+    <>
+      <BusinessMicrodata detailer={detailer} />
+      <BookingFlow detailer={detailer} smsEnabled={sms_enabled} />
+    </>
+  );
 }
 
 export default function BookingPage({ params }: PageProps<"/[handle]">) {

@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo } from "react";
 import { haptic, playBookedChime } from "@/lib/feedback";
 import { GlassBead } from "@/components/GlassBead";
+import { buildIcs, type CalendarEvent } from "@/lib/ics";
 import { useHydrated } from "@/lib/use-hydrated";
 
 type Bead = { x: number; size: number; delay: number; drift: number; fall: number };
@@ -29,6 +30,7 @@ export function BookedCelebration({
   celebrate = false,
   smsEnabled = false,
   payment,
+  calendar,
 }: {
   businessName: string;
   when: string;
@@ -40,6 +42,8 @@ export function BookedCelebration({
   smsEnabled?: boolean;
   /** External payments: the deposit is still to be paid to the detailer, via their link and/or note. */
   payment?: { link: string | null; note: string | null };
+  /** "Add to calendar": an .ics built and downloaded in the browser. */
+  calendar?: CalendarEvent;
 }) {
   const reduce = useReducedMotion();
   // The falling beads need inline sizes, so they render only after hydration
@@ -113,6 +117,8 @@ export function BookedCelebration({
           </div>
         </div>
 
+        {calendar && <AddToCalendar event={calendar} />}
+
         {payment && (
           <div className="mt-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 text-left">
             <p className="text-[15px] font-semibold">Pay your deposit to {businessName}</p>
@@ -145,5 +151,38 @@ export function BookedCelebration({
         </p>
       </div>
     </main>
+  );
+}
+
+function AddToCalendar({ event }: { event: CalendarEvent }) {
+  function save() {
+    haptic("step");
+    let ics: string;
+    try {
+      ics = buildIcs(event);
+    } catch {
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "beadup-booking.ics";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+  return (
+    <button
+      type="button"
+      onClick={save}
+      className="mt-3 flex h-[52px] w-full items-center justify-center gap-2.5 rounded-[18px] border border-white/[0.12] bg-white/[0.04] font-semibold text-paint transition-[transform,background-color] duration-300 hover:bg-white/[0.08] active:scale-[0.98]"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-bead">
+        <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
+        <path d="M3.5 10h17M8 3v4M16 3v4M12 13.5v4M10 15.5h4" />
+      </svg>
+      Add to calendar
+    </button>
   );
 }

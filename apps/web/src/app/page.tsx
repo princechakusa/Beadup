@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GlassBead } from "@/components/GlassBead";
-import { AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
+import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import {
   IconArrowRight,
   IconBell,
@@ -22,7 +22,9 @@ import {
 import { Phone } from "@/components/site/Phone";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
+import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { Tilt } from "@/components/site/Tilt";
+import { appStoreMetadata } from "@/lib/seo";
 import { getPublicConfig, SAMPLE_PAGE, type PublicConfig } from "@/lib/site";
 
 const TITLE = "Beadup: quote, book and get paid as a mobile detailer";
@@ -35,6 +37,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: { title: TITLE, description: DESCRIPTION, url: "/" },
   twitter: { title: TITLE, description: DESCRIPTION },
+  ...appStoreMetadata(),
 };
 
 export default async function Home() {
@@ -44,6 +47,7 @@ export default async function Home() {
 
   return (
     <SitePage>
+      <AppMicrodata description={DESCRIPTION} appStoreUrl={APP_STORE_URL} />
       <Hero config={config} external={external} />
       <Capabilities />
       <HowItWorks external={external} />
@@ -564,18 +568,8 @@ function Faq({ config, external, ai }: { config: PublicConfig; external: boolean
           Something else? <Link href="/support" className="text-bead underline underline-offset-4">Visit support</Link>.
         </SectionHead>
       </div>
-      <Reveal className="flex flex-col gap-3">
-        {qa.map(([q, a]) => (
-          <details key={q} className="glass group rounded-[22px] open:bg-white/[0.04]">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 px-6 py-5 text-[17px] font-semibold [&::-webkit-details-marker]:hidden">
-              {q}
-              <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 text-bead transition-transform duration-500 ease-(--ease-spring) group-open:rotate-45">
-                +
-              </span>
-            </summary>
-            <div className="px-6 pb-6 text-[15px] leading-relaxed text-steel">{a}</div>
-          </details>
-        ))}
+      <Reveal>
+        <FaqMicrodata items={qa} />
       </Reveal>
     </section>
   );

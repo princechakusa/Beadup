@@ -9,6 +9,7 @@ const NAV = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/blog", label: "Guides" },
   { href: "/support", label: "Support" },
 ];
 
@@ -82,6 +83,7 @@ const FOOTER = [
     links: [
       { href: "/support", label: "Support" },
       { href: "/#faq", label: "FAQ" },
+      { href: "/blog", label: "Guides for detailers" },
       { href: "/delete-account", label: "Delete account" },
     ],
   },

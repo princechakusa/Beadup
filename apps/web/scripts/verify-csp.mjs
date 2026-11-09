@@ -5,8 +5,10 @@
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: the latter breaks on Windows ("/C:/...", %20).
+const root = fileURLToPath(new URL("..", import.meta.url));
 const allowed = new Set(JSON.parse(readFileSync(join(root, "src/lib/csp-hashes.json"), "utf8")).script);
 const dir = join(root, ".next/server/app");
 

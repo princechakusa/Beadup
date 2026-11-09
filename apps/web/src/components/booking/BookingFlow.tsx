@@ -208,6 +208,20 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         serviceName={service?.name ?? ""}
         celebrate
         smsEnabled={smsEnabled}
+        calendar={
+          dayKey && slot
+            ? {
+                uid: `${detailer.handle}-${dayKey}-${slot}`,
+                title: `${service?.name ?? "Detail"} with ${detailer.businessName}`,
+                date: dayKey,
+                time: slot,
+                timezone: detailer.timezone,
+                durationMin: service?.durationMin ?? 60,
+                location: details.address,
+                description: `Booked with ${detailer.businessName} on Beadup.`,
+              }
+            : undefined
+        }
       />
     );
   }
@@ -553,9 +567,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               )}
             </motion.button>
           </div>
-          <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-steel">
+          {/* Every booking page quietly introduces Beadup to other detailers. */}
+          <a
+            href={`/?utm_source=booking_page&utm_medium=referral&utm_campaign=${encodeURIComponent(detailer.handle)}`}
+            className="mx-auto mt-2.5 flex w-fit items-center justify-center gap-1.5 rounded-full px-2 py-1 text-[11px] text-steel transition-colors hover:text-mist"
+          >
             <BeadLogo size={12} animate={false} /> Powered by beadup
-          </p>
+          </a>
         </div>
       </div>
     </main>

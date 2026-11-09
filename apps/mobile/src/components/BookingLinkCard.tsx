@@ -2,6 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 
+import { QrSheet } from '@/components/QrSheet';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
@@ -15,6 +16,7 @@ import { colors } from '@/theme/tokens';
  */
 export function BookingLinkCard({ handle, businessName }: { handle: string; businessName: string }) {
   const [copied, setCopied] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const url = `${apiBaseUrl}/${handle}`;
   const shown = url.replace(/^https?:\/\//, '');
 
@@ -42,11 +44,24 @@ export function BookingLinkCard({ handle, businessName }: { handle: string; busi
       <Pressable onPress={copy} style={styles.btn} accessibilityRole="button" accessibilityLabel={copied ? 'Link copied' : 'Copy booking link'} hitSlop={4}>
         <Icon name={copied ? 'check' : 'link'} size={18} color={copied ? colors.success : colors.paint} />
       </Pressable>
+      <Pressable
+        onPress={() => {
+          haptic.select();
+          setQrOpen(true);
+        }}
+        style={styles.btn}
+        accessibilityRole="button"
+        accessibilityLabel="Show booking QR code"
+        hitSlop={4}
+      >
+        <Icon name="qr" size={18} />
+      </Pressable>
       <Pressable onPress={share} style={[styles.btn, styles.primary]} accessibilityRole="button" accessibilityLabel="Share booking link" hitSlop={4}>
         <Text variant="bodyStrong" style={{ color: colors.beadInk, fontSize: 14 }}>
           Share
         </Text>
       </Pressable>
+      <QrSheet visible={qrOpen} onClose={() => setQrOpen(false)} url={url} businessName={businessName} />
     </View>
   );
 }
