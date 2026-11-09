@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
-import { LEGAL_NAME, SAMPLE_PAGE } from "@/lib/site";
+import { SAMPLE_PAGE } from "@/lib/site";
 import { IconArrowRight } from "./Icons";
 import { MobileMenu } from "./MobileMenu";
 
@@ -117,8 +117,8 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 border-t border-white/[0.05] px-5 py-6 text-[13px] text-steel sm:flex-row sm:justify-between sm:px-8">
-        <span>© {LEGAL_NAME}. Made for detailers in the USA.</span>
-        <span>No ads. No tracking. We never sell your data.</span>
+        <span>© 2026 Beadup. All rights reserved.</span>
+        <span>Made for detailers in the USA. No ads. No tracking. We never sell your data.</span>
       </div>
     </footer>
   );

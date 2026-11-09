@@ -91,7 +91,8 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const nonce = useCspNonce();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const [serviceId, setServiceId] = useState(detailer.services[1]?.id ?? detailer.services[0].id);
+  // Nothing is preselected: the client picks a detail before any price shows.
+  const [serviceId, setServiceId] = useState<string | null>(null);
   const [size, setSize] = useState<VehicleSize>("suv");
   const [addOns, setAddOns] = useState<string[]>([]);
   // Computed only once the visitor reaches the time step, so the current date
@@ -114,12 +115,12 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [bookError, setBookError] = useState<string | null>(null);
   const [paidCents, setPaidCents] = useState<number | null>(null);
 
-  const service = detailer.services.find((s) => s.id === serviceId)!;
+  const service = detailer.services.find((s) => s.id === serviceId);
   // Launch mode: the client pays the deposit to the detailer directly (no card form, no booking fee).
   const external = detailer.payments === "external";
   const shortName = detailer.businessName.replace(/\.+$/, "");
   const totals = useMemo(() => {
-    const base = service.priceCents[size];
+    const base = service ? service.priceCents[size] : 0;
     const extras = detailer.addOns.filter((a) => addOns.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const total = base + extras;
     const deposit = depositCents(total);
@@ -158,7 +159,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       setBookError(null);
       createBooking({
         handle: detailer.handle,
-        serviceId,
+        serviceId: serviceId ?? "", // always set by the review step (Continue needs a pick)
         vehicleSize: size,
         addOnIds: addOns,
         date: dayKey ?? "",
@@ -204,7 +205,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
         paid={formatUsd(paidCents ?? totals.dueToday)}
         payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
-        serviceName={service.name}
+        serviceName={service?.name ?? ""}
         celebrate
         smsEnabled={smsEnabled}
       />
@@ -465,12 +466,12 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               <>
                 <StepTitle eyebrow={`Step 5 of ${STEPS.length}`} title="Review and book" />
                 <div className="glass glass-edge mt-5 rounded-[24px] p-5">
-                  <p className="font-display text-lg font-bold">{service.name}</p>
+                  <p className="font-display text-lg font-bold">{service?.name}</p>
                   <p className="mt-1 text-sm text-steel">
                     {SIZES.find((s) => s.id === size)?.label} · {day?.label} · {slot && to12h(slot)}
                   </p>
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label={service.name} value={formatUsd(totals.base)} />
+                  <Row label={service?.name ?? ""} value={formatUsd(totals.base)} />
                   {detailer.addOns
                     .filter((a) => addOns.includes(a.id))
                     .map((a) => (
@@ -526,8 +527,14 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
-              <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} />
+              {service ? (
+                <>
+                  <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
+                  <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} />
+                </>
+              ) : (
+                <p className="text-sm text-steel">Pick a detail to see the price</p>
+              )}
             </div>
             <motion.button
               type="button"
