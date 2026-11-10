@@ -245,6 +245,152 @@ body {
   animation: spin 0.8s linear infinite;
 }
 
+/* ---------- Landing page ---------- */
+
+/* Pointer spotlight on glass cards (position set through the CSSOM by <Spotlight>). */
+.spot {
+  position: relative;
+  overflow: hidden;
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgb(77 216 255 / 0.13), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-soft);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .spot:hover::after {
+    opacity: 1;
+  }
+}
+
+/* Light slowly sweeping across the bead-blue headline. */
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+.text-shimmer {
+  background: linear-gradient(100deg, #4dd8ff 0%, #b9f2ff 25%, #4dd8ff 50%, #2fa8d8 75%, #4dd8ff 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Walkthrough: screens cross-fade and the active step lights up. */
+.walk-screen {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  transition:
+    opacity 0.6s var(--ease-soft),
+    transform 0.9s var(--ease-spring);
+}
+.walk-screen[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+.walk-dot {
+  transition:
+    background-color 0.4s,
+    transform 0.6s var(--ease-spring);
+}
+.walk-dot[data-active="true"] {
+  background: var(--color-bead);
+  transform: scale(1.5);
+  box-shadow: 0 0 12px rgb(77 216 255 / 0.7);
+}
+@media (min-width: 64rem) {
+  .walk-step {
+    opacity: 0.38;
+    transform: translateX(0);
+    transition:
+      opacity 0.6s var(--ease-soft),
+      transform 0.9s var(--ease-spring);
+  }
+  .walk-step[data-active="true"] {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+  .walk-step[data-active="true"] .walk-icon {
+    box-shadow: 0 0 0 1px rgb(77 216 255 / 0.5), 0 0 28px rgb(77 216 255 / 0.35);
+  }
+}
+
+/* Range sliders for the no-show calculator. */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(77 216 255 / 0.9), rgb(77 216 255 / 0.25));
+  outline: none;
+  cursor: pointer;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #e8fbff, #4dd8ff 55%, #0b4f7a);
+  border: 2px solid rgb(10 12 16);
+  box-shadow: 0 0 0 1px rgb(77 216 255 / 0.5), 0 6px 18px rgb(77 216 255 / 0.45);
+  transition: transform 0.3s var(--ease-spring);
+}
+.range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #e8fbff, #4dd8ff 55%, #0b4f7a);
+  border: 2px solid rgb(10 12 16);
+  box-shadow: 0 0 0 1px rgb(77 216 255 / 0.5), 0 6px 18px rgb(77 216 255 / 0.45);
+}
+.range:hover::-webkit-slider-thumb,
+.range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range:focus-visible {
+  outline: 2px solid var(--color-bead);
+  outline-offset: 6px;
+}
+
+/* Marquee strip of what's inside (pauses on hover). */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 38s linear infinite;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+/* The comparison column that is "with Beadup" breathes a little light. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.breathe {
+  animation: breathe 5s ease-in-out infinite;
+}
+
 .ripple {
   animation: ripple 1.2s var(--ease-soft) 0.25s both;
 }

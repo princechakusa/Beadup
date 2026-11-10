@@ -12,16 +12,22 @@ import {
   IconCheck,
   IconEyeOff,
   IconLink,
-  IconLock,
+  IconRoute,
   IconShield,
   IconSparkle,
+  IconStar,
   IconTrash,
   IconUsers,
   IconWallet,
   IconWifiOff,
 } from "@/components/site/Icons";
+import { CountUp } from "@/components/site/CountUp";
+import { LinkClaim } from "@/components/site/LinkClaim";
+import { NoShowCalculator } from "@/components/site/NoShowCalculator";
 import { Phone } from "@/components/site/Phone";
 import { Reveal } from "@/components/site/Reveal";
+import { Spotlight } from "@/components/site/Spotlight";
+import { Walkthrough } from "@/components/site/Walkthrough";
 import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { Tilt } from "@/components/site/Tilt";
@@ -49,10 +55,13 @@ export default async function Home() {
   return (
     <SitePage>
       <AppMicrodata description={DESCRIPTION} appStoreUrl={APP_STORE_URL} />
+      <Spotlight />
       <Hero config={config} external={external} />
       <Capabilities />
+      <NoShows />
       <HowItWorks external={external} />
       <Features external={external} ai={ai} />
+      <Compare external={external} />
       <Showcase />
       <Trust external={external} ai={ai} />
       <PricingTeaser config={config} />
@@ -83,7 +92,7 @@ function Hero({ config, external }: { config: PublicConfig; external: boolean })
             <span className="whitespace-nowrap">Quote it.</span> <span className="whitespace-nowrap">Book it.</span>
           </span>
           <br />
-          <span className="text-bead-gradient">Get paid.</span>
+          <span className="text-shimmer">Get paid.</span>
         </h1>
         <p className="enter d-2 max-w-[540px] text-lg leading-relaxed text-mist sm:text-[20px]">
           Snap a few photos and send a priced quote in a minute. Share one link where clients pick a time and{" "}
@@ -165,20 +174,44 @@ function Capabilities() {
   const items = [
     { icon: IconSparkle, label: "AI photo quotes" },
     { icon: IconLink, label: "Your booking link" },
+    { icon: IconWallet, label: "30% deposits" },
     { icon: IconCalendar, label: "Calendar" },
-    { icon: IconWallet, label: "Money" },
     { icon: IconBell, label: "Booking alerts" },
+    { icon: IconUsers, label: "Clients" },
+    { icon: IconStar, label: "Reviews" },
     { icon: IconWifiOff, label: "Works offline" },
+    { icon: IconShield, label: "Private by default" },
   ];
+  const row = (hidden: boolean) => (
+    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-center gap-3 pr-3">
+      {items.map(({ icon: Icon, label }) => (
+        <li key={label} className="glass flex items-center gap-2.5 whitespace-nowrap rounded-full py-2.5 pl-3 pr-4 text-[14px] font-medium text-mist">
+          <Icon size={18} className="shrink-0 text-bead" />
+          {label}
+        </li>
+      ))}
+    </ul>
+  );
   return (
-    <section aria-label="What's inside" className="mx-auto mt-10 w-full max-w-6xl px-5 sm:px-8">
-      <Reveal as="ul" className="grid grid-cols-2 gap-px overflow-hidden rounded-[24px] border border-white/[0.07] bg-white/[0.06] sm:grid-cols-3 lg:grid-cols-6">
-        {items.map(({ icon: Icon, label }) => (
-          <li key={label} className="flex items-center gap-3 bg-midnight/90 px-4 py-5 text-[15px] font-medium text-mist lg:justify-center lg:whitespace-nowrap lg:px-3 lg:text-[14px]">
-            <Icon size={20} className="shrink-0 text-bead" />
-            {label}
-          </li>
-        ))}
+    <section aria-label="What's inside" className="relative mt-12 w-full overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
+      <div className="marquee flex w-max">
+        {row(false)}
+        {row(true)}
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- No-shows */
+
+function NoShows() {
+  return (
+    <section aria-labelledby="noshow-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
+      <SectionHead eyebrow="The problem" title={<span id="noshow-title">What a no-show really costs</span>}>
+        You drove out, you blocked the slot, you turned someone else away. Slide your own numbers and see what a deposit keeps.
+      </SectionHead>
+      <Reveal className="mt-12">
+        <NoShowCalculator />
       </Reveal>
     </section>
   );
@@ -202,55 +235,43 @@ function HowItWorks({ external }: { external: boolean }) {
   const steps = [
     {
       n: "01",
-      icon: IconCamera,
+      icon: <IconCamera size={21} />,
       title: "Quote from photos",
       body: "Take a few photos of the car. Beadup suggests an itemized price from your own services and add-ons. Adjust it, approve it, send it.",
       screen: "quote" as const,
     },
     {
       n: "02",
-      icon: IconLink,
+      icon: <IconLink size={21} />,
       title: "Share your booking link",
       body: "Put it in your bio, your texts and your quotes. Clients pick a detail, their vehicle and an open time, from any browser.",
       screen: "booking" as const,
     },
     {
       n: "03",
-      icon: IconWallet,
+      icon: <IconWallet size={21} />,
       title: "Get booked, with a deposit",
       body: external
         ? "Every booking asks for a 30% deposit, paid straight to you with your own payment link. The job lands on your calendar."
         : "Every booking takes a 30% deposit up front, so the time is really theirs. The job lands on your calendar.",
       screen: "payment" as const,
     },
+    {
+      n: "04",
+      icon: <IconRoute size={21} />,
+      title: "Show up, finish, get paid",
+      body: "Today shows the next job with a Start route button. Mark it done, collect the balance, and ask for a review while the car still shines.",
+      screen: "today" as const,
+    },
   ];
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
       <SectionHead eyebrow="How it works" title={<span id="how-title">From driveway photo to booked job</span>}>
-        Three steps, all from your phone, between jobs.
+        Four steps, all from your phone, between jobs.
       </SectionHead>
-      <ol className="mt-14 grid gap-5 lg:grid-cols-3">
-        {steps.map((s, i) => (
-          <Reveal as="li" key={s.n} delay={(i * 80) as 0 | 80 | 160} className="glass glass-edge group flex flex-col overflow-hidden rounded-[30px]">
-            <div className="flex flex-col gap-3 p-7 pb-0">
-              <div className="flex items-center justify-between">
-                <span className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-bead/25 bg-bead/10 text-bead">
-                  <s.icon size={21} />
-                </span>
-                <span className="font-display text-sm font-bold tracking-[0.1em] text-steel/70">{s.n}</span>
-              </div>
-              <h3 className="mt-2 font-display text-[22px] font-bold tracking-[-0.02em]">{s.title}</h3>
-              <p className="text-[15px] leading-relaxed text-steel">{s.body}</p>
-            </div>
-            <div className="relative mt-8 h-[300px] overflow-hidden">
-              <div className="mx-auto w-[64%] transition-transform duration-700 ease-(--ease-spring) group-hover:-translate-y-3">
-                <Phone screen={s.screen} glow={false} sizes="(min-width: 1024px) 230px, 60vw" />
-              </div>
-              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#12161c] to-transparent" />
-            </div>
-          </Reveal>
-        ))}
-      </ol>
+      <div className="mt-14">
+        <Walkthrough steps={steps} />
+      </div>
     </section>
   );
 }
@@ -266,7 +287,7 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
 
       <div className="mt-14 grid gap-5 lg:grid-cols-6">
         {/* AI quote: wide */}
-        <Reveal className="glass glass-edge relative overflow-hidden rounded-[32px] lg:col-span-4">
+        <Reveal className="glass glass-edge spot relative overflow-hidden rounded-[32px] lg:col-span-4">
           <div className="grid h-full gap-6 p-7 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-9">
             <div className="flex flex-col gap-4">
               <FeatureIcon icon={IconSparkle} />
@@ -288,20 +309,19 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
         </Reveal>
 
         {/* Booking link */}
-        <Reveal delay={80} className="glass glass-edge flex flex-col gap-4 rounded-[32px] p-7 sm:p-9 lg:col-span-2">
+        <Reveal delay={80} className="glass glass-edge spot spot flex flex-col gap-4 rounded-[32px] p-7 sm:p-9 lg:col-span-2">
           <FeatureIcon icon={IconLink} />
           <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">One link, no app for clients</h3>
           <p className="text-[15px] leading-relaxed text-steel">
             Clients choose a detail, vehicle size, add-ons and a time in under a minute. No account, no download.
           </p>
-          <div className="mt-auto flex items-center gap-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 font-mono text-[13px] text-mist">
-            <IconLock size={15} className="shrink-0 text-mint" />
-            <span className="truncate">beadup.app/<span className="text-bead">yourname</span></span>
+          <div className="mt-auto pt-2">
+            <LinkClaim />
           </div>
         </Reveal>
 
         {/* Calendar */}
-        <Reveal className="glass glass-edge relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-7 sm:p-9 lg:col-span-2">
+        <Reveal className="glass glass-edge spot relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-7 sm:p-9 lg:col-span-2">
           <FeatureIcon icon={IconCalendar} />
           <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">Your week at a glance</h3>
           <p className="text-[15px] leading-relaxed text-steel">
@@ -313,7 +333,7 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
         </Reveal>
 
         {/* Money */}
-        <Reveal delay={80} className="glass glass-edge relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-7 sm:p-9 lg:col-span-2">
+        <Reveal delay={80} className="glass glass-edge spot spot relative flex flex-col gap-4 overflow-hidden rounded-[32px] p-7 sm:p-9 lg:col-span-2">
           <FeatureIcon icon={IconWallet} tone="gold" />
           <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">Know what you made</h3>
           <p className="text-[15px] leading-relaxed text-steel">
@@ -336,7 +356,8 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
           <div className="mt-auto rounded-[22px] border border-gold/20 bg-gold/[0.05] p-5">
             <p className="text-[12px] text-steel">Earned in November</p>
             <p className="font-display text-[40px] font-extrabold leading-none tracking-[-0.04em] text-gold">
-              $4,280<span className="text-xl text-gold/60">.00</span>
+              <CountUp value={4280} prefix="$" />
+              <span className="text-xl text-gold/60">.00</span>
             </p>
             <p className="mt-2 text-[12px] text-steel">Example figures</p>
           </div>
@@ -344,12 +365,12 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
 
         {/* Alerts + offline */}
         <Reveal delay={160} className="flex flex-col gap-5 lg:col-span-2">
-          <div className="glass glass-edge flex flex-1 flex-col gap-4 rounded-[32px] p-7 sm:p-9">
+          <div className="glass glass-edge spot flex flex-1 flex-col gap-4 rounded-[32px] p-7 sm:p-9">
             <FeatureIcon icon={IconBell} />
             <h3 className="font-display text-[22px] font-bold leading-tight tracking-[-0.02em]">Booking alerts</h3>
             <p className="text-[15px] leading-relaxed text-steel">Your phone pings the moment someone books, with the service and time. Turn it on only if you want it.</p>
           </div>
-          <div className="glass glass-edge flex flex-1 flex-col gap-4 rounded-[32px] p-7 sm:p-9">
+          <div className="glass glass-edge spot flex flex-1 flex-col gap-4 rounded-[32px] p-7 sm:p-9">
             <FeatureIcon icon={IconWifiOff} />
             <h3 className="font-display text-[22px] font-bold leading-tight tracking-[-0.02em]">No signal? Still works</h3>
             <p className="text-[15px] leading-relaxed text-steel">Your schedule is saved on the phone, so the next address is there even in a parking garage.</p>
@@ -378,6 +399,55 @@ function Bullet({ children }: { children: ReactNode }) {
       <IconCheck size={17} className="mt-0.5 shrink-0 text-bead" />
       <span>{children}</span>
     </li>
+  );
+}
+
+/* ---------------------------------------------------------------- Compare */
+
+function Compare({ external }: { external: boolean }) {
+  const before = [
+    "Back-and-forth DMs to settle on a price",
+    "\"What time works?\" ten messages deep",
+    "No deposit, so a no-show costs the whole slot",
+    "Prices typed from memory, different every time",
+    "Earnings somewhere in a notes app",
+  ];
+  const after = [
+    "A priced quote from photos in about a minute",
+    "Clients pick an open time on your link",
+    external ? "30% deposit paid to you before you drive out" : "30% deposit taken at booking",
+    "Your price list, applied the same way every time",
+    "Every job, deposit and balance in one place",
+  ];
+  return (
+    <section aria-labelledby="compare-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
+      <SectionHead eyebrow="Before and after" title={<span id="compare-title">Same jobs. Less chasing.</span>} center />
+      <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-2">
+        <Reveal className="glass flex flex-col gap-5 rounded-[30px] p-7 sm:p-9">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-steel">Without Beadup</p>
+          <ul className="flex flex-col gap-3.5">
+            {before.map((t) => (
+              <li key={t} className="flex items-start gap-3 text-[15px] leading-relaxed text-steel">
+                <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-steel/50" />
+                {t}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+        <Reveal delay={80} className="glass glass-edge spot relative flex flex-col gap-5 overflow-hidden rounded-[30px] p-7 shadow-[0_0_90px_-30px_rgba(77,216,255,0.5)] sm:p-9">
+          <div aria-hidden="true" className="breathe pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(77,216,255,0.2),transparent)]" />
+          <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-bead">With Beadup</p>
+          <ul className="flex flex-col gap-3.5">
+            {after.map((t) => (
+              <li key={t} className="flex items-start gap-3 text-[15px] leading-relaxed text-paint">
+                <IconCheck size={18} className="mt-0.5 shrink-0 text-bead" />
+                {t}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -494,7 +564,7 @@ function PricingTeaser({ config }: { config: PublicConfig }) {
           <p className="font-display text-5xl font-extrabold tracking-[-0.04em]">$0</p>
           <p className="text-[15px] text-steel">Up to {config.free_bookings_per_month} bookings a month, with every feature.</p>
         </Reveal>
-        <Reveal delay={80} className="glass glass-edge relative flex flex-col gap-4 overflow-hidden rounded-[30px] p-8 shadow-[0_0_80px_-20px_rgba(77,216,255,0.35)]">
+        <Reveal delay={80} className="glass glass-edge spot spot relative flex flex-col gap-4 overflow-hidden rounded-[30px] p-8 shadow-[0_0_80px_-20px_rgba(77,216,255,0.35)]">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-xl font-bold">Pro</h3>
             <span className="rounded-full border border-bead/30 bg-bead/10 px-3 py-1 text-[12px] font-semibold text-bead">Unlimited</span>
@@ -584,7 +654,7 @@ function Faq({ config, external, ai }: { config: PublicConfig; external: boolean
 function FinalCta({ free }: { free: number }) {
   return (
     <section id="get-the-app" aria-labelledby="cta-title" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-28 px-5 sm:px-8">
-      <Reveal className="glass glass-edge relative overflow-hidden rounded-[40px] px-6 py-16 text-center sm:px-12 sm:py-20">
+      <Reveal className="glass glass-edge spot relative overflow-hidden rounded-[40px] px-6 py-16 text-center sm:px-12 sm:py-20">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_0%,rgba(77,216,255,0.2),transparent)]" />
         <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6">
           <AppIcon />
