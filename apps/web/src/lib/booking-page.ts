@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { detailerSchema, type Detailer } from "./booking-types";
 import { getDemoDetailer } from "./demo";
 
@@ -13,11 +13,15 @@ export const bookingPageTag = (handle: string) => `booking-page:${handle.toLower
  * or unpublished. Uses the anon key only: the database function returns
  * public fields and nothing else.
  */
-export async function getBookingPage(handle: string): Promise<Detailer | null> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag(bookingPageTag(handle));
+export function getBookingPage(handle: string): Promise<Detailer | null> {
+  // Cached per handle for a minute; edits revalidate the tag at once.
+  return unstable_cache(() => loadBookingPage(handle), ["booking-page", handle.toLowerCase()], {
+    tags: [bookingPageTag(handle)],
+    revalidate: 60,
+  })();
+}
 
+async function loadBookingPage(handle: string): Promise<Detailer | null> {
   if (!HANDLE_RE.test(handle)) return null;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

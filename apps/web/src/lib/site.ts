@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { cacheLife, cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@beadup.app";
@@ -28,10 +28,9 @@ const FALLBACK: PublicConfig = { free_bookings_per_month: 5, pro_price_display: 
  * here is hardcoded: when the database is unreachable the price is simply not
  * shown (owner decision: never hardcode the Pro price).
  */
-export async function getPublicConfig(): Promise<PublicConfig> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("site-config");
+export const getPublicConfig = unstable_cache(loadPublicConfig, ["site-config"], { tags: ["site-config"], revalidate: 3600 });
+
+async function loadPublicConfig(): Promise<PublicConfig> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return FALLBACK;

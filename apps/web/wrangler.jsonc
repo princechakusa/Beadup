@@ -17,11 +17,12 @@
   },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "beadup" }],
   "kv_namespaces": [
-    { "binding": "NEXT_INC_CACHE_KV", "id": "KV_INC_CACHE_ID" },
-    { "binding": "NEXT_TAG_CACHE_KV", "id": "KV_TAG_CACHE_ID" },
+    { "binding": "NEXT_INC_CACHE_KV", "id": "b045ad40b27149379fd3cae2ba800908" },
+    { "binding": "NEXT_TAG_CACHE_KV", "id": "1e006767e6694d0dbc408a9b317d2c83" },
   ],
   "images": { "binding": "IMAGES" },
-  "routes": [{ "pattern": "beadup.app", "custom_domain": true }],
+  // Custom domain: added once DNS moves off Netlify (see docs/DEPLOY.md).
+  // "routes": [{ "pattern": "beadup.app", "custom_domain": true }],
   // Every 15 minutes: texts and refund retries (worker.ts scheduled()).
   "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true },
@@ -33,7 +34,7 @@
     "NEXT_PUBLIC_APP_STORE_URL": "https://apps.apple.com/us/app/beadup/id6831768099",
     "NEXT_PUBLIC_LEGAL_NAME": "Prince Chakusa",
     "NEXT_PUBLIC_SUPPORT_EMAIL": "support@beadup.app",
-    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "TURNSTILE_SITE_KEY",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAF3nLUvrme85b3UX",
     "ADMIN_EMAILS": "chakusaprince@gmail.com",
   },
 }

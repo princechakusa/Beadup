@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-import { cacheLife } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/seo";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 /** Published booking pages (a page only exists with at least one active service). */
-async function bookingHandles(): Promise<string[]> {
-  "use cache";
-  cacheLife("hours");
+const bookingHandles = unstable_cache(loadBookingHandles, ["sitemap-handles"], { revalidate: 3600 });
+
+async function loadBookingHandles(): Promise<string[]> {
   const db = supabaseAdmin();
   if (!db) return [];
   const { data, error } = await db

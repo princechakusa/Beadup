@@ -38,7 +38,7 @@ export const viewport: Viewport = {
 
 /**
  * Renders the page at request time so every response carries a fresh CSP
- * nonce (src/proxy.ts). Data stays cached with "use cache", so this costs a
+ * nonce (src/middleware.ts). Data stays cached with unstable_cache, so this costs a
  * render, not database calls. The prerendered shell is just <html>/<head>/<body>.
  */
 async function RequestTime({ children }: { children: ReactNode }) {

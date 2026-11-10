@@ -26,8 +26,6 @@ const securityHeaders = [
 const staticCsp = [{ key: "Content-Security-Policy", value: STATIC_CSP }];
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
   poweredByHeader: false,
   turbopack: {
     rules: {

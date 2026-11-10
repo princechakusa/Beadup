@@ -1,7 +1,7 @@
 "use server";
 
 import { createHash } from "node:crypto";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { after } from "next/server";
 import { headers } from "next/headers";
 import { clientIp } from "@/lib/client-ip";
@@ -206,11 +206,11 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
   if (!result.ok) {
     const known = ["slot_taken", "slot_unavailable", "plan_limit"] as const;
     const code = known.find((k) => k === result.error);
-    if (code) updateTag(bookingPageTag(input.handle)); // refresh taken times
+    if (code) revalidateTag(bookingPageTag(input.handle), { expire: 0 }); // refresh taken times
     return { ok: false, error: code ?? "invalid" };
   }
 
-  updateTag(bookingPageTag(input.handle));
+  revalidateTag(bookingPageTag(input.handle), { expire: 0 });
   const booked = { bookingId: result.bookingId, depositCents: result.depositCents, bookingFeeCents: result.bookingFeeCents };
 
   if (result.payments === "external") {

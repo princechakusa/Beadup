@@ -1,3 +1,6 @@
+// Edge runtime on purpose: Cloudflare Workers runs edge middleware natively;
+// the Node.js `proxy.ts` convention hangs there (OpenNext, Nov 2026). Next 16
+// keeps `middleware.ts` for the edge runtime (deprecated name, same behavior).
 import { NextResponse, type NextRequest } from "next/server";
 import { documentCsp, newNonce } from "@/lib/csp";
 import { getDemoDetailer } from "@/lib/demo";
@@ -51,7 +54,7 @@ async function isUnknownHandle(pathname: string): Promise<boolean> {
   }
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const nonce = newNonce();
   const csp = documentCsp(nonce);
   const requestHeaders = new Headers(request.headers);
