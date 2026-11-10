@@ -31,6 +31,8 @@
   // Every 15 minutes: texts and refund retries (worker.ts scheduled()).
   "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true },
+  // Never drop variables/secrets added in the dashboard when Workers Builds deploys.
+  "keep_vars": true,
   // Public values only (they ship in the page anyway).
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://beadup.app",
