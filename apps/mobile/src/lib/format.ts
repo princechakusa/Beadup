@@ -7,6 +7,10 @@ export const COUNTRIES = {
   CA: { name: 'Canada', currency: 'CAD', locale: 'en-CA' },
   GB: { name: 'United Kingdom', currency: 'GBP', locale: 'en-GB' },
   AU: { name: 'Australia', currency: 'AUD', locale: 'en-AU' },
+  NZ: { name: 'New Zealand', currency: 'NZD', locale: 'en-NZ' },
+  AE: { name: 'United Arab Emirates', currency: 'AED', locale: 'en-AE' },
+  ZA: { name: 'South Africa', currency: 'ZAR', locale: 'en-ZA' },
+  SG: { name: 'Singapore', currency: 'SGD', locale: 'en-SG' },
 } as const;
 export type Country = keyof typeof COUNTRIES;
 export const isCountry = (c: unknown): c is Country => typeof c === 'string' && c in COUNTRIES;
@@ -37,7 +41,9 @@ export function moneyParts(cents: number): { whole: string; fraction: string } {
   const whole = new Intl.NumberFormat(c.locale, { style: 'currency', currency: c.currency, maximumFractionDigits: 0 }).format(
     Math.floor(cents / 100),
   );
-  return { whole, fraction: `.${String(Math.abs(cents) % 100).padStart(2, '0')}` };
+  // The local decimal mark ("," in South Africa, "." elsewhere).
+  const mark = new Intl.NumberFormat(c.locale).formatToParts(1.5).find((p) => p.type === 'decimal')?.value ?? '.';
+  return { whole, fraction: `${mark}${String(Math.abs(cents) % 100).padStart(2, '0')}` };
 }
 
 /** The currency symbol on its own ("$", "£"), for price inputs. */

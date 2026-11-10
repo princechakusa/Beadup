@@ -6,7 +6,7 @@ import type { AdminOverview } from "@/lib/admin";
 
 type State = { kind: "loading" } | { kind: "signed-out" } | { kind: "ready"; data: AdminOverview } | { kind: "error" };
 
-const COUNTRY: Record<string, string> = { US: "United States", CA: "Canada", GB: "United Kingdom", AU: "Australia" };
+const COUNTRY: Record<string, string> = { US: "United States", CA: "Canada", GB: "United Kingdom", AU: "Australia", NZ: "New Zealand", AE: "United Arab Emirates", ZA: "South Africa", SG: "Singapore" };
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 async function post(url: string, body: unknown) {

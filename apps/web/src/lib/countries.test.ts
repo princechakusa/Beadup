@@ -39,3 +39,38 @@ describe("formatMoney", () => {
     expect(formatMoney(18000, "CA")).toBe("$180");
   });
 });
+
+describe("more countries (2026-11-10)", () => {
+  it("reads New Zealand numbers", () => {
+    expect(toE164("021 123 4567", "NZ")).toBe("+64211234567");
+    expect(toE164("027 123456", "NZ")).toBe("+6427123456");
+    expect(toE164("03 123 4567", "NZ")).toBe("+6431234567");
+    expect(toE164("64 21 123 4567", "NZ")).toBe("+64211234567");
+    expect(toE164("0123", "NZ")).toBeNull();
+  });
+  it("reads UAE numbers", () => {
+    expect(toE164("050 123 4567", "AE")).toBe("+971501234567");
+    expect(toE164("04 123 4567", "AE")).toBe("+97141234567");
+    expect(toE164("971 50 123 4567", "AE")).toBe("+971501234567");
+    expect(toE164("0012 3456", "AE")).toBeNull();
+  });
+  it("reads South African numbers", () => {
+    expect(toE164("082 123 4567", "ZA")).toBe("+27821234567");
+    expect(toE164("011 123 4567", "ZA")).toBe("+27111234567");
+    expect(toE164("27 82 123 4567", "ZA")).toBe("+27821234567");
+    expect(toE164("092 123 4567", "ZA")).toBeNull();
+  });
+  it("reads Singapore numbers", () => {
+    expect(toE164("9123 4567", "SG")).toBe("+6591234567");
+    expect(toE164("6123 4567", "SG")).toBe("+6561234567");
+    expect(toE164("65 9123 4567", "SG")).toBe("+6591234567");
+    expect(toE164("1123 4567", "SG")).toBeNull();
+    expect(toE164("09123 4567", "SG")).toBeNull();
+  });
+  it("formats each currency", () => {
+    expect(formatMoney(18000, "NZ")).toMatch(/\$180/);
+    expect(formatMoney(45000, "AE")).toMatch(/AED\s?450/);
+    expect(formatMoney(45000, "ZA")).toMatch(/R\s?450/);
+    expect(formatMoney(18000, "SG")).toMatch(/\$180/);
+  });
+});

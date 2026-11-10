@@ -9,6 +9,10 @@ export const COUNTRIES = {
   CA: { name: "Canada", currency: "CAD", locale: "en-CA", dial: "1", phoneExample: "(416) 555-0101" },
   GB: { name: "United Kingdom", currency: "GBP", locale: "en-GB", dial: "44", phoneExample: "07700 900123" },
   AU: { name: "Australia", currency: "AUD", locale: "en-AU", dial: "61", phoneExample: "0412 345 678" },
+  NZ: { name: "New Zealand", currency: "NZD", locale: "en-NZ", dial: "64", phoneExample: "021 123 4567" },
+  AE: { name: "United Arab Emirates", currency: "AED", locale: "en-AE", dial: "971", phoneExample: "050 123 4567" },
+  ZA: { name: "South Africa", currency: "ZAR", locale: "en-ZA", dial: "27", phoneExample: "082 123 4567" },
+  SG: { name: "Singapore", currency: "SGD", locale: "en-SG", dial: "65", phoneExample: "9123 4567" },
 } as const;
 
 export type Country = keyof typeof COUNTRIES;
@@ -42,6 +46,26 @@ export function toE164(raw: string, country: Country): string | null {
       // 0412 345 678 / 02 9374 4000 (0 + 9 digits), or 61... written without "+".
       if (/^0[2-9]\d{8}$/.test(digits)) return `+61${digits.slice(1)}`;
       if (/^61[2-9]\d{8}$/.test(digits)) return `+${digits}`;
+      return null;
+    case "NZ":
+      // 021 123 4567 / 027 123456 (mobiles 02x) / 03 123 4567: 0 + 8 to 10 digits.
+      if (/^0[2-9]\d{7,9}$/.test(digits)) return `+64${digits.slice(1)}`;
+      if (/^64[2-9]\d{7,9}$/.test(digits)) return `+${digits}`;
+      return null;
+    case "AE":
+      // 050 123 4567 (mobiles 05x, 0 + 9 digits) / 04 123 4567 (0 + 8 digits).
+      if (/^0[2-9]\d{7,8}$/.test(digits)) return `+971${digits.slice(1)}`;
+      if (/^971[2-9]\d{7,8}$/.test(digits)) return `+${digits}`;
+      return null;
+    case "ZA":
+      // 082 123 4567 / 011 123 4567: 0 + 9 digits.
+      if (/^0[1-8]\d{8}$/.test(digits)) return `+27${digits.slice(1)}`;
+      if (/^27[1-8]\d{8}$/.test(digits)) return `+${digits}`;
+      return null;
+    case "SG":
+      // 9123 4567 / 6123 4567: 8 digits starting 3, 6, 8 or 9 (no trunk 0).
+      if (/^[3689]\d{7}$/.test(digits)) return `+65${digits}`;
+      if (/^65[3689]\d{7}$/.test(digits)) return `+${digits}`;
       return null;
   }
 }

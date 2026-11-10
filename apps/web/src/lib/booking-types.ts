@@ -14,7 +14,7 @@ export const detailerSchema = z.object({
   serviceArea: z.string(),
   timezone: z.string(),
   /** Sets the currency prices are shown in and how clients' phone numbers are read. */
-  country: z.enum(["US", "CA", "GB", "AU"]).default("US"),
+  country: z.enum(["US", "CA", "GB", "AU", "NZ", "AE", "ZA", "SG"]).default("US"),
   /** Average of visible reviews, or null when there are none yet. */
   rating: z.number().min(1).max(5).nullable(),
   reviewCount: z.number().int().min(0),

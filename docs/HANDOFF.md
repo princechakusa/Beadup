@@ -113,3 +113,10 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
      (e.g. `./assets/images/splash-blank.png`, 1x1 transparent) and keep `backgroundColor: "#0A0C10"`.
   3. `npx expo install expo-store-review` and ask for a rating after a job is marked paid (at most once every few months).
   4. EAS build + submit (owner).
+
+## 2026-11-10 (scheduled 2:10 AM run), Claude Code: New Zealand, UAE, South Africa, Singapore
+- Migration `20261110000000_more_countries.sql` (check constraint, country_from_timezone, country_currency; grants/RLS
+  unchanged), web phone rules + currencies (`src/lib/countries.ts`), mobile currencies + local decimal mark, Settings
+  country picker redesigned as a single glass list (code tile, name, currency, check).
+- Tests: DB 221 pass (countries.test.sql 25), web 44, mobile 21, web build + CSP check, iOS export.
+- Ireland deferred (EU trader status declaration needed in App Store Connect).

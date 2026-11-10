@@ -111,3 +111,19 @@ describe('money in the detailer currency', () => {
     expect(m(18000)).toBe('$180');
   });
 });
+
+describe('more countries (2026-11-10)', () => {
+  it('formats NZD, AED, ZAR and SGD', async () => {
+    const { setMoneyCountry, money: m, moneyParts } = await import('./format');
+    setMoneyCountry('AE');
+    expect(m(45000)).toMatch(/AED\s?450/);
+    setMoneyCountry('ZA');
+    expect(m(45000)).toMatch(/R\s?450/);
+    expect(moneyParts(184050).fraction).toBe(',50');
+    setMoneyCountry('NZ');
+    expect(m(18000)).toMatch(/\$180/);
+    setMoneyCountry('SG');
+    expect(m(18000)).toMatch(/\$180/);
+    setMoneyCountry('US');
+  });
+});

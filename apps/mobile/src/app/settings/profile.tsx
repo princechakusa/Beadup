@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
+import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/lib/auth';
@@ -64,8 +65,9 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       <Field label="Service area (optional)" value={area} onChangeText={setArea} maxLength={80} placeholder="e.g. Austin, TX · 25 mi" />
       <View style={{ gap: space.sm }}>
         <Text variant="eyebrow">Country</Text>
-        <View style={styles.chips} accessibilityRole="radiogroup">
-          {(Object.keys(COUNTRIES) as Country[]).map((c) => {
+        {/* One glass list, one row per country: code tile, name, currency, check. */}
+        <View style={styles.list} accessibilityRole="radiogroup">
+          {(Object.keys(COUNTRIES) as Country[]).map((c, i) => {
             const on = c === country;
             return (
               <Pressable
@@ -74,16 +76,23 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
                   haptic.select();
                   setCountry(c);
                 }}
-                style={[styles.chip, on && styles.chipOn]}
+                style={({ pressed }) => [styles.row, i > 0 && styles.divider, on && styles.rowOn, pressed && { opacity: 0.7 }]}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
+                accessibilityLabel={`${COUNTRIES[c].name}, ${COUNTRIES[c].currency}`}
               >
-                <Text variant="bodyStrong" style={{ fontSize: 14, color: on ? colors.beadInk : colors.paint }}>
+                <View style={[styles.code, on && styles.codeOn]}>
+                  <Text variant="bodyStrong" style={{ fontSize: 12, letterSpacing: 0.6, color: on ? colors.beadInk : colors.steel }}>
+                    {c}
+                  </Text>
+                </View>
+                <Text variant="bodyStrong" style={{ flex: 1, fontSize: 15 }} numberOfLines={1}>
                   {COUNTRIES[c].name}
                 </Text>
-                <Text variant="caption" style={{ fontSize: 12, color: on ? colors.beadInk : colors.steel }}>
+                <Text variant="caption" style={{ fontSize: 13, color: on ? colors.bead : colors.steel }}>
                   {COUNTRIES[c].currency}
                 </Text>
+                <View style={[styles.radio, on && styles.radioOn]}>{on && <Icon name="check" size={13} strokeWidth={2.8} color={colors.beadInk} />}</View>
               </Pressable>
             );
           })}
@@ -102,17 +111,12 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
 }
 
 const styles = StyleSheet.create({
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.gunmetal,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-  },
-  chipOn: { backgroundColor: colors.bead, borderColor: colors.bead },
+  list: { borderRadius: 22, overflow: 'hidden', backgroundColor: 'rgba(22,26,33,0.72)', borderWidth: 1, borderColor: colors.line },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, paddingHorizontal: 14 },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.lineStrong },
+  rowOn: { backgroundColor: 'rgba(77,216,255,0.08)' },
+  code: { width: 34, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gunmetal, borderWidth: 1, borderColor: colors.lineStrong },
+  codeOn: { backgroundColor: colors.bead, borderColor: colors.bead },
+  radio: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.lineStrong },
+  radioOn: { backgroundColor: colors.bead, borderColor: colors.bead },
 });
