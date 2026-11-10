@@ -1,0 +1,39 @@
+// Cloudflare Workers config for the web app (booking links, website, API for
+// the mobile app). Build + deploy: `npm run cf:deploy` (or Workers Builds on
+// push to main). Secrets are set with `npx wrangler secret put NAME` or in the
+// dashboard (Workers > beadup > Settings > Variables), never here.
+// Secrets: SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, OPENAI_API_KEY,
+// REVENUECAT_SECRET_KEY, REVENUECAT_WEBHOOK_AUTH, TURNSTILE_SECRET_KEY
+// (+ STRIPE_*, TWILIO_*, ANTHROPIC_API_KEY, EXPO_ACCESS_TOKEN when used).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beadup",
+  "main": "worker.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "beadup" }],
+  "kv_namespaces": [
+    { "binding": "NEXT_INC_CACHE_KV", "id": "KV_INC_CACHE_ID" },
+    { "binding": "NEXT_TAG_CACHE_KV", "id": "KV_TAG_CACHE_ID" },
+  ],
+  "images": { "binding": "IMAGES" },
+  "routes": [{ "pattern": "beadup.app", "custom_domain": true }],
+  // Every 15 minutes: texts and refund retries (worker.ts scheduled()).
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "observability": { "enabled": true },
+  // Public values only (they ship in the page anyway).
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://beadup.app",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://bczhuwibozwsynrlfqrq.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_epPuZ63STF-LsmxLQjDmNg_YqrwU6qd",
+    "NEXT_PUBLIC_APP_STORE_URL": "https://apps.apple.com/us/app/beadup/id6831768099",
+    "NEXT_PUBLIC_LEGAL_NAME": "Prince Chakusa",
+    "NEXT_PUBLIC_SUPPORT_EMAIL": "support@beadup.app",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "TURNSTILE_SITE_KEY",
+    "ADMIN_EMAILS": "chakusaprince@gmail.com",
+  },
+}
