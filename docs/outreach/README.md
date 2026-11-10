@@ -65,7 +65,7 @@ own payment link (Beadup never touches the money); no text messages yet. Replace
 > It's free to start, and the first 20 detailers get 3 months of Pro free. Want me to send you the link?
 >
 > [YOUR NAME]
-> Beadup, https://beadup.netlify.app
+> Beadup, https://beadup.app
 
 ## Follow-up (one only, 4 to 5 days later; 51 words)
 > Hi [NAME], just bumping this in case it got buried. If quotes and bookings already run smoothly for you, no

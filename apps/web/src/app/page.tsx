@@ -296,7 +296,7 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
           </p>
           <div className="mt-auto flex items-center gap-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 font-mono text-[13px] text-mist">
             <IconLock size={15} className="shrink-0 text-mint" />
-            <span className="truncate">beadup.netlify.app/<span className="text-bead">yourname</span></span>
+            <span className="truncate">beadup.app/<span className="text-bead">yourname</span></span>
           </div>
         </Reveal>
 
