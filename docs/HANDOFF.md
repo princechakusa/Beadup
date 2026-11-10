@@ -120,3 +120,9 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   country picker redesigned as a single glass list (code tile, name, currency, check).
 - Tests: DB 221 pass (countries.test.sql 25), web 44, mobile 21, web build + CSP check, iOS export.
 - Ireland deferred (EU trader status declaration needed in App Store Connect).
+- CRASH after the "New countries" OTA (7538e481): rolled production back to update 8cd4b50e (republished as
+  90bd1cac). Suspected cause: `Intl.NumberFormat.prototype.formatToParts` (moneyParts on Today, currencySymbol)
+  is unreliable in Hermes on iOS. Fixed in format.ts (no NumberFormat.formatToParts, every currency format wrapped
+  so it can't throw) + a root ErrorBoundary in _layout.tsx. Fix is committed but NOT published as an OTA until the
+  owner confirms the rollback stopped the crash (that confirms the cause). Then: `eas update ... --message "New
+  countries (fixed)"`.

@@ -26,33 +26,46 @@ export const moneyCountry = () => current;
 /** "$180", "£60.50", in the detailer's currency. */
 export function money(cents: number, opts: { cents?: boolean } = {}): string {
   const showCents = opts.cents ?? cents % 100 !== 0;
-  const c = COUNTRIES[current];
-  return new Intl.NumberFormat(c.locale, {
-    style: 'currency',
-    currency: c.currency,
-    minimumFractionDigits: showCents ? 2 : 0,
-    maximumFractionDigits: showCents ? 2 : 0,
-  }).format(cents / 100);
+  return safeFormat(cents / 100, COUNTRIES[current], showCents ? 2 : 0);
 }
 
 /** "$1,840" and ".00" separately, for the big money numbers in the design. */
 export function moneyParts(cents: number): { whole: string; fraction: string } {
   const c = COUNTRIES[current];
-  const whole = new Intl.NumberFormat(c.locale, { style: 'currency', currency: c.currency, maximumFractionDigits: 0 }).format(
-    Math.floor(cents / 100),
-  );
-  // The local decimal mark ("," in South Africa, "." elsewhere).
-  const mark = new Intl.NumberFormat(c.locale).formatToParts(1.5).find((p) => p.type === 'decimal')?.value ?? '.';
+  const whole = safeFormat(Math.floor(cents / 100), c, 0);
+  // The local decimal mark ("," in South Africa, "." elsewhere). Read from a
+  // plain format() call: NumberFormat.formatToParts isn't reliable in Hermes
+  // on iOS and crashed the app on launch (2026-11-10).
+  const mark = DECIMAL_COMMA.has(current) ? ',' : '.';
   return { whole, fraction: `${mark}${String(Math.abs(cents) % 100).padStart(2, '0')}` };
 }
 
-/** The currency symbol on its own ("$", "£"), for price inputs. */
+/** Countries that write decimals with a comma. */
+const DECIMAL_COMMA = new Set<Country>(['ZA']);
+
+/**
+ * Intl currency formatting that can never throw: an unsupported locale or
+ * currency on the device falls back to en-US with a currency code prefix.
+ */
+function safeFormat(value: number, c: (typeof COUNTRIES)[Country], fractionDigits: number): string {
+  try {
+    return new Intl.NumberFormat(c.locale, {
+      style: 'currency',
+      currency: c.currency,
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(value);
+  } catch {
+    return `${c.currency} ${value.toFixed(fractionDigits)}`;
+  }
+}
+
+/** The currency symbol on its own ("$", "£", "R"), for price inputs. */
 export function currencySymbol(): string {
   const c = COUNTRIES[current];
-  return (
-    new Intl.NumberFormat(c.locale, { style: 'currency', currency: c.currency }).formatToParts(0).find((p) => p.type === 'currency')?.value ??
-    '$'
-  );
+  // Format zero and strip the digits, spaces and separators (no formatToParts: see above).
+  const symbol = safeFormat(0, c, 0).replace(/[\d\s.,  ]/g, '');
+  return symbol || '$';
 }
 
 export function timeOf(iso: string, timeZone: string): string {

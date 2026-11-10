@@ -5,6 +5,7 @@ import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { LaunchIntro } from '@/components/LaunchIntro';
@@ -102,6 +103,28 @@ function RootNavigator() {
         />
       )}
     </>
+  );
+}
+
+/**
+ * Last line of defence: a render error anywhere shows this instead of closing
+ * the app. The splash is hidden so the message is visible.
+ */
+export function ErrorBoundary({ retry }: { error: Error; retry: () => Promise<void> }) {
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.midnight, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+      <Text style={{ color: colors.paint, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>Something went wrong</Text>
+      <Text style={{ color: colors.steel, fontSize: 15, textAlign: 'center' }}>Your data is safe. Try again, or close and reopen Beadup.</Text>
+      <Pressable
+        onPress={() => retry()}
+        accessibilityRole="button"
+        style={{ marginTop: 12, height: 48, paddingHorizontal: 28, borderRadius: 24, backgroundColor: colors.bead, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.beadInk, fontSize: 16, fontWeight: '700' }}>Try again</Text>
+      </Pressable>
+    </View>
   );
 }
 
