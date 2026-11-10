@@ -3,7 +3,7 @@
     "name": "Beadup",
     "slug": "beadup",
     "owner": "princechakusa",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "beadup",
@@ -37,7 +37,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0A0C10",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash-blank.png",
           "imageWidth": 200
         }
       ],

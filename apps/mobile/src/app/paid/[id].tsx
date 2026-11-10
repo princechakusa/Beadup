@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/Text';
 import { fetchBalance, fetchBooking, fetchNextBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery } from '@/lib/data';
 import { dateKey, dayLabel, startOfDay, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { maybeAskForRating } from '@/lib/rating';
 import { colors, space } from '@/theme/tokens';
 
 const SIZE_LABEL = { sedan: 'sedan', suv: 'SUV', truck: 'truck' } as const;
@@ -55,7 +56,10 @@ export default function Paid() {
   const shown = b ? (external ? b.subtotalCents : b.paidCents) : 0;
   const amount = useCountUp(shown);
   useEffect(() => {
-    if (b && (external || b.paidCents > 0)) haptic.success();
+    if (b && (external || b.paidCents > 0)) {
+      haptic.success();
+      maybeAskForRating();
+    }
   }, [b, external]);
 
   const todayTotal = (today.data ?? []).filter((p) => p.status === 'succeeded').reduce((n, p) => n + p.amountCents, 0);
