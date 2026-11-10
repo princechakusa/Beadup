@@ -55,6 +55,13 @@ async function isUnknownHandle(pathname: string): Promise<boolean> {
 }
 
 export async function middleware(request: NextRequest) {
+  // One canonical address: www.beadup.app -> beadup.app (same path and query).
+  if (request.nextUrl.hostname.startsWith("www.")) {
+    const url = request.nextUrl.clone();
+    url.hostname = url.hostname.slice(4);
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
   const nonce = newNonce();
   const csp = documentCsp(nonce);
   const requestHeaders = new Headers(request.headers);
