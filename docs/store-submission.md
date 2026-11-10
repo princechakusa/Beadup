@@ -9,7 +9,7 @@ Items in `[BRACKETS]` need a real value before submitting. Re-check Apple's and 
   client money (`plan_config.payments_mode = "external"`). No Stripe at launch.
 - **No text messages** (`sms_enabled = false`): nothing goes to Twilio. Detailers get push alerts.
 - **AI photo quotes use OpenAI**, after an in-app consent screen.
-- **Hosting:** https://beadup.netlify.app until a domain is bought. Legal name: Prince Chakusa.
+- **Hosting:** https://beadup.app until a domain is bought. Legal name: Prince Chakusa.
 
 **Status (2026-11-09):** **Approved and live on the US App Store**: https://apps.apple.com/us/app/beadup/id6831768099 (Apple ID 6831768099). `NEXT_PUBLIC_APP_STORE_URL` is set on Netlify (site buttons say "Download", Safari Smart App Banner on marketing pages). Google Play: not submitted yet.
 
@@ -20,15 +20,15 @@ Done in the owner's account:
 - [x] Version 1.0: description, keywords, promotional text entered. **Replace them with the section 1 text below**: the saved version promises card deposits and automatic receipts, which the launch build doesn't have
 - [x] App Information: subtitle, categories Business + Productivity, Content Rights = no third-party content
 - [x] Age rating questionnaire: all "None/No" → **4+**
-- [ ] App Privacy labels (section 1 table) and Privacy Policy URL `https://beadup.netlify.app/privacy`
-- [ ] Support URL `https://beadup.netlify.app/support`, Marketing URL `https://beadup.netlify.app`, Copyright `© 2026 Prince Chakusa`
+- [ ] App Privacy labels (section 1 table) and Privacy Policy URL `https://beadup.app/privacy`
+- [ ] Support URL `https://beadup.app/support`, Marketing URL `https://beadup.app`, Copyright `© 2026 Prince Chakusa`
 - [ ] App Review info: demo account, contact, review notes (section 1)
 - [ ] Pricing and availability: Free, United States first
 - [ ] Screenshots (6.9" iPhone): from the real build
 - [x] In-App Purchase (2026-11-08): group "Beadup Pro", subscription `beadup_pro_monthly` (Apple ID 6832323640), 1 month, US $19.00 (Apple set the other 174 countries), available everywhere the app is, display name "Beadup Pro" / "Unlimited bookings for your detailing business". **Price lives only here and must never be hardcoded in the app.** Still to add before review: the paywall screenshot (from the TestFlight build). Paid Apps Agreement: Active
 - [x] Screenshots (2026-11-08): six 6.9" images uploaded to Asset Library (`apps/mobile/assets/store/`); arrange in order when adding to the version
 - [x] Screenshots (2026-11-09): App Store Connect now asks for the 6.1"/6.3" iPhone slot (1206×2622); six resized copies `apps/mobile/assets/store/ios-6.3-*.png` added to version 1.0 in order
-- [ ] RevenueCat: project, App Store connection (In-App Purchase key), entitlement `pro`, offering with the monthly package; public iOS key into `eas.json` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`); webhook to `https://beadup.netlify.app/api/revenuecat/webhook` with `REVENUECAT_WEBHOOK_AUTH`
+- [ ] RevenueCat: project, App Store connection (In-App Purchase key), entitlement `pro`, offering with the monthly package; public iOS key into `eas.json` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`); webhook to `https://beadup.app/api/revenuecat/webhook` with `REVENUECAT_WEBHOOK_AUTH`
 - [ ] 🔑 Apple banner: the **Account Holder must accept the updated Apple Developer Program License Agreement** (deadline Nov 14, 2026). Also the EU trader status declaration if distributing in the EU
 - [ ] Upload a build (EAS, see `docs/DEPLOY.md`) and submit for review
 
@@ -44,15 +44,15 @@ Done in the owner's account:
 | Secondary category (Apple) | Productivity |
 | Price | Free to download. Optional Beadup Pro subscription via in-app purchase (section 5) |
 | Support email | `[SUPPORT EMAIL]` (same as `NEXT_PUBLIC_SUPPORT_EMAIL` on Netlify) |
-| Support URL | `https://beadup.netlify.app/support` |
-| Marketing URL | `https://beadup.netlify.app` |
-| Privacy policy URL | `https://beadup.netlify.app/privacy` |
-| Terms URL | `https://beadup.netlify.app/terms` |
-| Account deletion URL | `https://beadup.netlify.app/delete-account` |
+| Support URL | `https://beadup.app/support` |
+| Marketing URL | `https://beadup.app` |
+| Privacy policy URL | `https://beadup.app/privacy` |
+| Terms URL | `https://beadup.app/terms` |
+| Account deletion URL | `https://beadup.app/delete-account` |
 | Copyright | `© 2026 Prince Chakusa` |
 | Audience | Adults 18+. Not for children |
 
-Swap `beadup.netlify.app` for the real domain everywhere when one is bought.
+Swap `beadup.app` for the real domain everywhere when one is bought.
 
 ---
 
@@ -138,7 +138,7 @@ Third parties that receive data: **OpenAI** (vehicle photos for quotes, with exp
 ### App Review information
 **Sign-in required:** Yes. Create the demo account in Supabase (Authentication → Users → Add user, email + password, Auto confirm), sign in once and finish onboarding, then enter it here. The sign-in screen has "Sign in with a password" for it.
 - Detailer: `[DEMO DETAILER EMAIL]` / `[DEMO PASSWORD]`
-- Client booking page needs no account: `https://beadup.netlify.app/[DEMO HANDLE]`
+- Client booking page needs no account: `https://beadup.app/[DEMO HANDLE]`
 
 **Contact:** Prince Chakusa, `[PHONE]`, `[EMAIL]`
 
@@ -149,7 +149,7 @@ Beadup is a business tool for mobile car detailers (physical, on-site vehicle cl
 HOW TO TEST
 1. On the sign-in screen tap "Sign in with a password" and use the demo detailer account above. The Today screen shows jobs and earnings.
 2. Tap + to create a quote. Pick photos (system picker). Before any photo leaves the device the app shows an AI disclosure naming OpenAI and asks for permission. The quote is an estimate the detailer edits and approves.
-3. Open https://beadup.netlify.app/[DEMO HANDLE] in Safari to see the client booking page (no account needed). Book a time; the confirmation shows the detailer's own payment instructions.
+3. Open https://beadup.app/[DEMO HANDLE] in Safari to see the client booking page (no account needed). Book a time; the confirmation shows the detailer's own payment instructions.
 
 CLIENT PAYMENTS (guideline 3.1.3(e))
 Clients pay detailers for physical services performed at the vehicle. Beadup does not process these payments: after booking, the client is shown the detailer's own payment link or instructions and pays the detailer directly, outside the app.
@@ -158,7 +158,7 @@ DETAILER SUBSCRIPTION
 Beadup Pro is an auto-renewing subscription purchased with in-app purchase. Use a sandbox Apple ID to test the purchase and Restore Purchases.
 
 ACCOUNT DELETION (5.1.1(v))
-Settings > Delete account removes the account and its data in the app. Web: https://beadup.netlify.app/delete-account
+Settings > Delete account removes the account and its data in the app. Web: https://beadup.app/delete-account
 
 AI (5.1.2(i))
 Vehicle photos are sent to a third-party AI provider (OpenAI) only after the user taps Allow on a consent screen, and consent can be withdrawn in Settings. Quotes are suggestions the detailer approves.
@@ -185,14 +185,14 @@ Camera and photo picker are used only when the user adds vehicle photos. Notific
 **Short description (max 80):** `Quotes and bookings for mobile car detailers. Clients book from one link.` [73]
 **Full description (max 4000):** use the App Store description above unchanged.
 **Category:** Business. **Tags:** Business, Productivity.
-**Contact:** email `[SUPPORT EMAIL]`, website `https://beadup.netlify.app`.
+**Contact:** email `[SUPPORT EMAIL]`, website `https://beadup.app`.
 **Graphics:** icon 512×512 (render from `apps/mobile/assets/images/icon.png`), feature graphic 1024×500, at least 4 phone screenshots from the real app (same six as Apple).
 
 ### App content declarations
 | Declaration | Answer |
 |---|---|
-| Privacy policy | `https://beadup.netlify.app/privacy` |
-| App access | Restricted. Add demo credentials: `[DEMO DETAILER EMAIL]`, `[DEMO PASSWORD]` ("Sign in with a password" on the sign-in screen), plus client page `https://beadup.netlify.app/[DEMO HANDLE]` |
+| Privacy policy | `https://beadup.app/privacy` |
+| App access | Restricted. Add demo credentials: `[DEMO DETAILER EMAIL]`, `[DEMO PASSWORD]` ("Sign in with a password" on the sign-in screen), plus client page `https://beadup.app/[DEMO HANDLE]` |
 | Ads | No ads |
 | Content rating (IARC) | Category: Utility / Productivity. No violence, sex, language, controlled substances, gambling, user-to-user sharing. Expected: Everyone |
 | Target audience | 18 and over. Not designed for children |
@@ -203,7 +203,7 @@ Camera and photo picker are used only when the user adds vehicle photos. Notific
 | Health | No |
 | Advertising ID | Not used |
 | Data safety | See below |
-| Account deletion | In-app path: Settings › Delete account. Web link: `https://beadup.netlify.app/delete-account` |
+| Account deletion | In-app path: Settings › Delete account. Web link: `https://beadup.app/delete-account` |
 
 ### Data safety form
 **Data collected:** Yes. **Encrypted in transit:** Yes. **Users can request deletion:** Yes (in-app and web link above).
