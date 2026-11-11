@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { BookingLinkCard } from '@/components/BookingLinkCard';
+import { NeedsAttention } from '@/components/NeedsAttention';
 import { Sparkline } from '@/components/charts/Sparkline';
 import { Icon } from '@/components/ui/Icon';
 import { Badge, EmptyState, ListCard, Screen } from '@/components/ui/Screen';
@@ -15,6 +16,7 @@ import {
   usePaymentsMode,
   fetchProfile,
   fetchRating,
+  fetchAttention,
   useQuery,
   type Booking,
 } from '@/lib/data';
@@ -49,6 +51,7 @@ export default function Today() {
   }, [monday, tz, external], `today-week-${monday}-${external ? 'x' : 's'}`);
   const next = useQuery(() => fetchNextBookings(6), [], 'today-next');
   const rating = useQuery(fetchRating);
+  const attention = useQuery(() => fetchAttention(external), [external], `attention-${external ? 'x' : 's'}`);
 
   // Cumulative earnings per day this week (Mon..Sun), and last week's total.
   const daily = Array<number>(7).fill(0);
@@ -86,6 +89,7 @@ export default function Today() {
         week.refresh();
         next.refresh();
         rating.refresh();
+        attention.refresh();
       }}
       right={
         <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={styles.round}>
@@ -126,6 +130,8 @@ export default function Today() {
         <Stat value={money(avgTicket, { cents: false })} label="Avg ticket" />
         <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold onPress={() => router.push('/reviews')} />
       </View>
+
+      <NeedsAttention data={attention.data} tz={tz} />
 
       {profile.data && <BookingLinkCard handle={profile.data.handle} businessName={profile.data.businessName} />}
 

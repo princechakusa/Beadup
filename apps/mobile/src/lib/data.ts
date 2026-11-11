@@ -727,3 +727,63 @@ export async function saveBufferMin(minutes: number): Promise<void> {
   if (error) throw error;
   await refreshBookingPage();
 }
+
+// ---------------------------------------------------------------------------
+// Today > Needs attention: only things the detailer has to act on, from real rows.
+
+export type Attention = {
+  /** External payments: confirmed jobs whose deposit isn't marked received ("client says sent" first). */
+  depositsToConfirm: Booking[];
+  /** Jobs that ended but were never marked done or no-show. */
+  toCloseOut: Booking[];
+  /** Setup gaps clients would notice. */
+  missingPayment: boolean;
+  missingPhone: boolean;
+};
+
+export async function fetchAttention(external: boolean): Promise<Attention> {
+  if (!supabase) {
+    const all = fixtures.bookings(new Date(Date.now() - 7 * 86_400_000), new Date(Date.now() + 7 * 86_400_000));
+    return {
+      depositsToConfirm: external ? all.filter((b) => b.status === 'confirmed' && !b.depositReceived && Date.parse(b.startsAt) > Date.now()) : [],
+      toCloseOut: [],
+      missingPayment: false,
+      missingPhone: false,
+    };
+  }
+  const now = Date.now();
+  const [deposits, past, me] = await Promise.all([
+    external
+      ? db()
+          .from('bookings')
+          .select(BOOKING_SELECT)
+          .eq('status', 'confirmed')
+          .is('deposit_received_at', null)
+          .gte('starts_at', new Date(now - 12 * 3_600_000).toISOString())
+          .order('starts_at')
+          .limit(20)
+      : Promise.resolve({ data: [], error: null }),
+    db()
+      .from('bookings')
+      .select(BOOKING_SELECT)
+      .eq('status', 'confirmed')
+      .gte('starts_at', new Date(now - 60 * 86_400_000).toISOString())
+      .lt('starts_at', new Date(now - 3_600_000).toISOString())
+      .order('starts_at', { ascending: false })
+      .limit(20),
+    db().from('detailers').select('*').maybeSingle(),
+  ]);
+  if (deposits.error) throw deposits.error;
+  if (past.error) throw past.error;
+  if (me.error) throw me.error;
+  const toBookings = (rows: unknown) => (rows as BookingRow[]).map(toBooking);
+  const depositsToConfirm = toBookings(deposits.data).sort((a, b) => Number(b.depositReported) - Number(a.depositReported));
+  // Ended at least 30 minutes ago.
+  const toCloseOut = toBookings(past.data).filter((b) => Date.parse(b.startsAt) + (b.durationMin + 30) * 60_000 < now);
+  return {
+    depositsToConfirm,
+    toCloseOut,
+    missingPayment: external && !me.data?.payment_link && !me.data?.payment_note,
+    missingPhone: !me.data?.contact_phone,
+  };
+}
