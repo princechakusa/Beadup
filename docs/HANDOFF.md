@@ -133,3 +133,11 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   "I've sent the deposit", detailer-zone dates; Today "Needs attention"; landing contrast fix (CI had been red).
 - Mobile changes are JS-only: they reach installed builds with an OTA update (`eas update ... --environment production`),
   **not run yet: needs the owner's go-ahead**. Not device-tested (no simulator on this PC).
+
+## 2026-11-12, Claude Code: Stage 4 + readiness audit, deployed (owner-approved)
+- Live: `b4f131e` on Cloudflare; Supabase migration `20261112000000` applied in production (checked through the
+  public API: Stage 4 functions exist and refuse anon); `beadup.app/b/<token>` serves.
+- OTA published: iOS, channel `production`, runtime 1.0.1, update group `2be7666a-fd92-4bee-bf98-59fd62c1a66e`.
+  No Android build exists yet, so no Android update.
+- CI green on `b4f131e`. Report: `docs/READINESS_2026-11-12.md` (fixes F-1..F-4).
+- Still open: test the new screens on a real iPhone; Supabase CLI token on this PC is invalid (`npx supabase login`).
