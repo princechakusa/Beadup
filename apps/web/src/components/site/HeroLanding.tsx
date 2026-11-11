@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppStoreButton } from "./AppStoreButton";
+import { Phone } from "./Phone";
 import {
   IconArrowRight,
   IconBell,
   IconCamera,
   IconCalendar,
-  IconCheck,
   IconShield,
   IconSparkle,
   IconStar,
@@ -33,74 +33,14 @@ function Beads() {
   );
 }
 
-/** The detailer app's home screen, drawn in HTML so it stays sharp at any size. */
+/** The real app: the Today screen screenshot in our device frame, with side buttons. */
 function HeroPhone() {
   return (
-    <div className="relative mx-auto w-[300px] rotate-[12deg] sm:w-[340px]">
-      <div className="rounded-[52px] bg-gradient-to-br from-[#8a96b4] via-[#2a3348] to-[#141a28] p-[3px] shadow-[0_60px_120px_-20px_rgba(0,0,0,0.85),0_0_80px_rgba(77,160,255,0.25)]">
-        <div className="rounded-[50px] bg-[#05070c] p-[10px]">
-          <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-b from-[#0d1424] to-[#070a12] px-5 pb-4 pt-3">
-            <div className="flex items-center justify-between text-[12px] font-semibold text-paint">
-              <span>9:41</span>
-              <span className="h-6 w-24 rounded-full bg-black" />
-              <span className="tracking-[-0.1em]">▮▮▮</span>
-            </div>
-            <div className="mt-5 flex items-center justify-between">
-              <span className="font-display text-[22px] font-bold text-paint">
-                <span className="text-bead">●</span> bead<span className="text-bead">up</span>
-              </span>
-              <IconBell size={18} className="text-paint" />
-            </div>
-            <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/[0.05] px-4 py-3 text-[13px] font-semibold text-paint">
-              Today&apos;s detailing jobs <span className="text-mist">2</span>
-            </div>
-            <div className="mt-3 rounded-2xl bg-white/[0.05] px-4 py-3">
-              <div className="text-[12px] text-mist">Weekly earnings</div>
-              <div className="mt-1 flex items-end justify-between">
-                <span className="font-display text-[28px] font-bold text-paint">
-                  $620 <span className="align-middle text-[12px] font-semibold text-emerald-400">↑ 12%</span>
-                </span>
-                <span className="flex items-end gap-[3px]">
-                  <span className="h-3 w-[6px] rounded-sm bg-bead/70" />
-                  <span className="h-5 w-[6px] rounded-sm bg-bead/80" />
-                  <span className="h-7 w-[6px] rounded-sm bg-bead/90" />
-                  <span className="h-9 w-[6px] rounded-sm bg-bead" />
-                </span>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center justify-between rounded-2xl bg-white/[0.05] px-4 py-3">
-              <div>
-                <div className="text-[12px] text-mist">Next booking</div>
-                <div className="text-[14px] font-semibold text-paint">Sat, Nov 15 · 9:00 AM</div>
-              </div>
-              <IconArrowRight size={16} className="text-mist" />
-            </div>
-            <div className="mt-4 text-[13px] font-semibold text-paint">Latest quote</div>
-            <div className="mt-2 flex items-center gap-3 rounded-2xl bg-white/[0.05] p-2">
-              <span className="h-14 w-20 rounded-xl bg-[radial-gradient(80%_80%_at_40%_30%,#3a4660,#10141e)]" />
-              <span className="flex-1">
-                <span className="block text-[13px] text-mist">Full detail</span>
-                <span className="block font-display text-[18px] font-bold text-paint">$120</span>
-              </span>
-              <IconArrowRight size={16} className="text-mist" />
-            </div>
-            <div className="mt-4 flex justify-between border-t border-white/10 px-2 pt-3 text-[10px] text-mist">
-              <span className="flex flex-col items-center gap-1 text-bead"><IconCalendar size={16} />Home</span>
-              <span className="flex flex-col items-center gap-1"><IconCalendar size={16} />Bookings</span>
-              <span className="flex flex-col items-center gap-1"><IconUsers size={16} />Clients</span>
-              <span className="flex flex-col items-center gap-1"><IconStar size={16} />More</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Booking confirmed card */}
-      <div className="absolute -right-6 top-[56%] w-[190px] -rotate-[12deg] rounded-[22px] border border-white/15 bg-[#11161f]/90 p-4 text-center shadow-[0_30px_60px_-10px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:-right-16">
-        <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-[#04110a]">
-          <IconCheck size={20} />
-        </span>
-        <div className="mt-2 font-display text-[16px] font-bold text-paint">Booking confirmed!</div>
-        <div className="text-[13px] font-semibold text-emerald-400">$36 deposit paid</div>
-      </div>
+    <div className="relative mx-auto w-[270px] rotate-[8deg] sm:w-[320px]">
+      <span aria-hidden="true" className="absolute -left-[5px] top-[18%] h-[6%] w-[5px] rounded-l-md bg-[#2c333f]" />
+      <span aria-hidden="true" className="absolute -left-[5px] top-[27%] h-[10%] w-[5px] rounded-l-md bg-[#2c333f]" />
+      <span aria-hidden="true" className="absolute -right-[5px] top-[24%] h-[14%] w-[5px] rounded-r-md bg-[#2c333f]" />
+      <Phone screen="today" priority sizes="(min-width: 640px) 320px, 270px" />
     </div>
   );
 }
