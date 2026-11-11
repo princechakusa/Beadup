@@ -41,6 +41,12 @@ export const detailerSchema = z.object({
   addOns: z.array(z.object({ id: z.string(), name: z.string(), priceCents: cents })),
   /** Start times already held, "YYYY-MM-DD HH:MM" in the detailer's timezone. */
   taken: z.array(z.string()).default([]),
+  /** Live bookings as local start + length, so overlapping start times can be hidden. */
+  busy: z
+    .array(z.object({ start: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/), minutes: z.number().int().positive() }))
+    .default([]),
+  /** Minutes the detailer keeps free between jobs (travel). */
+  bufferMin: z.number().int().min(0).max(240).default(0),
   /** Start times keyed by weekday ("0" = Sunday), in the detailer's timezone. */
   weeklySlots: z.partialRecord(z.enum(["0", "1", "2", "3", "4", "5", "6"]), z.array(hhmm)),
 });

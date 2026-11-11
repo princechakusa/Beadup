@@ -10,6 +10,7 @@ import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
 import { COUNTRIES, formatMoney, toE164, type Country } from "@/lib/countries";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
+import { openDays } from "@/lib/slots";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
@@ -57,27 +58,6 @@ type Details = { name: string; phone: string; address: string; smsConsent: boole
 
 const spring = { type: "spring", stiffness: 420, damping: 34 } as const;
 
-/** The next `count` days (from tomorrow, looking up to 3 weeks out) that have open start times. */
-function nextOpenDays(weeklySlots: Detailer["weeklySlots"], taken: ReadonlySet<string>, count: number) {
-  const out: { key: string; dow: string; day: number; label: string; slots: string[] }[] = [];
-  const now = new Date();
-  for (let i = 1; i <= 21 && out.length < count; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const slots = (weeklySlots[String(d.getDay()) as keyof typeof weeklySlots] ?? []).filter((s) => !taken.has(`${key} ${s}`));
-    if (slots.length === 0) continue;
-    out.push({
-      slots,
-      key,
-      dow: d.toLocaleDateString("en-US", { weekday: "short" }),
-      day: d.getDate(),
-      label: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
-    });
-  }
-  return out;
-}
-
 function initials(name: string) {
   const words = name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean);
   return words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "B";
@@ -107,13 +87,28 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   // Times booked by others during this visit, on top of what the page loaded with.
   const [lostSlots, setLostSlots] = useState<string[]>([]);
   const showDays = step >= 2;
+  const durationMin = detailer.services.find((s) => s.id === serviceId)?.durationMin ?? 60;
   const days = useMemo(
-    () => (showDays ? nextOpenDays(detailer.weeklySlots, new Set([...detailer.taken, ...lostSlots]), 7) : []),
-    [showDays, detailer.weeklySlots, detailer.taken, lostSlots],
+    () =>
+      showDays
+        ? openDays({
+            weeklySlots: detailer.weeklySlots,
+            busy: detailer.busy,
+            bufferMin: detailer.bufferMin,
+            durationMin,
+            timeZone: detailer.timezone,
+            now: new Date(),
+            count: 7,
+            exclude: new Set([...detailer.taken, ...lostSlots]),
+          })
+        : [],
+    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, durationMin, lostSlots],
   );
   const [pickedDay, setDayKey] = useState<string | null>(null);
-  const dayKey = pickedDay ?? days[0]?.key ?? null;
-  const [slot, setSlot] = useState<string | null>(null);
+  // A longer service picked after going back can close the chosen day or time.
+  const dayKey = (pickedDay && days.some((d) => d.key === pickedDay) ? pickedDay : null) ?? days[0]?.key ?? null;
+  const [pickedSlot, setSlot] = useState<string | null>(null);
+  const slot = pickedSlot && days.find((d) => d.key === dayKey)?.slots.includes(pickedSlot) ? pickedSlot : null;
   const [details, setDetails] = useState<Details>({ name: "", phone: "", address: "", smsConsent: false });
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({});
   const [booked, setBooked] = useState(false);

@@ -66,7 +66,7 @@ select is(public.apply_stripe_event('evt_4', 'checkout.session.completed', 'acct
 reset role;
 update public.bookings set status = 'confirmed' where id in ('dddddddd-0000-4000-8000-0000000000b2');
 update public.payments set status = 'succeeded', stripe_payment_intent_id = 'pi_2' where stripe_checkout_session_id = 'cs_2';
-update public.bookings set starts_at = starts_at + interval '1 minute', status = 'confirmed' where id = 'dddddddd-0000-4000-8000-0000000000b1';
+update public.bookings set starts_at = starts_at + interval '2 hours', status = 'confirmed' where id = 'dddddddd-0000-4000-8000-0000000000b1';
 set local role service_role;
 select is((public.cancel_booking('dddddddd-0000-4000-8000-0000000000b2', 'client') ->> 'refundCents')::int, 0,
           'client cancelling inside 24h gets no refund');

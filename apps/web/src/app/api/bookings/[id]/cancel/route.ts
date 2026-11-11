@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
+import { bookingPageTag } from "@/lib/booking-page";
 import { detailerFromRequest } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -28,6 +30,10 @@ export async function POST(request: Request, ctx: RouteContext<"/api/bookings/[i
   if (error) return new Response("error", { status: 500 });
   const result = cancelResult.parse(data);
   if (!result.ok) return Response.json(result, { status: result.error === "not_found" ? 404 : 409 });
+
+  // Free the time on the public booking page at once (it is cached).
+  const { data: me } = await db.from("detailers").select("handle").eq("id", userId).maybeSingle();
+  if (me?.handle) revalidateTag(bookingPageTag(me.handle), { expire: 0 });
 
   if (result.refundCents > 0 && result.paymentIntentId && result.stripeAccountId) {
     const s = stripe();

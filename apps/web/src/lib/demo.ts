@@ -46,6 +46,8 @@ const DETAILERS: Record<string, Detailer> = {
       { id: "d0000000-0000-4000-8000-000000000003", name: "Engine bay clean", priceCents: 3000 },
     ],
     taken: [],
+    busy: [],
+    bufferMin: 0,
     weeklySlots: { "1": WEEKDAY_SLOTS, "2": WEEKDAY_SLOTS, "3": WEEKDAY_SLOTS, "4": WEEKDAY_SLOTS, "5": WEEKDAY_SLOTS, "6": WEEKDAY_SLOTS },
   },
 };

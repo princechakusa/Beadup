@@ -177,7 +177,7 @@ export function BookInSeconds() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 rounded-full bg-[#1e8bff] py-2 text-center text-[13px] font-semibold text-white">Book now</div>
+                <div className="mt-3 rounded-full bg-[#0a6fe0] py-2 text-center text-[13px] font-semibold text-white">Book now</div>
               </div>
             </div>
           </div>
