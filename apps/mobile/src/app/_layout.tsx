@@ -86,6 +86,7 @@ function RootNavigator() {
           <Stack.Screen name="settings/availability" />
           <Stack.Screen name="settings/delete-account" />
           <Stack.Screen name="booking/[id]" />
+          <Stack.Screen name="reschedule/[id]" />
           <Stack.Screen name="client/[id]" />
           <Stack.Screen name="reviews" />
           <Stack.Screen name="paid/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />

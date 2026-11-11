@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney, toE164 } from "./countries";
+import { formatMoney, formatPhone, toE164 } from "./countries";
 
 describe("toE164", () => {
   it("reads US and Canadian numbers", () => {
@@ -72,5 +72,26 @@ describe("more countries (2026-11-10)", () => {
     expect(formatMoney(45000, "AE")).toMatch(/AED\s?450/);
     expect(formatMoney(45000, "ZA")).toMatch(/R\s?450/);
     expect(formatMoney(18000, "SG")).toMatch(/\$180/);
+  });
+});
+
+describe("formatPhone", () => {
+  it("writes numbers the local way", () => {
+    expect(formatPhone("+15125550101", "US")).toBe("(512) 555-0101");
+    expect(formatPhone("+14165550101", "CA")).toBe("(416) 555-0101");
+    expect(formatPhone("+447700900123", "GB")).toBe("07700 900123");
+    expect(formatPhone("+61412345678", "AU")).toBe("0412 345 678");
+    expect(formatPhone("+64211234567", "NZ")).toBe("021 123 4567");
+    expect(formatPhone("+971501234567", "AE")).toBe("050 123 4567");
+    expect(formatPhone("+27821234567", "ZA")).toBe("082 123 4567");
+    expect(formatPhone("+6591234567", "SG")).toBe("9123 4567");
+  });
+  it("round-trips through toE164", () => {
+    for (const [e164, c] of [["+447700900123", "GB"], ["+61412345678", "AU"], ["+971501234567", "AE"], ["+27821234567", "ZA"], ["+64211234567", "NZ"]] as const) {
+      expect(toE164(formatPhone(e164, c), c)).toBe(e164);
+    }
+  });
+  it("keeps foreign numbers international", () => {
+    expect(formatPhone("+447700900123", "US")).toBe("+447700900123");
   });
 });

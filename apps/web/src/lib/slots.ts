@@ -49,6 +49,8 @@ export function openDays(opts: {
   count: number;
   /** Exact "YYYY-MM-DD HH:MM" starts to hide (lost to someone else during this visit). */
   exclude?: ReadonlySet<string>;
+  /** Whole days the detailer isn't working ("YYYY-MM-DD"). */
+  daysOff?: readonly string[];
 }): OpenDay[] {
   const { date: today, minute } = localNow(opts.now, opts.timeZone);
   const nowWall = wallMinutes(today, `${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`);
@@ -63,6 +65,7 @@ export function openDays(opts: {
   for (let i = 1; i <= 21 && out.length < opts.count; i++) {
     const day = new Date(Date.UTC(y, m - 1, d + i));
     const key = `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}-${pad(day.getUTCDate())}`;
+    if (opts.daysOff?.includes(key)) continue;
     const slots = (opts.weeklySlots[String(day.getUTCDay()) as keyof Detailer["weeklySlots"]] ?? []).filter((s) => {
       if (opts.exclude?.has(`${key} ${s}`)) return false;
       const start = wallMinutes(key, s);

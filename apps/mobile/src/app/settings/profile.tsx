@@ -12,10 +12,11 @@ import { useAuth } from '@/lib/auth';
 import { fetchBusinessProfile, saveBusinessProfile, useQuery, type BusinessProfile } from '@/lib/data';
 import { COUNTRIES, type Country } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { formatPhone, toE164 } from '@/lib/phone';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
 
-/** Settings: business name, tagline, service area and country (what clients see on the booking page). */
+/** Settings: business name, tagline, service area, client phone and country (what clients see on the booking page). */
 export default function BusinessProfileScreen() {
   const profile = useQuery(fetchBusinessProfile, [], 'business-profile');
   return (
@@ -35,6 +36,8 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   const [tagline, setTagline] = useState(initial.tagline);
   const [area, setArea] = useState(initial.serviceArea);
   const [country, setCountry] = useState<Country>(initial.country);
+  const [phone, setPhone] = useState(initial.contactPhone ? formatPhone(initial.contactPhone, initial.country) : '');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -43,10 +46,16 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       haptic.error();
       return setError('Add your business name.');
     }
+    const contactPhone = phone.trim() ? toE164(phone, country) : null;
+    if (phone.trim() && !contactPhone) {
+      haptic.error();
+      return setPhoneError(`Enter a ${COUNTRIES[country].name} number, or start with + and the country code.`);
+    }
+    setPhoneError(null);
     setBusy(true);
     setError(null);
     try {
-      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country });
+      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone });
       haptic.success();
       await refreshProfile();
       router.back();
@@ -63,6 +72,21 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       <Field label="Business name" value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" error={error} />
       <Field label="Tagline (optional)" value={tagline} onChangeText={setTagline} maxLength={120} placeholder="e.g. Mobile detailing · we come to you" />
       <Field label="Service area (optional)" value={area} onChangeText={setArea} maxLength={80} placeholder="e.g. Austin, TX · 25 mi" />
+      <View style={{ gap: space.xs }}>
+        <Field
+          label="Phone for clients (optional)"
+          value={phone}
+          onChangeText={setPhone}
+          maxLength={30}
+          keyboardType="phone-pad"
+          textContentType="telephoneNumber"
+          autoComplete="tel"
+          error={phoneError}
+        />
+        <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
+          Shown on your booking page and confirmation, so clients can text or call you about their booking.
+        </Text>
+      </View>
       <View style={{ gap: space.sm }}>
         <Text variant="eyebrow">Country</Text>
         {/* One glass list, one row per country: code tile, name, currency, check. */}

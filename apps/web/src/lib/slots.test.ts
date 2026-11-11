@@ -68,3 +68,10 @@ describe("localNow", () => {
     expect(localNow(now, "Pacific/Auckland")).toEqual({ date: "2026-11-17", minute: 4 * 60 });
   });
 });
+
+describe("openDays with days off", () => {
+  it("skips the detailer's days off entirely", () => {
+    const days = openDays({ ...base, count: 2, daysOff: ["2026-11-17"] });
+    expect(days.map((d) => d.key)).toEqual(["2026-11-18", "2026-11-19"]);
+  });
+});

@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { reportDepositSent } from "@/app/[handle]/actions";
 import { haptic, playBookedChime } from "@/lib/feedback";
 import { GlassBead } from "@/components/GlassBead";
 import { buildIcs, type CalendarEvent } from "@/lib/ics";
@@ -31,6 +32,8 @@ export function BookedCelebration({
   smsEnabled = false,
   payment,
   calendar,
+  contact,
+  depositSent,
 }: {
   businessName: string;
   when: string;
@@ -44,6 +47,10 @@ export function BookedCelebration({
   payment?: { link: string | null; note: string | null };
   /** "Add to calendar": an .ics built and downloaded in the browser. */
   calendar?: CalendarEvent;
+  /** The detailer's public phone: E.164 for links, and how it's written locally. */
+  contact?: { e164: string; display: string };
+  /** External payments: lets this browser tell the detailer the deposit is sent. */
+  depositSent?: { bookingId: string; token: string };
 }) {
   const reduce = useReducedMotion();
   // The falling beads need inline sizes, so they render only after hydration
@@ -139,12 +146,32 @@ export function BookedCelebration({
             {!payment.link && !payment.note && (
               <p className="mt-3 text-[13px] text-steel">{businessName} will contact you about the deposit.</p>
             )}
+            {depositSent && (payment.link || payment.note) && <DepositSent businessName={businessName} {...depositSent} />}
+          </div>
+        )}
+
+        {contact && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 text-left">
+            <div className="min-w-0">
+              <p className="text-[13px] text-steel">Questions? {businessName}</p>
+              <p className="truncate text-[15px] font-semibold">{contact.display}</p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <a href={`sms:${contact.e164}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold transition-transform active:scale-[0.97]">
+                Text
+              </a>
+              <a href={`tel:${contact.e164}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold transition-transform active:scale-[0.97]">
+                Call
+              </a>
+            </div>
           </div>
         )}
 
         <p className="mt-6 text-[13px] leading-relaxed text-steel">
           {payment
-            ? "Need to change anything? Contact the detailer directly."
+            ? contact
+              ? "Need to change anything? Text or call the detailer."
+              : "Need to change anything? Contact the detailer directly."
             : smsEnabled
               ? "Your receipt and confirmation are on their way by text and email. You'll get a reminder the day before."
               : "Your receipt is on its way by email. Need to change anything? Contact the detailer directly."}
@@ -184,5 +211,43 @@ function AddToCalendar({ event }: { event: CalendarEvent }) {
       </svg>
       Add to calendar
     </button>
+  );
+}
+
+/**
+ * "I've sent the deposit": tells the detailer to check their account. It does
+ * not mark anything paid; the detailer confirms the money arrived in the app.
+ */
+function DepositSent({ businessName, bookingId, token }: { businessName: string; bookingId: string; token: string }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  if (state === "sent") {
+    return (
+      <p role="status" className="mt-4 text-[13px] leading-relaxed text-steel">
+        Thanks. We&apos;ve told {businessName}. They&apos;ll confirm once the deposit arrives.
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        disabled={state === "sending"}
+        onClick={() => {
+          haptic("step");
+          setState("sending");
+          reportDepositSent({ bookingId, token })
+            .then((r) => setState(r.ok ? "sent" : "error"))
+            .catch(() => setState("error"));
+        }}
+        className="flex h-11 w-full items-center justify-center rounded-[16px] border border-gold/40 text-[14px] font-semibold text-gold transition-transform active:scale-[0.98] disabled:opacity-60"
+      >
+        {state === "sending" ? "Letting them know…" : "I've sent the deposit"}
+      </button>
+      {state === "error" && (
+        <p role="alert" className="mt-2 text-[13px] text-steel">
+          That didn&apos;t go through. Please try again, or let {businessName} know directly.
+        </p>
+      )}
+    </div>
   );
 }

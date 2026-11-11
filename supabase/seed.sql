@@ -12,7 +12,7 @@ insert into public.detailers (id, handle, business_name, tagline, service_area, 
 values ('11111111-1111-4111-8111-111111111111', 'marcus', 'Marcus Shine Co.',
         'Mobile detailing · we come to you', 'Austin, TX · 25 mi', 'America/Chicago', true);
 -- Clients pay the deposit to the detailer directly (payments_mode = external).
-update public.detailers set payment_note = 'Zelle: (512) 555-0101'
+update public.detailers set payment_note = 'Zelle: (512) 555-0101', contact_phone = '+15125550101'
  where id = '11111111-1111-4111-8111-111111111111';
 
 -- The demo account is Pro (no expiry) so App Review never hits the free-plan limit.

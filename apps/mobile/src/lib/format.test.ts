@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dateKey, initials, mondayOf, minutesOfDay, startOfDay, money, moneyParts, weekdayIndex } from './format';
+import { dateKey, initials, localTime, mondayOf, minutesOfDay, startOfDay, money, moneyParts, weekdayIndex } from './format';
 
 // Reference instants below were confirmed with the browser/Node Intl engine
 // for the 2026 DST transitions in America/Chicago:
@@ -125,5 +125,17 @@ describe('more countries (2026-11-10)', () => {
     setMoneyCountry('SG');
     expect(m(18000)).toMatch(/\$180/);
     setMoneyCountry('US');
+  });
+});
+
+describe('localTime (wall time in a zone as an instant)', () => {
+  it('handles both sides of the Chicago DST changes', () => {
+    expect(localTime('2026-03-07', '10:00', 'America/Chicago').toISOString()).toBe('2026-03-07T16:00:00.000Z');
+    expect(localTime('2026-03-08', '10:00', 'America/Chicago').toISOString()).toBe('2026-03-08T15:00:00.000Z');
+    expect(localTime('2026-11-01', '10:00', 'America/Chicago').toISOString()).toBe('2026-11-01T16:00:00.000Z');
+  });
+  it('works without DST and east of UTC', () => {
+    expect(localTime('2026-11-18', '09:30', 'Asia/Dubai').toISOString()).toBe('2026-11-18T05:30:00.000Z');
+    expect(localTime('2026-11-18', '09:30', 'Pacific/Auckland').toISOString()).toBe('2026-11-17T20:30:00.000Z');
   });
 });

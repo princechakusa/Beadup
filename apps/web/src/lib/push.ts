@@ -37,7 +37,7 @@ async function sendToDetailer(detailerId: string, title: string, body: string, u
 }
 
 /** "New booking" / "Balance paid" alert for a booking's detailer. */
-export async function notifyPayment(bookingId: string, kind: "deposit" | "balance" | "booked"): Promise<void> {
+export async function notifyPayment(bookingId: string, kind: "deposit" | "balance" | "booked" | "deposit_reported"): Promise<void> {
   const db = supabaseAdmin();
   if (!db) return;
   const { data } = await db
@@ -64,6 +64,9 @@ export async function notifyPayment(bookingId: string, kind: "deposit" | "balanc
   if (kind === "booked") {
     // External payments: the client pays the deposit to the detailer directly.
     await sendToDetailer(b.detailer_id, "New booking", `${who} booked ${b.service_name}, ${when}. Deposit ${usd(b.deposit_cents)} comes to you directly.`, `/booking/${bookingId}`);
+  } else if (kind === "deposit_reported") {
+    // The client says so; the detailer checks their account and confirms in the app.
+    await sendToDetailer(b.detailer_id, `${who} says the deposit is sent`, `${usd(b.deposit_cents)} for ${b.service_name}, ${when}. Check it arrived, then tap Deposit received.`, `/booking/${bookingId}`);
   } else if (kind === "deposit") {
     await sendToDetailer(b.detailer_id, "New booking", `${who} booked ${b.service_name}, ${when}. Deposit paid.`, `/booking/${bookingId}`);
   } else {

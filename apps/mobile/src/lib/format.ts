@@ -141,6 +141,15 @@ export function startOfDay(key: string, timeZone: string): Date {
   return new Date(guess.getTime() - tzOffsetMinutes(first, timeZone) * 60_000);
 }
 
+/** The instant of a local wall time ("YYYY-MM-DD" + "HH:MM") in a timezone, DST-aware. */
+export function localTime(key: string, hhmm: string, timeZone: string): Date {
+  const [y, m, d] = key.split('-').map(Number);
+  const [h, min] = hhmm.split(':').map(Number);
+  const guess = new Date(Date.UTC(y, m - 1, d, h, min));
+  const first = new Date(guess.getTime() - tzOffsetMinutes(guess, timeZone) * 60_000);
+  return new Date(guess.getTime() - tzOffsetMinutes(first, timeZone) * 60_000);
+}
+
 export function addDaysKey(key: string, days: number): string {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);

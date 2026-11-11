@@ -20,7 +20,7 @@ select is(public.payments_mode(), 'external', 'launch default is external paymen
 -- Bookings are confirmed at once, with the deposit and no booking fee.
 set local role service_role;
 select is(
-  (select r - 'bookingId' - 'startsAt' from public.create_booking('test-e', 'eeeeeeee-0000-4000-8000-00000000000a', 'sedan', '{}',
+  (select r - 'bookingId' - 'startsAt' - 'clientToken' from public.create_booking('test-e', 'eeeeeeee-0000-4000-8000-00000000000a', 'sedan', '{}',
      current_date + 3, '10:00', 'Pat', '+15125550199', '1 Main St, Austin', false, null) r),
   '{"ok": true, "payments": "external", "depositCents": 3000, "subtotalCents": 10000, "bookingFeeCents": 0}'::jsonb,
   'external booking: 30% deposit, no booking fee');

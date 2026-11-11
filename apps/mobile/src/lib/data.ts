@@ -25,6 +25,8 @@ export type Booking = {
   depositCents: number;
   /** External payments: the detailer marked the deposit as paid to them. */
   depositReceived: boolean;
+  /** External payments: the client tapped "I've sent the deposit" (not confirmed until depositReceived). */
+  depositReported: boolean;
   address: string;
   addOns: { name: string; priceCents?: number }[];
   client: { id: string; name: string; phone: string };
@@ -60,7 +62,7 @@ export type Balance = {
 };
 
 const BOOKING_SELECT =
-  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, deposit_received_at, address, add_ons, client:clients(id, name, phone)';
+  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, deposit_received_at, deposit_reported_at, address, add_ons, client:clients(id, name, phone)';
 
 type BookingRow = {
   id: string;
@@ -72,6 +74,7 @@ type BookingRow = {
   subtotal_cents: number;
   deposit_cents: number;
   deposit_received_at: string | null;
+  deposit_reported_at: string | null;
   address: string;
   add_ons: { name: string; priceCents?: number }[] | null;
   client: { id: string; name: string; phone: string } | null;
@@ -87,6 +90,7 @@ const toBooking = (r: BookingRow): Booking => ({
   subtotalCents: r.subtotal_cents,
   depositCents: r.deposit_cents,
   depositReceived: !!r.deposit_received_at,
+  depositReported: !!r.deposit_reported_at,
   address: r.address,
   addOns: r.add_ons ?? [],
   client: r.client ?? { id: '', name: 'Client', phone: '' },
@@ -296,6 +300,19 @@ export async function setBookingStatus(id: string, status: 'completed' | 'no_sho
   if (!supabase) return;
   const { error } = await db().from('bookings').update({ status }).eq('id', id);
   if (error) throw error;
+}
+
+export type RescheduleError = 'overlap' | 'time' | 'status' | 'not_found';
+
+/** Moves a booking (checked on the server: owner only, future, no overlap with other jobs or travel time). */
+export async function rescheduleBooking(id: string, startsAt: Date): Promise<{ ok: true } | { ok: false; error: RescheduleError }> {
+  if (!supabase) return { ok: true };
+  const { data, error } = await db().rpc('reschedule_booking', { p_booking_id: id, p_starts_at: startsAt.toISOString() });
+  if (error) throw error;
+  const r = data as { ok: boolean; error?: RescheduleError };
+  if (!r.ok) return { ok: false, error: r.error ?? 'not_found' };
+  await refreshBookingPage();
+  return { ok: true };
 }
 
 export async function cancelBooking(id: string): Promise<{ refundCents: number }> {
@@ -548,7 +565,15 @@ export async function savePaymentDetails(d: PaymentDetails): Promise<void> {
   await refreshBookingPage();
 }
 
-export type BusinessProfile = { businessName: string; tagline: string; serviceArea: string; handle: string; country: Country };
+export type BusinessProfile = {
+  businessName: string;
+  tagline: string;
+  serviceArea: string;
+  handle: string;
+  country: Country;
+  /** Public phone on the booking page and confirmation (E.164), or null. */
+  contactPhone: string | null;
+};
 
 export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
   if (!supabase) return fixtures.businessProfile;
@@ -561,6 +586,7 @@ export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
       serviceArea: data.service_area,
       handle: data.handle,
       country: isCountry(data.country) ? data.country : 'US',
+      contactPhone: data.contact_phone ?? null,
     }
   );
 }
@@ -572,7 +598,13 @@ export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): P
   if (!user.user) throw new Error('signed out');
   const { error } = await db()
     .from('detailers')
-    .update({ business_name: p.businessName.trim(), tagline: p.tagline.trim(), service_area: p.serviceArea.trim(), country: p.country })
+    .update({
+      business_name: p.businessName.trim(),
+      tagline: p.tagline.trim(),
+      service_area: p.serviceArea.trim(),
+      country: p.country,
+      contact_phone: p.contactPhone,
+    })
     .eq('id', user.user.id);
   if (error) throw error;
   setMoneyCountry(p.country);
@@ -655,4 +687,43 @@ export async function claimReferral(code: string): Promise<{ ok: true } | { ok: 
   if (error) return { ok: false, error: 'unavailable' };
   const res = data as { ok: boolean; error?: ClaimError };
   return res.ok ? { ok: true } : { ok: false, error: res.error ?? 'unavailable' };
+}
+
+// ---------------------------------------------------------------------------
+// Days off and travel time (Settings > Availability).
+
+/** Upcoming whole days off ("YYYY-MM-DD", business timezone). */
+export async function fetchDaysOff(fromKey: string): Promise<string[]> {
+  if (!supabase) return [];
+  const { data, error } = await db().from('days_off').select('day').gte('day', fromKey).order('day');
+  if (error) throw error;
+  return data.map((r) => String(r.day));
+}
+
+export async function setDayOff(day: string, off: boolean): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = off
+    ? await db().from('days_off').upsert({ detailer_id: user.user.id, day }, { onConflict: 'detailer_id,day', ignoreDuplicates: true })
+    : await db().from('days_off').delete().eq('day', day);
+  if (error) throw error;
+  await refreshBookingPage();
+}
+
+/** Minutes kept free between jobs for travel. */
+export async function fetchBufferMin(): Promise<number> {
+  if (!supabase) return 0;
+  const { data, error } = await db().from('detailers').select('*').maybeSingle();
+  if (error) throw error;
+  return typeof data?.buffer_min === 'number' ? data.buffer_min : 0;
+}
+
+export async function saveBufferMin(minutes: number): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = await db().from('detailers').update({ buffer_min: minutes }).eq('id', user.user.id);
+  if (error) throw error;
+  await refreshBookingPage();
 }

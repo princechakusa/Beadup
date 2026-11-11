@@ -79,3 +79,38 @@ export function formatMoney(cents: number, country: Country = "US"): string {
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
   }).format(cents / 100);
 }
+
+/**
+ * An E.164 number the way people in `country` write it ("+15125550101" ->
+ * "(512) 555-0101", "+447700900123" -> "07700 900123"). Numbers from another
+ * country stay in international form.
+ */
+export function formatPhone(e164: string, country: Country): string {
+  const dial = COUNTRIES[country].dial;
+  if (!e164.startsWith(`+${dial}`)) return e164;
+  const n = e164.slice(1 + dial.length);
+  const group = (s: string, sizes: number[]) => {
+    const out: string[] = [];
+    let i = 0;
+    for (const size of sizes) {
+      if (i >= s.length) break;
+      out.push(s.slice(i, i + size));
+      i += size;
+    }
+    if (i < s.length) out[out.length - 1] += s.slice(i);
+    return out.join(" ");
+  };
+  switch (country) {
+    case "US":
+    case "CA":
+      return n.length === 10 ? `(${n.slice(0, 3)}) ${n.slice(3, 6)}-${n.slice(6)}` : e164;
+    case "SG":
+      return group(n, [4, 4]);
+    case "GB":
+      return group(`0${n}`, [5, 6]);
+    case "AU":
+      return group(`0${n}`, [4, 3, 3]);
+    default: // NZ, AE, ZA
+      return group(`0${n}`, [3, 3, 4]);
+  }
+}

@@ -47,6 +47,14 @@ export const detailerSchema = z.object({
     .default([]),
   /** Minutes the detailer keeps free between jobs (travel). */
   bufferMin: z.number().int().min(0).max(240).default(0),
+  /** Whole dates the detailer isn't working ("YYYY-MM-DD", their zone). */
+  daysOff: z.array(z.iso.date()).default([]),
+  /** Public phone for questions about a booking (E.164), if the detailer set one. */
+  contactPhone: z
+    .string()
+    .regex(/^\+[1-9]\d{7,14}$/)
+    .nullable()
+    .default(null),
   /** Start times keyed by weekday ("0" = Sunday), in the detailer's timezone. */
   weeklySlots: z.partialRecord(z.enum(["0", "1", "2", "3", "4", "5", "6"]), z.array(hhmm)),
 });

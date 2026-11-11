@@ -8,7 +8,7 @@ import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
-import { COUNTRIES, formatMoney, toE164, type Country } from "@/lib/countries";
+import { COUNTRIES, formatMoney, formatPhone, toE164, type Country } from "@/lib/countries";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { openDays } from "@/lib/slots";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
@@ -100,9 +100,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             now: new Date(),
             count: 7,
             exclude: new Set([...detailer.taken, ...lostSlots]),
+            daysOff: detailer.daysOff,
           })
         : [],
-    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, durationMin, lostSlots],
+    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, detailer.daysOff, durationMin, lostSlots],
   );
   const [pickedDay, setDayKey] = useState<string | null>(null);
   // A longer service picked after going back can close the chosen day or time.
@@ -116,6 +117,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [bookError, setBookError] = useState<string | null>(null);
   const [paidCents, setPaidCents] = useState<number | null>(null);
+  const [bookedRef, setBookedRef] = useState<{ bookingId: string; token: string } | null>(null);
 
   const service = detailer.services.find((s) => s.id === serviceId);
   // Launch mode: the client pays the deposit to the detailer directly (no card form, no booking fee).
@@ -182,6 +184,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             return new Promise<never>(() => {}); // keep the spinner until the page unloads
           }
           if (res.ok) {
+            if (res.clientToken) setBookedRef({ bookingId: res.bookingId, token: res.clientToken });
             setPaidCents(res.depositCents + res.bookingFeeCents);
             setBooked(true);
             return;
@@ -210,6 +213,8 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
         paid={money(paidCents ?? totals.dueToday)}
         payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
+        depositSent={external && bookedRef ? bookedRef : undefined}
+        contact={detailer.contactPhone ? { e164: detailer.contactPhone, display: formatPhone(detailer.contactPhone, detailer.country) } : undefined}
         serviceName={service?.name ?? ""}
         celebrate
         smsEnabled={smsEnabled}

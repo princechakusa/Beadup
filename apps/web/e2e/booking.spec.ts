@@ -20,4 +20,9 @@ test("a client books, sees the price math and the detailer's deposit instruction
   await expect(page.getByRole("heading", { name: "You're booked" })).toBeVisible();
   await expect(page.getByText("Pay your deposit to Marcus Shine Co.")).toBeVisible();
   await expect(page.getByText("Zelle: (512) 555-0101")).toBeVisible();
+
+  // The client can reach the detailer, and say the deposit is sent (which never marks it paid).
+  await expect(page.getByRole("link", { name: "Call" })).toHaveAttribute("href", "tel:+15125550101");
+  await page.getByRole("button", { name: "I've sent the deposit" }).click();
+  await expect(page.getByRole("status")).toContainText("They'll confirm once the deposit arrives");
 });

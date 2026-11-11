@@ -46,6 +46,8 @@ export type BookingResult =
       checkoutUrl?: string;
       /** "external": confirmed now; the client pays the deposit to the detailer directly. */
       payments?: "stripe" | "external";
+      /** Lets this browser say "I've sent the deposit" for this booking (never shown or stored elsewhere). */
+      clientToken?: string;
     }
   | {
       ok: false;
@@ -198,6 +200,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
         depositCents: z.number(),
         bookingFeeCents: z.number(),
         payments: z.enum(["stripe", "external"]).default("stripe"),
+        clientToken: z.string().regex(/^[0-9a-f]{48}$/).optional(),
       }),
       z.object({ ok: z.literal(false), error: z.string() }),
     ])
@@ -217,7 +220,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     // Confirmed by the database; the client pays the detailer directly. No
     // payment webhook will follow, so alert the detailer now.
     after(() => notifyPayment(result.bookingId, "booked"));
-    return { ok: true, ...booked, payments: "external" };
+    return { ok: true, ...booked, payments: "external", clientToken: result.clientToken };
   }
 
   if (!stripe()) {
@@ -234,4 +237,27 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     await db.rpc("cancel_booking", { p_booking_id: result.bookingId, p_by: "client" });
     return { ok: false, error: "unavailable" };
   }
+}
+
+const depositSentInput = z.object({ bookingId: z.uuid(), token: z.string().regex(/^[0-9a-f]{48}$/) });
+
+/**
+ * External payments: the client says they've sent the deposit to the detailer.
+ * Records "payment submitted" and alerts the detailer, who confirms it in the
+ * app. It never marks the deposit as received.
+ */
+export async function reportDepositSent(raw: z.input<typeof depositSentInput>): Promise<{ ok: boolean }> {
+  const parsed = depositSentInput.safeParse(raw);
+  if (!parsed.success) return { ok: false };
+  const db = supabaseAdmin();
+  if (!db) return { ok: process.env.NODE_ENV !== "production" }; // local demo mode
+  const ip = clientIp(await headers());
+  const { data: allowed } = await db.rpc("hit_rate_limit", { p_key: `deposit-sent:ip:${hash(ip)}`, p_limit: 10, p_window_seconds: 600 });
+  if (allowed !== true) return { ok: false };
+
+  const { data, error } = await db.rpc("report_deposit_sent", { p_booking_id: parsed.data.bookingId, p_token: parsed.data.token });
+  const result = z.object({ ok: z.boolean(), first: z.boolean().optional() }).safeParse(data);
+  if (error || !result.success || !result.data.ok) return { ok: false };
+  if (result.data.first) after(() => notifyPayment(parsed.data.bookingId, "deposit_reported"));
+  return { ok: true };
 }

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, Share, StyleSheet, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { AskReviewButton } from '@/components/AskReviewButton';
@@ -31,6 +31,7 @@ export default function BookingDetail() {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [justCancelled, setJustCancelled] = useState(false);
   const now = useNow();
   // Launch mode: deposits and balances are paid to the detailer directly.
   const external = usePaymentsMode() === 'external';
@@ -64,7 +65,9 @@ export default function BookingDetail() {
     external && b.status === 'confirmed'
       ? b.depositReceived
         ? { label: 'Deposit paid', tone: 'success' as const }
-        : { label: 'Deposit due', tone: 'gold' as const }
+        : b.depositReported
+          ? { label: 'Client says paid', tone: 'gold' as const }
+          : { label: 'Deposit due', tone: 'gold' as const }
       : STATUS[b.status];
 
   return (
@@ -110,7 +113,18 @@ export default function BookingDetail() {
         ))}
         <Line label="Total" value={money(b.subtotalCents)} strong />
         {external ? (
-          <Line label={b.depositReceived ? 'Deposit received' : 'Deposit (30%), not marked paid yet'} value={money(b.depositCents)} muted={b.depositReceived} gold={!b.depositReceived} />
+          <Line
+            label={
+              b.depositReceived
+                ? 'Deposit received'
+                : b.depositReported
+                  ? 'Deposit (30%): client says it’s sent. Check it arrived.'
+                  : 'Deposit (30%), not marked paid yet'
+            }
+            value={money(b.depositCents)}
+            muted={b.depositReceived}
+            gold={!b.depositReceived}
+          />
         ) : (
           <>
             <Line label="Paid so far" value={money(b.paidCents)} muted />
@@ -127,7 +141,13 @@ export default function BookingDetail() {
 
       {external && b.status !== 'cancelled' && b.status !== 'pending_payment' && (
         <Button
-          label={b.depositReceived ? 'Undo: deposit not received' : `Deposit received (${money(b.depositCents)})`}
+          label={
+            b.depositReceived
+              ? 'Undo: deposit not received'
+              : b.depositReported
+                ? `Confirm deposit received (${money(b.depositCents)})`
+                : `Deposit received (${money(b.depositCents)})`
+          }
           variant={b.depositReceived ? 'ghost' : 'primary'}
           loading={busy === 'deposit'}
           onPress={() =>
@@ -176,6 +196,7 @@ export default function BookingDetail() {
           {started && (
             <Button label="Client didn’t show" variant="ghost" loading={busy === 'noshow'} onPress={() => run('noshow', () => setBookingStatus(b.id, 'no_show'))} />
           )}
+          {!started && <Button label="Reschedule" variant="glass" onPress={() => router.push(`/reschedule/${b.id}`)} />}
           {!confirmCancel ? (
             <Button label="Cancel booking" variant="danger" onPress={() => setConfirmCancel(true)} />
           ) : (
@@ -194,6 +215,7 @@ export default function BookingDetail() {
                     await cancelBooking(b.id);
                     haptic.warning();
                     setConfirmCancel(false);
+                    setJustCancelled(true);
                   })
                 }
               />
@@ -202,7 +224,38 @@ export default function BookingDetail() {
           )}
         </View>
       )}
+
+      {justCancelled && b.status === 'cancelled' && (
+        <TellClientCancelled
+          phone={b.client.phone}
+          first={b.client.name.split(' ')[0] || 'there'}
+          what={`${b.serviceName} on ${new Date(b.startsAt).toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' })}`}
+          refundNote={external ? (b.depositReceived || b.depositReported ? ' I’ll refund your deposit.' : '') : ' Your refund is on its way to your card.'}
+          businessName={profile.data?.businessName ?? ''}
+        />
+      )}
     </Screen>
+  );
+}
+
+/** Beadup doesn't text clients yet, so after cancelling the detailer sends the message from their own phone. */
+function TellClientCancelled({ phone, first, what, refundNote, businessName }: { phone: string; first: string; what: string; refundNote: string; businessName: string }) {
+  const message = `Hi ${first}, I’m sorry, I have to cancel your ${what}.${refundNote} ${businessName}`.trim();
+  const tell = async () => {
+    haptic.select();
+    const sms = `sms:${phone}&body=${encodeURIComponent(message)}`;
+    try {
+      if (phone && (await Linking.canOpenURL(sms))) return await Linking.openURL(sms);
+    } catch {
+      // fall through to the share sheet
+    }
+    await Share.share({ message }).catch(() => undefined);
+  };
+  return (
+    <View style={{ gap: space.md }}>
+      <Text variant="caption">Cancelled. {first} isn’t told automatically.</Text>
+      <Button label={`Let ${first} know`} onPress={tell} />
+    </View>
   );
 }
 
