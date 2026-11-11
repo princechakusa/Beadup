@@ -126,3 +126,10 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   so it can't throw) + a root ErrorBoundary in _layout.tsx. Fix is committed but NOT published as an OTA until the
   owner confirms the rollback stopped the crash (that confirms the cause). Then: `eas update ... --message "New
   countries (fixed)"`.
+
+## 2026-11-11, Claude Code: product audit (owner's brief)
+- Report: `docs/AUDIT_2026-11-11.md` (inventory, security, tests per stage).
+- Done: overlap-proof bookings + travel buffer + status guard + reschedule (P0); days off, client contact phone,
+  "I've sent the deposit", detailer-zone dates; Today "Needs attention"; landing contrast fix (CI had been red).
+- Mobile changes are JS-only: they reach installed builds with an OTA update (`eas update ... --environment production`),
+  **not run yet: needs the owner's go-ahead**. Not device-tested (no simulator on this PC).
