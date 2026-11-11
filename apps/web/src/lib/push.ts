@@ -86,3 +86,32 @@ export async function notifyReview(token: string, rating: number, body: string):
   const said = text ? `: "${text.length > 90 ? `${text.slice(0, 89)}…` : text}"` : ".";
   await sendToDetailer(data.detailer_id as string, `New ${rating}-star review`, `${first} rated your detail ${rating} out of 5${said}`, "/reviews");
 }
+
+/** A client asked, from their booking page, to move or cancel. Opens the booking in the app. */
+export async function notifyRequest(bookingId: string, kind: "reschedule" | "cancel"): Promise<void> {
+  const db = supabaseAdmin();
+  if (!db) return;
+  const { data } = await db
+    .from("bookings")
+    .select("detailer_id, service_name, starts_at, client:clients(name), detailer:detailers(timezone)")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (!data) return;
+  const b = data as unknown as {
+    detailer_id: string;
+    service_name: string;
+    starts_at: string;
+    client: { name: string } | null;
+    detailer: { timezone: string } | null;
+  };
+  const [first, last] = (b.client?.name ?? "A client").split(" ");
+  const who = last ? `${first} ${last[0]}.` : first;
+  const when = new Date(b.starts_at).toLocaleString("en-US", {
+    timeZone: b.detailer?.timezone ?? "America/Chicago",
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const title = kind === "cancel" ? `${who} asks to cancel` : `${who} asks for a new time`;
+  await sendToDetailer(b.detailer_id, title, `${b.service_name}, ${when}. Open the booking to reply.`, `/booking/${bookingId}`);
+}

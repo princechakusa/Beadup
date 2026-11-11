@@ -731,7 +731,51 @@ export async function saveBufferMin(minutes: number): Promise<void> {
 // ---------------------------------------------------------------------------
 // Today > Needs attention: only things the detailer has to act on, from real rows.
 
+/** A client's request from their booking page (beadup.app/b/...). The detailer decides. */
+export type BookingRequest = {
+  id: string;
+  bookingId: string;
+  kind: 'reschedule' | 'cancel';
+  /** Up to three "YYYY-MM-DD HH:MM" start times in the business timezone. */
+  preferred: string[];
+  note: string;
+  createdAt: string;
+};
+
+type RequestRow = { id: string; booking_id: string; kind: BookingRequest['kind']; preferred: string[]; note: string; created_at: string };
+const toRequest = (r: RequestRow): BookingRequest => ({
+  id: r.id,
+  bookingId: r.booking_id,
+  kind: r.kind,
+  preferred: r.preferred ?? [],
+  note: r.note,
+  createdAt: r.created_at,
+});
+
+/** The open request on a booking, if any. */
+export async function fetchBookingRequest(bookingId: string): Promise<BookingRequest | null> {
+  if (!supabase) return null;
+  const { data, error } = await db()
+    .from('booking_requests')
+    .select('id, booking_id, kind, preferred, note, created_at')
+    .eq('booking_id', bookingId)
+    .eq('status', 'open')
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toRequest(data as RequestRow) : null;
+}
+
+/** Closes a request without acting on it (moving or cancelling the booking closes it by itself). */
+export async function dismissBookingRequest(id: string): Promise<void> {
+  if (!supabase) return;
+  const { data, error } = await db().rpc('dismiss_booking_request', { p_request_id: id });
+  if (error) throw error;
+  if (!(data as { ok?: boolean } | null)?.ok) throw new Error('not found');
+}
+
 export type Attention = {
+  /** Clients asking to move or cancel, newest first, with their booking. */
+  requests: { request: BookingRequest; booking: Booking }[];
   /** External payments: confirmed jobs whose deposit isn't marked received ("client says sent" first). */
   depositsToConfirm: Booking[];
   /** Jobs that ended but were never marked done or no-show. */
@@ -747,12 +791,13 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
     return {
       depositsToConfirm: external ? all.filter((b) => b.status === 'confirmed' && !b.depositReceived && Date.parse(b.startsAt) > Date.now()) : [],
       toCloseOut: [],
+      requests: [],
       missingPayment: false,
       missingPhone: false,
     };
   }
   const now = Date.now();
-  const [deposits, past, me] = await Promise.all([
+  const [deposits, past, me, reqs] = await Promise.all([
     external
       ? db()
           .from('bookings')
@@ -772,7 +817,14 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
       .order('starts_at', { ascending: false })
       .limit(20),
     db().from('detailers').select('*').maybeSingle(),
+    db()
+      .from('booking_requests')
+      .select(`id, booking_id, kind, preferred, note, created_at, booking:bookings(${BOOKING_SELECT})`)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+      .limit(10),
   ]);
+  if (reqs.error) throw reqs.error;
   if (deposits.error) throw deposits.error;
   if (past.error) throw past.error;
   if (me.error) throw me.error;
@@ -780,7 +832,11 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
   const depositsToConfirm = toBookings(deposits.data).sort((a, b) => Number(b.depositReported) - Number(a.depositReported));
   // Ended at least 30 minutes ago.
   const toCloseOut = toBookings(past.data).filter((b) => Date.parse(b.startsAt) + (b.durationMin + 30) * 60_000 < now);
+  const requests = (reqs.data as unknown as (RequestRow & { booking: BookingRow | null })[])
+    .filter((r) => r.booking)
+    .map((r) => ({ request: toRequest(r), booking: toBooking(r.booking!) }));
   return {
+    requests,
     depositsToConfirm,
     toCloseOut,
     missingPayment: external && !me.data?.payment_link && !me.data?.payment_note,

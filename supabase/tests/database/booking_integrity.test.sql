@@ -104,7 +104,7 @@ select is(public.reschedule_booking(
             (select id from public.bookings where service_name = 'Wash' and starts_at::time = '14:00'),
             (select day from d) + 1 + time '09:00') ->> 'ok',
           'true', 'reschedule to a free time works');
-select is((select count(*)::int from public.audit_log where event = 'booking.rescheduled'), 1, 'reschedule is audited');
+select is((select count(*)::int from public.audit_log where event = 'booking.rescheduled' and detailer_id = 'e1e1e1e1-0000-4000-8000-000000000000'), 1, 'reschedule is audited');
 select is(public.reschedule_booking(
             (select id from public.bookings where service_name = 'X'),
             (select day from d) + 2 + time '09:00') ->> 'error',

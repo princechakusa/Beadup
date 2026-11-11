@@ -7,7 +7,19 @@ import { AskReviewButton } from '@/components/AskReviewButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { cancelBooking, fetchBooking, fetchProfile, markDepositReceived, requestBalanceLink, setBookingStatus, usePaymentsMode, useQuery } from '@/lib/data';
+import {
+  cancelBooking,
+  dismissBookingRequest,
+  fetchBooking,
+  fetchBookingRequest,
+  fetchProfile,
+  markDepositReceived,
+  requestBalanceLink,
+  setBookingStatus,
+  usePaymentsMode,
+  useQuery,
+  type BookingRequest,
+} from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
@@ -26,6 +38,7 @@ const STATUS = {
 export default function BookingDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const booking = useQuery(() => fetchBooking(id), [id]);
+  const request = useQuery(() => fetchBookingRequest(id), [id]);
   const profile = useQuery(fetchProfile);
   const tz = profile.data?.timezone ?? 'America/Chicago';
   const [busy, setBusy] = useState<string | null>(null);
@@ -43,6 +56,7 @@ export default function BookingDetail() {
     try {
       await fn();
       booking.refresh();
+      request.refresh();
     } catch {
       haptic.error();
       setNotice('That didn’t go through. Check your connection and try again.');
@@ -78,6 +92,17 @@ export default function BookingDetail() {
           {SIZE_LABEL[b.vehicleSize]} · {Math.round((b.durationMin / 60) * 10) / 10} h
         </Text>
       </View>
+
+      {request.data && (b.status === 'confirmed' || b.status === 'pending_payment') && (
+        <RequestCard
+          r={request.data}
+          first={b.client.name.split(' ')[0] || 'The client'}
+          busy={busy === 'dismiss'}
+          onReschedule={() => router.push(`/reschedule/${b.id}`)}
+          onCancel={() => setConfirmCancel(true)}
+          onDismiss={() => run('dismiss', () => dismissBookingRequest(request.data!.id))}
+        />
+      )}
 
       <ListCard>
         <View style={styles.block}>
@@ -238,6 +263,57 @@ export default function BookingDetail() {
   );
 }
 
+const to12h = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+};
+/** "YYYY-MM-DD HH:MM" (business timezone) as "Tue, Nov 18 · 10:00 AM". */
+const localLabel = (s: string) => {
+  const [date, time] = s.split(' ');
+  return `${new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })} · ${to12h(time)}`;
+};
+
+/** A request the client sent from their booking page. Moving or cancelling closes it by itself. */
+function RequestCard({
+  r,
+  first,
+  busy,
+  onReschedule,
+  onCancel,
+  onDismiss,
+}: {
+  r: BookingRequest;
+  first: string;
+  busy: boolean;
+  onReschedule: () => void;
+  onCancel: () => void;
+  onDismiss: () => void;
+}) {
+  const cancel = r.kind === 'cancel';
+  return (
+    <View style={[styles.request, cancel && { borderColor: 'rgba(255,138,138,0.35)', backgroundColor: 'rgba(255,138,138,0.06)' }]}>
+      <Text variant="bodyStrong">{cancel ? `${first} asks to cancel` : `${first} asks for a new time`}</Text>
+      {r.preferred.map((p) => (
+        <Text key={p} variant="body">
+          {localLabel(p)}
+        </Text>
+      ))}
+      {!!r.note && <Text variant="caption">“{r.note}”</Text>}
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+        <View style={{ flex: 1 }}>
+          <Button label={cancel ? 'Cancel booking' : 'Reschedule'} variant={cancel ? 'danger' : 'primary'} onPress={cancel ? onCancel : onReschedule} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label="Dismiss" variant="ghost" loading={busy} onPress={onDismiss} />
+        </View>
+      </View>
+      <Text variant="caption" style={{ fontSize: 12 }}>
+        Dismiss if you sorted it out another way. {first} sees the request until then.
+      </Text>
+    </View>
+  );
+}
+
 /** Beadup doesn't text clients yet, so after cancelling the detailer sends the message from their own phone. */
 function TellClientCancelled({ phone, first, what, refundNote, businessName }: { phone: string; first: string; what: string; refundNote: string; businessName: string }) {
   const message = `Hi ${first}, I’m sorry, I have to cancel your ${what}.${refundNote} ${businessName}`.trim();
@@ -275,6 +351,7 @@ function Line({ label, value, strong, muted, gold }: { label: string; value: str
 const styles = StyleSheet.create({
   block: { padding: 16, gap: 4 },
   line: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+  request: { gap: 4, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(77,216,255,0.35)', backgroundColor: 'rgba(77,216,255,0.06)' },
   confirm: { gap: space.md, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,138,138,0.35)', backgroundColor: 'rgba(255,138,138,0.06)' },
 });
 

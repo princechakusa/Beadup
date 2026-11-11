@@ -67,7 +67,7 @@ reset role;
 select ok((select deposit_reported_at is not null and deposit_received_at is null from public.bookings
             where id = (select (r ->> 'bookingId')::uuid from bk)),
           'reported, but NOT marked received: only the detailer confirms');
-select is((select count(*)::int from public.audit_log where event = 'deposit.reported'), 1, 'report is audited once');
+select is((select count(*)::int from public.audit_log where event = 'deposit.reported' and detailer_id = 'f1f1f1f1-0000-4000-8000-000000000000'), 1, 'report is audited once');
 
 -- Only the server may call it; the detailer app can't read the token.
 set local role anon;

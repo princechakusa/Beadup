@@ -17,8 +17,18 @@ const MAX_ROWS = 3;
  */
 export function NeedsAttention({ data, tz }: { data: Attention | null | undefined; tz: string }) {
   if (!data) return null;
-  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone } = data;
+  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, requests } = data;
   const rows = [
+    ...requests.slice(0, MAX_ROWS).map(({ request: r, booking: b }) => (
+      <BookingRow
+        key={`r-${r.id}`}
+        b={b}
+        tz={tz}
+        tone={r.kind === 'cancel' ? 'danger' : 'bead'}
+        badge={r.kind === 'cancel' ? 'Wants to cancel' : 'Wants new time'}
+        detail={`${b.client.name}${r.note ? ` · “${r.note}”` : r.preferred.length ? ` · ${r.preferred.length} time${r.preferred.length > 1 ? 's' : ''} suggested` : ''}`}
+      />
+    )),
     ...toCloseOut.slice(0, MAX_ROWS).map((b) => (
       <BookingRow key={`c-${b.id}`} b={b} tz={tz} tone="steel" badge="Close out" detail={`${b.client.name} · ended, not marked done`} />
     )),
@@ -40,7 +50,7 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
     ),
   ].filter(Boolean);
   if (rows.length === 0) return null;
-  const more = Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
+  const more = Math.max(0, requests.length - MAX_ROWS) + Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
 
   return (
     <View style={{ gap: 10 }}>
@@ -59,7 +69,9 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
   );
 }
 
-function BookingRow({ b, tz, tone, badge, detail }: { b: Booking; tz: string; tone: 'gold' | 'steel'; badge: string; detail: string }) {
+const STRIPE = { gold: colors.gold, steel: colors.steel, bead: colors.bead, danger: colors.danger } as const;
+
+function BookingRow({ b, tz, tone, badge, detail }: { b: Booking; tz: string; tone: keyof typeof STRIPE; badge: string; detail: string }) {
   return (
     <Pressable
       onPress={() => {
@@ -69,7 +81,7 @@ function BookingRow({ b, tz, tone, badge, detail }: { b: Booking; tz: string; to
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
       accessibilityRole="button"
       accessibilityLabel={`${badge}: ${b.serviceName}, ${dayLabel(b.startsAt, tz)} ${timeOf(b.startsAt, tz)}, ${detail}`}>
-      <View style={[styles.stripe, { backgroundColor: tone === 'gold' ? colors.gold : colors.steel }]} />
+      <View style={[styles.stripe, { backgroundColor: STRIPE[tone] }]} />
       <View style={{ flex: 1, gap: 1 }}>
         <Text variant="bodyStrong" style={{ fontSize: 14 }} numberOfLines={1}>
           {b.serviceName} · {dayLabel(b.startsAt, tz)} {timeOf(b.startsAt, tz)}

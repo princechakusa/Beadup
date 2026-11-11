@@ -18,7 +18,7 @@ export function cleanup(): void {
     delete from public.reviews where booking_id in (select b.id from public.bookings b join public.clients c on c.id = b.client_id where c.name like 'E2E %');
     delete from public.bookings where client_id in (select id from public.clients where name like 'E2E %');
     delete from public.clients where name like 'E2E %';
-    delete from public.rate_limits where key like 'book:%' or key like 'review:%';
+    delete from public.rate_limits where key like 'book:%' or key like 'review:%' or key like 'client-%' or key like 'deposit-sent:%';
   `);
 }
 

@@ -126,6 +126,8 @@ export function BookedCelebration({
 
         {calendar && <AddToCalendar event={calendar} />}
 
+        {depositSent && <SaveBookingLink token={depositSent.token} />}
+
         {payment && (
           <div className="mt-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 text-left">
             <p className="text-[15px] font-semibold">Pay your deposit to {businessName}</p>
@@ -146,7 +148,9 @@ export function BookedCelebration({
             {!payment.link && !payment.note && (
               <p className="mt-3 text-[13px] text-steel">{businessName} will contact you about the deposit.</p>
             )}
-            {depositSent && (payment.link || payment.note) && <DepositSent businessName={businessName} {...depositSent} />}
+            {depositSent && (payment.link || payment.note) && (
+              <DepositSent businessName={businessName} report={() => reportDepositSent(depositSent)} />
+            )}
           </div>
         )}
 
@@ -181,7 +185,7 @@ export function BookedCelebration({
   );
 }
 
-function AddToCalendar({ event }: { event: CalendarEvent }) {
+export function AddToCalendar({ event }: { event: CalendarEvent }) {
   function save() {
     haptic("step");
     let ics: string;
@@ -218,7 +222,7 @@ function AddToCalendar({ event }: { event: CalendarEvent }) {
  * "I've sent the deposit": tells the detailer to check their account. It does
  * not mark anything paid; the detailer confirms the money arrived in the app.
  */
-function DepositSent({ businessName, bookingId, token }: { businessName: string; bookingId: string; token: string }) {
+export function DepositSent({ businessName, report }: { businessName: string; report: () => Promise<{ ok: boolean }> }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   if (state === "sent") {
     return (
@@ -235,7 +239,7 @@ function DepositSent({ businessName, bookingId, token }: { businessName: string;
         onClick={() => {
           haptic("step");
           setState("sending");
-          reportDepositSent({ bookingId, token })
+          report()
             .then((r) => setState(r.ok ? "sent" : "error"))
             .catch(() => setState("error"));
         }}
@@ -248,6 +252,38 @@ function DepositSent({ businessName, bookingId, token }: { businessName: string;
           That didn&apos;t go through. Please try again, or let {businessName} know directly.
         </p>
       )}
+    </div>
+  );
+}
+
+/** The client's private booking page: view, pay, ask to move or cancel. Saved by the client, never sent by Beadup. */
+function SaveBookingLink({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false);
+  const path = `/b/${token}`;
+  return (
+    <div className="mt-3 rounded-[20px] border border-white/10 bg-white/[0.03] p-4 text-left">
+      <p className="text-[14px] font-semibold">Your booking page</p>
+      <p className="mt-1 text-[13px] leading-relaxed text-steel">
+        Save this private link to see your booking, pay the deposit later, or ask to change it.
+      </p>
+      <div className="mt-3 flex gap-2">
+        <a href={path} className="flex h-11 flex-1 items-center justify-center rounded-full bg-bead/15 text-[14px] font-semibold text-bead">
+          Open
+        </a>
+        <button
+          type="button"
+          onClick={() => {
+            haptic("step");
+            navigator.clipboard
+              ?.writeText(new URL(path, window.location.origin).toString())
+              .then(() => setCopied(true))
+              .catch(() => {});
+          }}
+          className="flex h-11 flex-1 items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold"
+        >
+          {copied ? "Copied" : "Copy link"}
+        </button>
+      </div>
     </div>
   );
 }
