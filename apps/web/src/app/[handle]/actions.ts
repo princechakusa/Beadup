@@ -51,7 +51,17 @@ export type BookingResult =
     }
   | {
       ok: false;
-      error: "invalid" | "rate_limited" | "bot_check" | "slot_taken" | "slot_unavailable" | "unavailable" | "payments_not_ready" | "plan_limit";
+      error:
+        | "invalid"
+        | "rate_limited"
+        | "bot_check"
+        | "slot_taken"
+        | "slot_unavailable"
+        | "unavailable"
+        | "payments_not_ready"
+        | "plan_limit"
+        /** A service or add-on was removed or changed after the page loaded. */
+        | "catalog_changed";
     };
 
 const checkoutContext = z.object({
@@ -207,10 +217,12 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     .parse(data);
 
   if (!result.ok) {
+    // The page the client saw is out of date: refresh it for their next try.
+    revalidateTag(bookingPageTag(input.handle), { expire: 0 });
+    if (result.error === "service" || result.error === "add_on") return { ok: false, error: "catalog_changed" };
+    if (result.error === "not_found") return { ok: false, error: "unavailable" };
     const known = ["slot_taken", "slot_unavailable", "plan_limit"] as const;
-    const code = known.find((k) => k === result.error);
-    if (code) revalidateTag(bookingPageTag(input.handle), { expire: 0 }); // refresh taken times
-    return { ok: false, error: code ?? "invalid" };
+    return { ok: false, error: known.find((k) => k === result.error) ?? "invalid" };
   }
 
   revalidateTag(bookingPageTag(input.handle), { expire: 0 });

@@ -30,6 +30,8 @@ create table public.booking_requests (
 -- At most one open request per booking: a new one replaces it.
 create unique index booking_requests_one_open on public.booking_requests (booking_id) where status = 'open';
 create index booking_requests_detailer_open on public.booking_requests (detailer_id) where status = 'open';
+-- Covers the foreign key, so deleting a booking (or an account) doesn't scan every request.
+create index booking_requests_booking_idx on public.booking_requests (booking_id, detailer_id);
 
 alter table public.booking_requests enable row level security;
 revoke all on public.booking_requests from anon, authenticated;

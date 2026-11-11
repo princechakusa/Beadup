@@ -824,7 +824,8 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
       .order('created_at', { ascending: false })
       .limit(10),
   ]);
-  if (reqs.error) throw reqs.error;
+  // Requests are an extra: if they can't load, still show the rest of the card.
+  if (reqs.error) console.warn('booking requests unavailable', reqs.error.code);
   if (deposits.error) throw deposits.error;
   if (past.error) throw past.error;
   if (me.error) throw me.error;
@@ -832,7 +833,7 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
   const depositsToConfirm = toBookings(deposits.data).sort((a, b) => Number(b.depositReported) - Number(a.depositReported));
   // Ended at least 30 minutes ago.
   const toCloseOut = toBookings(past.data).filter((b) => Date.parse(b.startsAt) + (b.durationMin + 30) * 60_000 < now);
-  const requests = (reqs.data as unknown as (RequestRow & { booking: BookingRow | null })[])
+  const requests = ((reqs.error ? [] : reqs.data) as unknown as (RequestRow & { booking: BookingRow | null })[])
     .filter((r) => r.booking)
     .map((r) => ({ request: toRequest(r), booking: toBooking(r.booking!) }));
   return {

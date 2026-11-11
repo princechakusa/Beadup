@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, MotionConfig, useReducedMotion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { BeadLogo } from "@/components/BeadLogo";
@@ -31,6 +32,7 @@ const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string>
   unavailable: "Booking is temporarily unavailable. Please try again shortly.",
   payments_not_ready: "This detailer isn't taking online payments yet. Please contact them directly to book.",
   plan_limit: "This detailer's online booking is full for this month. Please contact them directly to book.",
+  catalog_changed: "This detailer just updated their services or prices. Please choose your detail again.",
 };
 
 const STEPS = ["Service", "Vehicle", "Time", "Details", "Review"] as const;
@@ -72,6 +74,7 @@ function to12h(hhmm: string) {
 export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
   const money = (cents: number) => formatMoney(cents, detailer.country);
   const reduce = useReducedMotion();
+  const router = useRouter();
   // Animation start states only after hydration: the server HTML must not
   // carry style="" attributes (CSP without 'unsafe-inline').
   const hydrated = useHydrated();
@@ -190,6 +193,15 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             return;
           }
           setBookError(BOOK_ERRORS[res.error]);
+          if (res.error === "catalog_changed") {
+            // Load the current services, then start the choice again (the old ids no longer exist).
+            router.refresh();
+            setServiceId(null);
+            setAddOns([]);
+            setSlot(null);
+            go(0);
+            return;
+          }
           if (res.error === "slot_taken" || res.error === "slot_unavailable") {
             if (dayKey && slot) setLostSlots((xs) => [...xs, `${dayKey} ${slot}`]);
             setSlot(null);
@@ -304,6 +316,11 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             {step === 0 && (
               <>
                 <StepTitle eyebrow={`Step 1 of ${STEPS.length}`} title="Pick your detail" />
+                {bookError && (
+                  <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
+                    {bookError}
+                  </p>
+                )}
                 <div className="mt-5 flex flex-col gap-2.5" role="radiogroup" aria-label="Service">
                   {detailer.services.map((s) => {
                     const active = s.id === serviceId;
@@ -313,7 +330,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         type="button"
                         role="radio"
                         aria-checked={active}
-                        onClick={() => { haptic(); setServiceId(s.id); }}
+                        onClick={() => { haptic(); setServiceId(s.id); setBookError(null); }}
                         whileTap={{ scale: 0.98 }}
                         className="relative flex items-center gap-3.5 rounded-[22px] border border-white/[0.07] bg-gradient-to-b from-[#1a1f27] to-gunmetal p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                       >
