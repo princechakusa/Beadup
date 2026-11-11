@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BeadLogo } from "@/components/BeadLogo";
-import { GlassBead } from "@/components/GlassBead";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import {
   IconArrowRight,
@@ -15,7 +13,6 @@ import {
   IconRoute,
   IconShield,
   IconSparkle,
-  IconStar,
   IconTrash,
   IconUsers,
   IconWallet,
@@ -30,9 +27,9 @@ import { Spotlight } from "@/components/site/Spotlight";
 import { Walkthrough } from "@/components/site/Walkthrough";
 import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
-import { Tilt } from "@/components/site/Tilt";
+import { BookInSeconds, FeatureBar, HeroLanding } from "@/components/site/HeroLanding";
 import { appStoreMetadata } from "@/lib/seo";
-import { getPublicConfig, SAMPLE_PAGE, type PublicConfig } from "@/lib/site";
+import { getPublicConfig, type PublicConfig } from "@/lib/site";
 
 const TITLE = "Beadup: quote, book and get paid as a mobile detailer";
 const DESCRIPTION =
@@ -56,8 +53,9 @@ export default async function Home() {
     <SitePage>
       <AppMicrodata description={DESCRIPTION} appStoreUrl={APP_STORE_URL} />
       <Spotlight />
-      <Hero config={config} external={external} />
-      <Capabilities />
+      <HeroLanding />
+      <FeatureBar />
+      <BookInSeconds />
       <NoShows />
       <HowItWorks external={external} />
       <Features external={external} ai={ai} />
@@ -68,137 +66,6 @@ export default async function Home() {
       <Faq config={config} external={external} ai={ai} />
       <FinalCta free={config.free_bookings_per_month} />
     </SitePage>
-  );
-}
-
-/* ---------------------------------------------------------------- Hero */
-
-function Hero({ config, external }: { config: PublicConfig; external: boolean }) {
-  return (
-    <section aria-labelledby="hero-title" className="relative mx-auto grid w-full max-w-6xl items-center gap-16 px-5 pb-10 pt-12 sm:px-8 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] lg:gap-10 lg:pt-24">
-      <div className="relative z-10 flex flex-col items-start gap-7">
-        <span className="enter glass glass-edge inline-flex items-center gap-2.5 rounded-full py-1.5 pl-2 pr-4 text-[13px] font-semibold tracking-[0.01em] text-mist">
-          {/* The brand's water bead, not a status dot. */}
-          <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-bead/10 ring-1 ring-bead/25">
-            <BeadLogo size={14} animate={false} />
-          </span>
-          Built for mobile car detailers
-        </span>
-        <h1
-          id="hero-title"
-          className="enter d-1 font-display text-[46px] font-extrabold leading-[0.98] tracking-[-0.05em] sm:text-[72px] lg:text-[68px] xl:text-[76px]"
-        >
-          <span className="text-gradient">
-            <span className="whitespace-nowrap">Quote it.</span> <span className="whitespace-nowrap">Book it.</span>
-          </span>
-          <br />
-          <span className="text-shimmer">Get paid.</span>
-        </h1>
-        <p className="enter d-2 max-w-[540px] text-lg leading-relaxed text-mist sm:text-[20px]">
-          Snap a few photos and send a priced quote in a minute. Share one link where clients pick a time and{" "}
-          {external ? "see how to pay your deposit" : "pay a deposit"}. Fewer no-shows, fuller weeks, and no app for
-          your clients to download.
-        </p>
-        <div className="enter d-3 flex flex-wrap items-center gap-3">
-          <AppStoreButton />
-          <Link
-            href={SAMPLE_PAGE}
-            className="group inline-flex h-[60px] items-center gap-2 rounded-[20px] border border-white/[0.12] bg-white/[0.04] px-6 font-semibold text-paint transition-colors hover:bg-white/[0.08]"
-          >
-            Try a booking page
-            <IconArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-        <div className="enter d-4 flex flex-col gap-2">
-          <IphoneNote />
-          <span className="text-sm text-steel">
-            Free for up to {config.free_bookings_per_month} bookings a month. No card needed.
-          </span>
-        </div>
-      </div>
-
-      <HeroStage />
-    </section>
-  );
-}
-
-function HeroStage() {
-  return (
-    <div className="relative mx-auto w-full max-w-[460px]">
-      <div aria-hidden="true" className="animate-drift pointer-events-none absolute -inset-16 rounded-full bg-[radial-gradient(closest-side,rgba(77,216,255,0.22),rgba(77,216,255,0))]" />
-      <Tilt className="relative">
-        <div className="relative grid grid-cols-[1fr] place-items-center pb-4">
-          {/* Back phone: the client's booking page */}
-          <div className="enter d-3 absolute right-[-4%] top-[9%] w-[54%] rotate-[7deg] opacity-80 blur-[0.3px] sm:right-[-10%]">
-            <Phone screen="booking" glow={false} sizes="(min-width: 1024px) 250px, 45vw" />
-          </div>
-          {/* Front phone: the detailer's day */}
-          <div className="enter d-1 relative w-[64%] -translate-x-[16%] -rotate-[3deg]">
-            <div className="animate-float">
-              <Phone screen="today" priority sizes="(min-width: 1024px) 300px, 60vw" />
-            </div>
-          </div>
-        </div>
-      </Tilt>
-
-      {/* Booking alert */}
-      <div className="pop d-8 toast absolute -left-1 top-[58%] z-20 flex items-center gap-3 rounded-[20px] py-3 pl-3 pr-4 sm:-left-8">
-        <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-bead/15 text-bead">
-          <IconBell size={20} />
-        </span>
-        <span className="flex flex-col">
-          <span className="text-[14px] font-semibold">New booking</span>
-          <span className="text-[12px] text-steel">Full detail · Sat 9:30 AM</span>
-        </span>
-      </div>
-      {/* Deposit */}
-      <div className="pop d-10 toast absolute -right-1 top-[4%] z-20 flex items-center gap-3 rounded-[20px] py-3 pl-3 pr-4 sm:right-0">
-        <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-gold/15 text-gold">
-          <IconWallet size={20} />
-        </span>
-        <span className="flex flex-col">
-          <span className="font-display text-[15px] font-bold text-gold">$72 deposit</span>
-          <span className="text-[12px] text-steel">Booked with deposit</span>
-        </span>
-      </div>
-      <div aria-hidden="true" className="absolute -bottom-2 right-[8%] z-20 hidden sm:block">
-        <GlassBead size={86} />
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------------------------------- Capabilities */
-
-function Capabilities() {
-  const items = [
-    { icon: IconSparkle, label: "AI photo quotes" },
-    { icon: IconLink, label: "Your booking link" },
-    { icon: IconWallet, label: "30% deposits" },
-    { icon: IconCalendar, label: "Calendar" },
-    { icon: IconBell, label: "Booking alerts" },
-    { icon: IconUsers, label: "Clients" },
-    { icon: IconStar, label: "Reviews" },
-    { icon: IconWifiOff, label: "Works offline" },
-    { icon: IconShield, label: "Private by default" },
-  ];
-  const row = (hidden: boolean) => (
-    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-center gap-3 pr-3">
-      {items.map(({ icon: Icon, label }) => (
-        <li key={label} className="glass flex items-center gap-2.5 whitespace-nowrap rounded-full py-2.5 pl-3 pr-4 text-[14px] font-medium text-mist">
-          <Icon size={18} className="shrink-0 text-bead" />
-          {label}
-        </li>
-      ))}
-    </ul>
-  );
-  return (
-    <section aria-label="What's inside" className="relative mt-12 w-full overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
-      <div className="marquee flex w-max">
-        {row(false)}
-        {row(true)}
-      </div>
-    </section>
   );
 }
 
