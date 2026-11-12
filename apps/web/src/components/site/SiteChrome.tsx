@@ -104,6 +104,7 @@ const FOOTER = [
     links: [
       { href: "/privacy", label: "Privacy policy" },
       { href: "/terms", label: "Terms of service" },
+      { href: "/refund-policy", label: "Refund policy" },
     ],
   },
 ];
@@ -116,7 +117,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-4">
           <Wordmark />
           <p className="max-w-xs text-[15px] leading-relaxed text-steel">
-            Quote, book and get paid. The app for mobile car detailers, with a booking link your clients love.
+            Quote, book and get paid. The booking link for appointment businesses, from detailers to salons, barbers and groomers.
           </p>
         </div>
         {FOOTER.map((col) => (
@@ -132,7 +133,7 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 border-t border-white/[0.05] px-5 py-6 text-[13px] text-steel sm:flex-row sm:justify-between sm:px-8">
         <span>© 2026 Beadup. All rights reserved.</span>
-        <span>Made for detailers in the USA. No ads. No tracking. We never sell your data.</span>
+        <span>Made for solo pros in 8 countries. No ads. No tracking. We never sell your data.</span>
       </div>
     </footer>
   );

@@ -16,7 +16,7 @@ async function seriousViolations(page: Page) {
     .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`);
 }
 
-for (const path of ["/", "/pricing", "/for", "/for/hair-salons"]) {
+for (const path of ["/", "/pricing", "/for", "/for/hair-salons", "/refund-policy"]) {
   test(`no serious accessibility issues on ${path}`, async ({ page }) => {
     await page.goto(path);
     expect(await seriousViolations(page)).toEqual([]);

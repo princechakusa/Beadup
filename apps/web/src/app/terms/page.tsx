@@ -27,9 +27,10 @@ export default async function Terms() {
 
       <H2>What Beadup is</H2>
       <p>
-        Beadup is software for mobile car detailers to quote, schedule and get paid. Detailers are independent businesses.
-        Beadup is not a party to the service a detailer provides to a client, and is not responsible for the quality,
-        timing or outcome of that work.
+        Beadup is software for appointment businesses (car detailers, salons, barbers, groomers, cleaners, mechanics and
+        others) to take bookings, quote and get paid. These businesses are independent. Beadup is not a party to the service a
+        business provides to a client, and is not responsible for the quality, timing or outcome of that work. Refunds are
+        covered by our <Link href="/refund-policy">refund policy</Link>.
       </p>
 
       <H2>Accounts</H2>

@@ -100,7 +100,7 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
           </ul>
         </Reveal>
         <Reveal delay={80} className="glass glass-edge flex flex-col gap-4 rounded-[28px] p-7">
-          <h2 className="font-display text-xl font-bold">Made for {trade.name.toLowerCase()}</h2>
+          <h2 className="font-display text-xl font-bold">What you get</h2>
           <ul className="flex flex-col gap-3 text-[15px] text-paint">
             {p.fits.map((t) => (
               <li key={t} className="flex gap-3">
