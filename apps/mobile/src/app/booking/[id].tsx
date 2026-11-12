@@ -23,12 +23,12 @@ import {
   type BookingRequest,
 } from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
+import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { useNow } from '@/lib/time';
 import { space } from '@/theme/tokens';
 
-const SIZE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck' } as const;
 const STATUS = {
   pending_payment: { label: 'Awaiting deposit', tone: 'gold' as const },
   confirmed: { label: 'Deposit paid', tone: 'success' as const },
@@ -91,7 +91,7 @@ export default function BookingDetail() {
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
         <Badge label={s.label} tone={s.tone} />
         <Text variant="caption">
-          {SIZE_LABEL[b.vehicleSize]} · {Math.round((b.durationMin / 60) * 10) / 10} h
+          {[sizeLabel(b.vehicleSize), `${Math.round((b.durationMin / 60) * 10) / 10} h`].filter(Boolean).join(' · ')}
         </Text>
       </View>
 

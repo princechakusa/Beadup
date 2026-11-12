@@ -4,13 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
 import { addDaysKey, dateKey, isCountry, setMoneyCountry, startOfDay, type Country } from './format';
+import { isTradeId, setCurrentTrade, type TradeId } from './trades';
 import { apiBaseUrl, supabase } from './supabase';
 
 // Data access for the detailer app. Every query runs as the signed-in
 // detailer, so row level security limits it to their own rows; no query
 // filters by detailer id client-side for security.
 
-export type Profile = { id: string; handle: string; businessName: string; timezone: string; country: Country };
+export type Profile = { id: string; handle: string; businessName: string; timezone: string; country: Country; trade: TradeId; visitMode: 'mobile' | 'studio' };
 
 export type BookingStatus = 'pending_payment' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 
@@ -110,7 +111,9 @@ export async function fetchProfile(): Promise<Profile | null> {
   if (!data) return null;
   const country: Country = isCountry(data.country) ? data.country : 'US';
   setMoneyCountry(country);
-  return { id: data.id, handle: data.handle, businessName: data.business_name, timezone: data.timezone, country };
+  const trade: TradeId = isTradeId(data.trade) ? data.trade : 'detailing';
+  setCurrentTrade(trade);
+  return { id: data.id, handle: data.handle, businessName: data.business_name, timezone: data.timezone, country, trade, visitMode: data.visit_mode === 'studio' ? 'studio' : 'mobile' };
 }
 
 /** Bookings starting in [from, to), excluding unpaid holds and cancellations. */
@@ -370,13 +373,15 @@ export type CatalogService = {
   priceCents: { sedan: number; suv: number; truck: number };
   active: boolean;
   sortOrder: number;
+  /** Photo shown with the service on the booking page (profile-media path), or null. */
+  photoPath: string | null;
 };
 export type CatalogAddOn = { id: string; name: string; priceCents: number; active: boolean; sortOrder: number };
 
 export async function fetchCatalog(): Promise<{ services: CatalogService[]; addOns: CatalogAddOn[] }> {
   if (!supabase) return fixtures.catalog;
   const [s, a] = await Promise.all([
-    db().from('services').select('id, name, description, duration_min, price_sedan_cents, price_suv_cents, price_truck_cents, active, sort_order').order('sort_order'),
+    db().from('services').select('*').order('sort_order'),
     db().from('add_ons').select('id, name, price_cents, active, sort_order').order('sort_order'),
   ]);
   if (s.error) throw s.error;
@@ -390,6 +395,7 @@ export async function fetchCatalog(): Promise<{ services: CatalogService[]; addO
       priceCents: { sedan: r.price_sedan_cents, suv: r.price_suv_cents, truck: r.price_truck_cents },
       active: r.active,
       sortOrder: r.sort_order,
+      photoPath: typeof r.photo_path === 'string' ? r.photo_path : null,
     })),
     addOns: a.data.map((r) => ({ id: r.id, name: r.name, priceCents: r.price_cents, active: r.active, sortOrder: r.sort_order })),
   };
@@ -573,6 +579,8 @@ export type BusinessProfile = {
   country: Country;
   /** Public phone on the booking page and confirmation (E.164), or null. */
   contactPhone: string | null;
+  trade: TradeId;
+  visitMode: 'mobile' | 'studio';
 };
 
 export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
@@ -587,6 +595,8 @@ export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
       handle: data.handle,
       country: isCountry(data.country) ? data.country : 'US',
       contactPhone: data.contact_phone ?? null,
+      trade: isTradeId(data.trade) ? data.trade : 'detailing',
+      visitMode: data.visit_mode === 'studio' ? 'studio' : 'mobile',
     }
   );
 }
@@ -604,10 +614,13 @@ export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): P
       service_area: p.serviceArea.trim(),
       country: p.country,
       contact_phone: p.contactPhone,
+      trade: p.trade,
+      visit_mode: p.visitMode,
     })
     .eq('id', user.user.id);
   if (error) throw error;
   setMoneyCountry(p.country);
+  setCurrentTrade(p.trade);
   await refreshBookingPage();
 }
 

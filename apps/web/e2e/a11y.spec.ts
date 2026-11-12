@@ -29,6 +29,7 @@ test("no serious accessibility issues on each booking step", async ({ page }) =>
   await page.getByRole("radio", { name: /Express wash/ }).click();
   await continueButton(page).click();
   expect(await seriousViolations(page), "vehicle").toEqual([]);
+  await page.getByRole("radiogroup", { name: "Your vehicle" }).getByRole("radio", { name: /Sedan/ }).click();
   await continueButton(page).click();
   expect(await seriousViolations(page), "time").toEqual([]);
   await page.getByRole("radiogroup", { name: "Day" }).getByRole("radio").first().click();

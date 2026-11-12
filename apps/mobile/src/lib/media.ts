@@ -100,3 +100,19 @@ export async function removeWork(item: WorkItem): Promise<void> {
   await supabase.storage.from('profile-media').remove([item.path]);
   await refreshBookingPage();
 }
+
+/** Short-lived links for the detailer's own files (e.g. service photos on the services screen). */
+export const signedUrls = (paths: string[]) => (supabase ? signed(paths) : Promise.resolve({} as Record<string, string>));
+
+/** Sets (or with null, removes) the photo shown with a service on the booking page. */
+export async function setServicePhoto(serviceId: string, uri: string | null, previous: string | null): Promise<void> {
+  if (!supabase) return;
+  const path = uri ? await upload(uri, 1200) : null;
+  const { error } = await supabase.from('services').update({ photo_path: path }).eq('id', serviceId);
+  if (error) {
+    if (path) await supabase.storage.from('profile-media').remove([path]);
+    throw error;
+  }
+  if (previous) await supabase.storage.from('profile-media').remove([previous]);
+  await refreshBookingPage();
+}

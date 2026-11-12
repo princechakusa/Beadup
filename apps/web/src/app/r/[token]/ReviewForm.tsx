@@ -52,7 +52,7 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
       <BeadLogo size={56} />
       <div>
         <h1 className="text-gradient font-display text-[28px] font-extrabold leading-tight tracking-[-0.03em]">How did {businessName} do?</h1>
-        <p className="mt-2 text-[15px] text-steel">Tap a star to rate your detail.</p>
+        <p className="mt-2 text-[15px] text-steel">Tap a star to rate your visit.</p>
       </div>
 
       <div className="flex gap-2" role="radiogroup" aria-label="Rating" onMouseLeave={() => setHover(0)}>

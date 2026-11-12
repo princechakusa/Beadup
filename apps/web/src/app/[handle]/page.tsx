@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { tradeOf } from "@/lib/trades";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BookingFlow } from "@/components/booking/BookingFlow";
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: PageProps<"/[handle]">): Prom
   const { handle } = await params;
   const d = await getBookingPage(handle);
   if (!d) return { title: "Not found" };
-  const title = `Book ${d.businessName}${d.serviceArea ? ` · Mobile detailing in ${d.serviceArea}` : ""}`;
+  const title = `Book ${d.businessName}${d.serviceArea ? ` · ${tradeOf(d.trade).name} in ${d.serviceArea}` : ` · ${tradeOf(d.trade).name}`}`;
   const description = `${d.tagline ? `${d.tagline}. ` : ""}See prices and open times, then book online in under a minute. No app needed.`;
   const url = `/${d.handle}`;
   return {

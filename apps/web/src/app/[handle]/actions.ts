@@ -29,7 +29,8 @@ const bookingInput = z.object({
   name: z.string().trim().min(2).max(80),
   // Normalised to E.164 below, once the detailer's country is known.
   phone: z.string().trim().min(6).max(30),
-  address: z.string().trim().min(6).max(200),
+  // Required (6+ characters) unless the client goes to the business (checked below).
+  address: z.string().trim().max(200),
   smsConsent: z.boolean(),
   turnstileToken: z.string().max(2048).optional(),
 });
@@ -160,6 +161,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
 
   const detailer = await getBookingPage(input.handle);
   if (!detailer) return { ok: false, error: "unavailable" };
+  if (detailer.visitMode !== "studio" && input.address.length < 6) return { ok: false, error: "invalid" };
   const phone = toE164(input.phone, detailer.country);
   if (!phone) return { ok: false, error: "invalid" };
   input.phone = phone;

@@ -21,11 +21,11 @@ import {
   type Booking,
 } from '@/lib/data';
 import { addDaysKey, dateKey, greeting, mondayOf, startOfDay, timeOf, money, moneyParts, weekdayIndex } from '@/lib/format';
+import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { colors, space } from '@/theme/tokens';
 
-const SIZE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck' } as const;
 
 export default function Today() {
   const { session } = useAuth();
@@ -164,7 +164,7 @@ export default function Today() {
               <View style={[styles.stripe, { backgroundColor: colors.success }]} />
               <View style={{ flex: 1, gap: 1 }}>
                 <Text variant="bodyStrong" style={{ fontSize: 14 }}>
-                  {b.serviceName} · {SIZE_LABEL[b.vehicleSize]}
+                  {[b.serviceName, sizeLabel(b.vehicleSize)].filter(Boolean).join(' · ')}
                 </Text>
                 <Text variant="caption" style={{ fontSize: 12 }}>
                   {timeOf(b.startsAt, tz)} · {b.client.name}
@@ -220,7 +220,7 @@ function NextUpCard({ booking: b, tz, now }: { booking: Booking; tz: string; now
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="heading" style={{ fontSize: 17 }}>
-            {b.serviceName} · {SIZE_LABEL[b.vehicleSize]}
+            {[b.serviceName, sizeLabel(b.vehicleSize)].filter(Boolean).join(' · ')}
           </Text>
           <Text variant="caption" style={{ fontSize: 13 }}>
             {b.client.name}

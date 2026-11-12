@@ -13,11 +13,11 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Text } from '@/components/ui/Text';
 import { fetchBalance, fetchBooking, fetchNextBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery } from '@/lib/data';
 import { dateKey, dayLabel, startOfDay, timeOf, money } from '@/lib/format';
+import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { maybeAskForRating } from '@/lib/rating';
 import { colors, space } from '@/theme/tokens';
 
-const SIZE_LABEL = { sedan: 'sedan', suv: 'SUV', truck: 'truck' } as const;
 
 /** Counts up to `target` cents over ~0.9s (instant under Reduce Motion). */
 function useCountUp(target: number) {
@@ -85,7 +85,7 @@ export default function Paid() {
           </Text>
           {b && (
             <Text variant="caption" style={{ textAlign: 'center' }}>
-              {b.serviceName} · {SIZE_LABEL[b.vehicleSize]} · incl. {money(b.depositCents)} deposit
+              {[b.serviceName, sizeLabel(b.vehicleSize).toLowerCase(), `incl. ${money(b.depositCents)} deposit`].filter(Boolean).join(' · ')}
             </Text>
           )}
         </Animated.View>

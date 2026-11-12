@@ -23,6 +23,7 @@ const DETAILERS: Record<string, Detailer> = {
         name: "Express wash",
         description: "Hand wash, wheels, tires, glass",
         durationMin: 60,
+        photo: null,
         priceCents: { sedan: 6000, suv: 7000, truck: 8000 },
       },
       {
@@ -30,6 +31,7 @@ const DETAILERS: Record<string, Detailer> = {
         name: "Full detail",
         description: "Inside and out, hand wax, interior deep clean",
         durationMin: 180,
+        photo: null,
         priceCents: { sedan: 18000, suv: 21000, truck: 23000 },
       },
       {
@@ -37,6 +39,7 @@ const DETAILERS: Record<string, Detailer> = {
         name: "Ceramic coating",
         description: "Paint correction + 2-year ceramic protection",
         durationMin: 360,
+        photo: null,
         priceCents: { sedan: 65000, suv: 75000, truck: 80000 },
       },
     ],
@@ -52,6 +55,8 @@ const DETAILERS: Record<string, Detailer> = {
     contactPhone: "+15125550100",
     photo: null,
     portfolio: [],
+    trade: "detailing",
+    visitMode: "mobile",
     weeklySlots: { "1": WEEKDAY_SLOTS, "2": WEEKDAY_SLOTS, "3": WEEKDAY_SLOTS, "4": WEEKDAY_SLOTS, "5": WEEKDAY_SLOTS, "6": WEEKDAY_SLOTS },
   },
 };

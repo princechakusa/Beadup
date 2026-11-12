@@ -12,6 +12,7 @@ import { smsConsentText } from "@/lib/consent";
 import { COUNTRIES, formatMoney, formatPhone, toE164, whatsappUrl, type Country } from "@/lib/countries";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { openDays } from "@/lib/slots";
+import { tierLabel, tradeOf } from "@/lib/trades";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
@@ -33,10 +34,9 @@ const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string>
   unavailable: "Booking is temporarily unavailable. Please try again shortly.",
   payments_not_ready: "This detailer isn't taking online payments yet. Please contact them directly to book.",
   plan_limit: "This detailer's online booking is full for this month. Please contact them directly to book.",
-  catalog_changed: "This detailer just updated their services or prices. Please choose your detail again.",
+  catalog_changed: "This business just updated its services or prices. Please choose again.",
 };
 
-const STEPS = ["Service", "Vehicle", "Time", "Details", "Review"] as const;
 
 const SIZES: { id: VehicleSize; label: string }[] = [
   { id: "sedan", label: "Sedan" },
@@ -45,14 +45,14 @@ const SIZES: { id: VehicleSize; label: string }[] = [
 ];
 
 // Phone numbers are read the way people write them in the detailer's country.
-const detailsSchemaFor = (country: Country) =>
+const detailsSchemaFor = (country: Country, needAddress: boolean) =>
   z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
   phone: z
     .string()
     .trim()
     .refine((p) => toE164(p, country) !== null, "Enter a valid mobile number"),
-  address: z.string().trim().min(6, "Enter the address where the car will be").max(200),
+  address: needAddress ? z.string().trim().min(6, "Enter the address for the appointment").max(200) : z.string().max(200),
   // Optional: consent to texts is never a condition of booking.
   smsConsent: z.boolean(),
 });
@@ -84,7 +84,17 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [dir, setDir] = useState(1);
   // Nothing is preselected: the client picks a detail before any price shows.
   const [serviceId, setServiceId] = useState<string | null>(null);
-  const [size, setSize] = useState<VehicleSize>("suv");
+  // How this business books (trade): size step or one price, client's address or the business's place.
+  const trade = tradeOf(detailer.trade);
+  const tiers = trade.pricing === "tiers";
+  const studio = detailer.visitMode === "studio";
+  // Nothing preselected: a size the client didn't choose must never set the price.
+  const [size, setSize] = useState<VehicleSize | null>(null);
+  // Single-price trades keep their one price in the first tier.
+  const tier: VehicleSize | null = tiers ? size : "sedan";
+  // Step 2 (size and extras) is skipped when there is nothing to choose there.
+  const skipExtras = !tiers && detailer.addOns.length === 0;
+  const steps = ["Service", tiers ? trade.tierTitle : "Extras", "Time", "Details", "Review"];
   const [addOns, setAddOns] = useState<string[]>([]);
   // Computed only once the visitor reaches the time step, so the current date
   // is read in their browser and never during the server prerender.
@@ -128,16 +138,17 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const external = detailer.payments === "external";
   const shortName = detailer.businessName.replace(/\.+$/, "");
   const totals = useMemo(() => {
-    const base = service ? service.priceCents[size] : 0;
+    // Before a size is chosen, the lowest price ("from").
+    const base = !service ? 0 : tier ? service.priceCents[tier] : Math.min(service.priceCents.sedan, service.priceCents.suv, service.priceCents.truck);
     const extras = detailer.addOns.filter((a) => addOns.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const total = base + extras;
     const deposit = depositCents(total);
     const fee = external ? 0 : bookingFeeCents(deposit);
     return { base, extras, total, deposit, fee, dueToday: deposit + fee };
-  }, [service, size, addOns, detailer.addOns, external]);
+  }, [service, tier, addOns, detailer.addOns, external]);
 
   const canContinue =
-    (step === 0 && !!serviceId) || step === 1 || (step === 2 && !!dayKey && !!slot) || step === 3 || step === 4;
+    (step === 0 && !!serviceId) || (step === 1 && !!tier) || (step === 2 && !!dayKey && !!slot) || step === 3 || step === 4;
 
   function go(to: number) {
     setDir(to > step ? 1 : -1);
@@ -146,7 +157,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
   function next() {
     if (step === 3) {
-      const parsed = detailsSchemaFor(detailer.country).safeParse(details);
+      const parsed = detailsSchemaFor(detailer.country, !studio).safeParse(details);
       if (!parsed.success) {
         const e: Partial<Record<keyof Details, string>> = {};
         for (const issue of parsed.error.issues) e[issue.path[0] as keyof Details] ??= issue.message;
@@ -171,13 +182,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       createBooking({
         handle: detailer.handle,
         serviceId: serviceId ?? "", // always set by the review step (Continue needs a pick)
-        vehicleSize: size,
+        vehicleSize: tier ?? "sedan",
         addOnIds: addOns,
         date: dayKey ?? "",
         time: slot ?? "",
         name: details.name,
         phone: details.phone,
-        address: details.address,
+        address: studio ? "" : details.address,
         smsConsent: smsEnabled && details.smsConsent,
         turnstileToken: turnstileToken ?? undefined,
       })
@@ -214,7 +225,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       return;
     }
     haptic("step");
-    go(step + 1);
+    go(step === 0 && skipExtras ? 2 : step + 1);
   }
 
   const day = days.find((d) => d.key === dayKey);
@@ -240,7 +251,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                 time: slot,
                 timezone: detailer.timezone,
                 durationMin: service?.durationMin ?? 60,
-                location: details.address,
+                location: studio ? [shortName, detailer.serviceArea].filter(Boolean).join(", ") : details.address,
                 description: `Booked with ${detailer.businessName} on Beadup.`,
               }
             : undefined
@@ -300,7 +311,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         <div className="mt-4 flex items-center gap-2 text-[13px]">
           <span className="text-steel">Questions first?</span>
           <a
-            href={whatsappUrl(detailer.contactPhone, `Hi ${shortName}, I found you on Beadup and have a question about a detail.`)}
+            href={whatsappUrl(detailer.contactPhone, `Hi ${shortName}, I found you on Beadup and have a question before I book.`)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-9 items-center gap-1.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-3 font-semibold text-[#7ff0a8]"
@@ -315,21 +326,21 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       )}
 
       <nav aria-label="Booking steps" className="mt-6 flex gap-1.5">
-        {STEPS.map((label, i) => (
+        {steps.map((label, i) => (skipExtras && i === 1 ? null : (
           <button
             key={label}
             type="button"
             onClick={() => i < step && go(i)}
             disabled={i >= step}
             aria-current={i === step ? "step" : undefined}
-            aria-label={`Step ${i + 1}: ${label}`}
+            aria-label={`${label}`}
             className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08] enabled:cursor-pointer"
           >
             <span
               className={`absolute inset-0 origin-left rounded-full bg-gradient-to-r from-[#7fe4ff] to-bead shadow-[0_0_12px_rgba(77,216,255,0.7)] transition-transform duration-500 ease-(--ease-spring) ${i <= step ? "scale-x-100" : "scale-x-0"}`}
             />
           </button>
-        ))}
+        )))}
       </nav>
 
       <div className="relative mt-6 flex-1">
@@ -346,7 +357,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           >
             {step === 0 && (
               <>
-                <StepTitle eyebrow={`Step 1 of ${STEPS.length}`} title="Pick your detail" />
+                <StepTitle eyebrow="Step 1" title={trade.pickTitle} />
                 {bookError && (
                   <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
                     {bookError}
@@ -363,7 +374,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         aria-checked={active}
                         onClick={() => { haptic(); setServiceId(s.id); setBookError(null); }}
                         whileTap={{ scale: 0.98 }}
-                        className="relative flex items-center gap-3.5 rounded-[22px] border border-white/[0.07] bg-gradient-to-b from-[#1a1f27] to-gunmetal p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                        className={`relative flex gap-3.5 rounded-[22px] border border-white/[0.07] bg-gradient-to-b from-[#1a1f27] to-gunmetal p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${s.photo && trade.photoFirst ? "flex-col items-stretch" : "items-center"}`}
                       >
                         {active && (
                           <motion.span
@@ -372,6 +383,19 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                             className="absolute inset-0 rounded-[22px] border-2 border-bead bg-[#10262e] shadow-[0_0_0_4px_rgba(77,216,255,0.08),0_12px_40px_rgba(77,216,255,0.15)]"
                           />
                         )}
+                        {s.photo && (
+                          // The service's own photo (a hairstyle, a finish): clients pick by what they see.
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={`/api/media/${detailer.handle}/${s.id}?v=${s.photo}`}
+                            alt=""
+                            loading="lazy"
+                            width={trade.photoFirst ? 400 : 64}
+                            height={trade.photoFirst ? 300 : 64}
+                            className={`relative shrink-0 object-cover ring-1 ring-white/10 ${trade.photoFirst ? "aspect-[4/3] w-full rounded-[16px]" : "h-16 w-16 rounded-[14px]"}`}
+                          />
+                        )}
+                        <span className="relative flex flex-1 items-center gap-3">
                         <span className="relative flex-1">
                           <span className="block text-base font-semibold">{s.name}</span>
                           <span className="mt-0.5 block text-[13px] text-steel">
@@ -379,7 +403,8 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                           </span>
                         </span>
                         <span className={`relative text-[17px] font-bold ${active ? "text-bead" : ""}`}>
-                          from {money(s.priceCents.sedan)}
+                          {tiers ? `from ${money(Math.min(s.priceCents.sedan, s.priceCents.suv, s.priceCents.truck))}` : money(s.priceCents.sedan)}
+                        </span>
                         </span>
                       </motion.button>
                     );
@@ -391,9 +416,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 1 && (
               <>
-                <StepTitle eyebrow={`Step 2 of ${STEPS.length}`} title="Your vehicle" />
-                <div className="glass mt-5 grid grid-cols-3 gap-1 rounded-[20px] p-1" role="radiogroup" aria-label="Vehicle size">
-                  {SIZES.map((s) => {
+                <StepTitle eyebrow="Step 2" title={tiers ? trade.tierTitle : "Add extras"} />
+                {tiers && (
+                <div className="glass mt-5 grid grid-cols-3 gap-1 rounded-[20px] p-1" role="radiogroup" aria-label={trade.tierTitle}>
+                  {SIZES.map((s) => ({ ...s, label: trade.tiers[s.id] })).map((s) => {
                     const active = s.id === size;
                     return (
                       <button
@@ -405,13 +431,14 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         className={`relative h-12 rounded-2xl text-[15px] font-semibold transition-colors ${active ? "text-bead-ink" : "text-steel"}`}
                       >
                         {active && <motion.span layoutId="size-pill" transition={spring} className="absolute inset-0 rounded-2xl bg-bead shadow-[0_8px_24px_-6px_rgba(77,216,255,0.6)]" />}
-                        <span className="relative">{s.label}</span>
+                        <span className="relative px-1 text-[14px] leading-tight">{s.label}</span>
                       </button>
                     );
                   })}
                 </div>
+                )}
 
-                <h3 className="mt-7 text-[13px] font-medium uppercase tracking-[0.12em] text-steel">Add-ons</h3>
+                {detailer.addOns.length > 0 && tiers && <h3 className="mt-7 text-[13px] font-medium uppercase tracking-[0.12em] text-steel">Add-ons</h3>}
                 <div className="mt-3 flex flex-col gap-2.5">
                   {detailer.addOns.map((a) => {
                     const on = addOns.includes(a.id);
@@ -447,7 +474,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 2 && (
               <>
-                <StepTitle eyebrow={`Step 3 of ${STEPS.length}`} title="Pick a time" />
+                <StepTitle eyebrow="Step 3" title="Pick a time" />
                 <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="radiogroup" aria-label="Day">
                   {days.map((d) => {
                     const active = d.key === dayKey;
@@ -506,7 +533,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 3 && (
               <>
-                <StepTitle eyebrow={`Step 4 of ${STEPS.length}`} title="Where's the car?" />
+                <StepTitle eyebrow="Step 4" title={studio ? "Your details" : detailer.trade === "detailing" || detailer.trade === "boat_rv" ? "Where's the vehicle?" : "Where should we come?"} />
                 <form className="mt-5 flex flex-col gap-3" onSubmit={(e) => (e.preventDefault(), next())} noValidate>
                   <Field label="Your name" error={errors.name}>
                     <input autoComplete="name" value={details.name} maxLength={80} onChange={(e) => setDetails({ ...details, name: e.target.value })} />
@@ -514,9 +541,16 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                   <Field label="Mobile number" error={errors.phone}>
                     <input type="tel" inputMode="tel" autoComplete="tel" placeholder={COUNTRIES[detailer.country].phoneExample} value={details.phone} maxLength={20} onChange={(e) => setDetails({ ...details, phone: e.target.value })} />
                   </Field>
-                  <Field label="Service address" error={errors.address}>
-                    <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
-                  </Field>
+                  {studio ? (
+                    <p className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-[14px] leading-relaxed text-steel">
+                      You go to {shortName}
+                      {detailer.serviceArea ? `, ${detailer.serviceArea}` : ""}. They&apos;ll confirm the exact address when you book.
+                    </p>
+                  ) : (
+                    <Field label="Service address" error={errors.address}>
+                      <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
+                    </Field>
+                  )}
                   {smsEnabled && (
                   <label className="mt-1 flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-steel">
                     <input
@@ -537,11 +571,11 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 4 && (
               <>
-                <StepTitle eyebrow={`Step 5 of ${STEPS.length}`} title="Review and book" />
+                <StepTitle eyebrow="Last step" title="Review and book" />
                 <div className="glass glass-edge mt-5 rounded-[24px] p-5">
                   <p className="font-display text-lg font-bold">{service?.name}</p>
                   <p className="mt-1 text-sm text-steel">
-                    {SIZES.find((s) => s.id === size)?.label} · {day?.label} · {slot && to12h(slot)}
+                    {[tier ? tierLabel(detailer.trade, tier) : "", day?.label, slot && to12h(slot)].filter(Boolean).join(" · ")}
                   </p>
                   <div className="my-4 h-px bg-white/[0.06]" />
                   <Row label={service?.name ?? ""} value={money(totals.base)} />
@@ -598,7 +632,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         <div className="pointer-events-auto mx-auto max-w-md px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
           <div className="glass flex items-center gap-3 rounded-[26px] p-3 pl-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_rgba(0,0,0,0.55)]">
             {step > 0 && (
-              <button type="button" onClick={() => go(step - 1)} aria-label="Back" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-steel hover:text-paint">
+              <button type="button" onClick={() => go(step === 2 && skipExtras ? 0 : step - 1)} aria-label="Back" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-steel hover:text-paint">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
@@ -607,11 +641,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             <div className="min-w-0 flex-1">
               {service ? (
                 <>
-                  <p className="text-xs text-steel">{step === 4 ? (external ? "Deposit, paid to the detailer" : "Due today") : "Estimated total"}</p>
+                  <p className="text-xs text-steel">
+                    {step === 4 ? (external ? `Deposit, paid to ${shortName}` : "Due today") : tier ? "Estimated total" : "From"}
+                  </p>
                   <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} country={detailer.country} />
                 </>
               ) : (
-                <p className="text-sm text-steel">Pick a detail to see the price</p>
+                <p className="text-sm text-steel">Pick a service to see the price</p>
               )}
             </div>
             <motion.button

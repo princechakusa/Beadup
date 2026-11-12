@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { formatMoney, formatPhone, whatsappUrl, type Country } from "@/lib/countries";
+import { tierLabel } from "@/lib/trades";
 import { PrintButton } from "./PrintButton";
 
 export const receiptSchema = z.object({
   ref: z.string(),
   handle: z.string(),
+  trade: z.string().default("detailing"),
   businessName: z.string(),
   contactPhone: z.string().nullable(),
   country: z.enum(["US", "CA", "GB", "AU", "NZ", "AE", "ZA", "SG"]),
@@ -22,7 +24,6 @@ export const receiptSchema = z.object({
 });
 export type ReceiptData = z.infer<typeof receiptSchema>;
 
-const SIZE = { sedan: "Sedan", suv: "SUV", truck: "Truck" } as const;
 
 /**
  * The client's receipt for a finished job, in the detailer's currency. Prints
@@ -52,7 +53,7 @@ export function Receipt({ r }: { r: ReceiptData }) {
       </div>
       <p className="mt-4 text-[13px] text-steel">For {r.firstName}</p>
       <div className="mt-3 border-t border-white/10 pt-3 text-[15px]">
-        <Line label={`${r.serviceName} · ${SIZE[r.vehicleSize]}`} value={money(r.subtotalCents - extras)} />
+        <Line label={[r.serviceName, tierLabel(r.trade, r.vehicleSize)].filter(Boolean).join(" · ")} value={money(r.subtotalCents - extras)} />
         {r.addOns.map((a) => (
           <Line key={a.name} label={a.name} value={a.priceCents != null ? money(a.priceCents) : ""} />
         ))}

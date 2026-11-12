@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRADE_IDS } from "./trades";
 
 export const VEHICLE_SIZES = ["sedan", "suv", "truck"] as const;
 export type VehicleSize = (typeof VEHICLE_SIZES)[number];
@@ -35,6 +36,8 @@ export const detailerSchema = z.object({
       name: z.string(),
       description: z.string(),
       durationMin: z.number().int().positive(),
+      /** Version of the service's photo, or null. Served by /api/media/<handle>/<service id>. */
+      photo: z.string().regex(/^[0-9a-f]{10}$/).nullable().default(null),
       priceCents: z.object({ sedan: cents, suv: cents, truck: cents }),
     }),
   ),
@@ -55,6 +58,10 @@ export const detailerSchema = z.object({
     .regex(/^\+[1-9]\d{7,14}$/)
     .nullable()
     .default(null),
+  /** The business's trade (lib/trades.ts): words, pricing and booking steps. */
+  trade: z.enum(TRADE_IDS).catch("detailing").default("detailing"),
+  /** "studio": the client comes to the business, so no client address is asked. */
+  visitMode: z.enum(["mobile", "studio"]).catch("mobile").default("mobile"),
   /** Version of the detailer's photo (changes with the photo), or null when there is none. */
   photo: z.string().regex(/^[0-9a-f]{10}$/).nullable().default(null),
   /** Photos of the detailer's work, served by /api/media/<handle>/<id>. */

@@ -33,7 +33,7 @@ export async function fillBooking(page: Page, c: BookingChoice): Promise<{ day: 
   await page.getByRole("radio", { name: /Full detail/ }).click();
   await continueButton(page).click();
 
-  await page.getByRole("radiogroup", { name: "Vehicle size" }).getByRole("radio", { name: /SUV/ }).click();
+  await page.getByRole("radiogroup", { name: "Your vehicle" }).getByRole("radio", { name: /SUV/ }).click();
   await page.getByRole("checkbox", { name: /Odor treatment/ }).click();
   await continueButton(page).click();
 

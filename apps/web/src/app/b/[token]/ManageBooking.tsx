@@ -10,13 +10,13 @@ import { formatMoney, formatPhone, whatsappUrl, type Country } from "@/lib/count
 import { haptic } from "@/lib/feedback";
 import { wallClock } from "@/lib/ics";
 import { openDays } from "@/lib/slots";
+import { tierLabel } from "@/lib/trades";
 import { useHydrated } from "@/lib/use-hydrated";
 import { reportSentByToken, requestChange, type ActionResult } from "./actions";
 
 export type Availability = Pick<Detailer, "weeklySlots" | "busy" | "bufferMin" | "daysOff">;
 type View = Omit<ClientBooking, "bookingId">;
 
-const SIZE = { sedan: "Sedan", suv: "SUV", truck: "Truck" } as const;
 const STATUS: Record<View["status"], { label: string; tone: string }> = {
   pending_payment: { label: "Awaiting payment", tone: "border-gold/40 text-gold" },
   confirmed: { label: "Confirmed", tone: "border-bead/40 text-bead" },
@@ -68,7 +68,8 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
         <Row label="When" value={whenLabel} strong />
         <Row label="Service" value={b.serviceName} />
         {b.addOns.length > 0 && <Row label="Add-ons" value={b.addOns.join(", ")} />}
-        <Row label="Vehicle" value={SIZE[b.vehicleSize]} />
+        {tierLabel(b.trade, b.vehicleSize) && <Row label="Size" value={tierLabel(b.trade, b.vehicleSize)} />}
+        {b.visitMode === "studio" && <Row label="Where" value={`At ${b.businessName}`} />}
         <Row label="Length" value={`About ${Math.round((b.durationMin / 60) * 10) / 10} h`} />
         <Row label="Total" value={money(b.subtotalCents)} />
       </section>

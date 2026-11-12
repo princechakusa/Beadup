@@ -12,6 +12,8 @@ export const clientBookingSchema = z.object({
   bookingId: z.uuid(),
   ref: z.string(),
   handle: z.string(),
+  trade: z.string().default("detailing"),
+  visitMode: z.enum(["mobile", "studio"]).catch("mobile").default("mobile"),
   businessName: z.string(),
   contactPhone: z.string().nullable(),
   country: z.enum(["US", "CA", "GB", "AU", "NZ", "AE", "ZA", "SG"]),

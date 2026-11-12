@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
@@ -8,12 +9,14 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchCatalog, refreshBookingPage, useQuery, type CatalogService } from '@/lib/data';
-import { money } from '@/lib/format';
+import { currencySymbol, money } from '@/lib/format';
+import { pickPhoto, setServicePhoto, signedUrls } from '@/lib/media';
+import { currentTrade } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
 
-type Draft = { id?: string; name: string; description: string; hours: string; sedan: string; suv: string; truck: string };
+type Draft = { id?: string; name: string; description: string; hours: string; sedan: string; suv: string; truck: string; photoPath?: string | null };
 const toCents = (v: string) => Math.round(Number(v.replace(/[^0-9.]/g, '')) * 100);
 const blank: Draft = { name: '', description: '', hours: '2', sedan: '', suv: '', truck: '' };
 
@@ -26,6 +29,31 @@ export default function Services() {
   const [busy, setBusy] = useState(false);
   // Switch positions the detailer just set, shown until the reload confirms them.
   const [pending, setPending] = useState<Record<string, boolean>>({});
+  // How this trade prices: one price, or one per size (Sedan/SUV/Truck, Small/Medium/Large dog...).
+  const trade = currentTrade();
+  const tiers = trade.pricing === 'tiers';
+  const symbol = currencySymbol();
+  const photoPaths = (catalog.data?.services ?? []).map((s) => s.photoPath).filter((p): p is string => !!p);
+  const photos = useQuery(() => signedUrls(photoPaths), [photoPaths.join('|')]);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const changePhoto = async (remove: boolean) => {
+    if (!draft?.id) return;
+    const uri = remove ? null : await pickPhoto([4, 3]);
+    if (!remove && !uri) return;
+    setPhotoBusy(true);
+    setError(null);
+    try {
+      await setServicePhoto(draft.id, uri, draft.photoPath ?? null);
+      haptic.success();
+      await catalog.refresh();
+      setDraft(null);
+    } catch {
+      haptic.error();
+      setError('The photo didn’t save. Check your connection and try again.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   const edit = (s: CatalogService) =>
     setDraft({
@@ -36,14 +64,16 @@ export default function Services() {
       sedan: String(s.priceCents.sedan / 100),
       suv: String(s.priceCents.suv / 100),
       truck: String(s.priceCents.truck / 100),
+      photoPath: s.photoPath,
     });
 
   const save = async () => {
     if (!draft || !supabase) return;
     const minutes = Math.round(Number(draft.hours) * 60);
-    const prices = [toCents(draft.sedan), toCents(draft.suv), toCents(draft.truck)];
+    // Single-price trades keep one price in all three columns.
+    const prices = tiers ? [toCents(draft.sedan), toCents(draft.suv), toCents(draft.truck)] : [toCents(draft.sedan), toCents(draft.sedan), toCents(draft.sedan)];
     if (!draft.name.trim() || !(minutes >= 15 && minutes <= 720) || prices.some((p) => !(p >= 0 && p <= 1_000_000))) {
-      setError('Add a name, a duration between 15 minutes and 12 hours, and a price for each size.');
+      setError(`Add a name, a duration between 15 minutes and 12 hours, and ${tiers ? 'a price for each size' : 'a price'}.`);
       return;
     }
     setBusy(true);
@@ -111,12 +141,15 @@ export default function Services() {
       <ListCard>
         {(catalog.data?.services ?? []).map((s) => (
           <View key={s.id} style={styles.row}>
+            {s.photoPath && photos.data?.[s.photoPath] ? (
+              <Image source={{ uri: photos.data[s.photoPath] }} style={styles.thumb} contentFit="cover" accessibilityLabel={`${s.name} photo`} />
+            ) : null}
             <Pressable style={{ flex: 1, gap: 2 }} onPress={() => edit(s)} accessibilityRole="button" accessibilityLabel={`Edit ${s.name}`}>
               <Text variant="bodyStrong" style={{ color: s.active ? colors.paint : colors.steel }}>
                 {s.name}
               </Text>
               <Text variant="caption">
-                {money(s.priceCents.sedan)} / {money(s.priceCents.suv)} / {money(s.priceCents.truck)} · {s.durationMin / 60} h
+                {tiers ? `${money(s.priceCents.sedan)} / ${money(s.priceCents.suv)} / ${money(s.priceCents.truck)}` : money(s.priceCents.sedan)} · {s.durationMin / 60} h
               </Text>
             </Pressable>
             <Switch
@@ -136,18 +169,36 @@ export default function Services() {
             <Field label="Name" value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} maxLength={60} />
             <Field label="Description" value={draft.description} onChangeText={(description) => setDraft({ ...draft, description })} maxLength={200} />
             <Field label="Hours" value={draft.hours} onChangeText={(hours) => setDraft({ ...draft, hours })} keyboardType="decimal-pad" />
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {(['sedan', 'suv', 'truck'] as const).map((k) => (
-                <View key={k} style={{ flex: 1 }}>
-                  <Field
-                    label={k === 'suv' ? 'SUV $' : `${k[0].toUpperCase()}${k.slice(1)} $`}
-                    value={draft[k]}
-                    onChangeText={(v) => setDraft({ ...draft, [k]: v })}
-                    keyboardType="decimal-pad"
-                  />
+            {tiers ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['sedan', 'suv', 'truck'] as const).map((k) => (
+                  <View key={k} style={{ flex: 1 }}>
+                    <Field label={`${trade.tiers[k]} ${symbol}`} value={draft[k]} onChangeText={(v) => setDraft({ ...draft, [k]: v })} keyboardType="decimal-pad" />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Field label={`Price ${symbol}`} value={draft.sedan} onChangeText={(v) => setDraft({ ...draft, sedan: v })} keyboardType="decimal-pad" />
+            )}
+            {draft.id ? (
+              <View style={{ gap: space.sm }}>
+                <Text variant="caption">
+                  {trade.photoFirst ? 'Photo of this service: clients choose by what they see.' : 'Photo of this service (optional).'}
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Button label={draft.photoPath ? 'Change photo' : 'Add photo'} variant="glass" loading={photoBusy} onPress={() => changePhoto(false)} />
+                  </View>
+                  {draft.photoPath ? (
+                    <View style={{ flex: 1 }}>
+                      <Button label="Remove photo" variant="ghost" onPress={() => changePhoto(true)} />
+                    </View>
+                  ) : null}
                 </View>
-              ))}
-            </View>
+              </View>
+            ) : (
+              <Text variant="caption">Save the service first, then you can add a photo.</Text>
+            )}
             {error && (
               <Text variant="caption" tone="danger">
                 {error}
@@ -187,7 +238,7 @@ export default function Services() {
           <Field label="New add-on" value={addOn.name} onChangeText={(name) => setAddOn({ ...addOn, name })} placeholder="e.g. Headlight restore" maxLength={60} />
         </View>
         <View style={{ width: 96 }}>
-          <Field label="Price $" value={addOn.price} onChangeText={(price) => setAddOn({ ...addOn, price })} keyboardType="decimal-pad" />
+          <Field label={`Price ${symbol}`} value={addOn.price} onChangeText={(price) => setAddOn({ ...addOn, price })} keyboardType="decimal-pad" />
         </View>
       </View>
       <Button label="Add add-on" variant="glass" onPress={addAddOn} disabled={!addOn.name.trim() || !addOn.price} />
@@ -197,4 +248,5 @@ export default function Services() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  thumb: { width: 52, height: 40, borderRadius: 10 },
 });

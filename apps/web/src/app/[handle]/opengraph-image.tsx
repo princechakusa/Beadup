@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { tradeOf } from "@/lib/trades";
 import { getBookingPage } from "@/lib/booking-page";
 import { formatMoney } from "@/lib/countries";
 import { OG_LOGO } from "@/lib/og-logo";
@@ -37,7 +38,7 @@ export default async function Image({ params }: { params: Promise<{ handle: stri
           <img src={OG_LOGO} width={64} height={64} alt="" style={{ borderRadius: 16, boxShadow: "0 0 40px rgba(77,216,255,0.45)" }} />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontSize: 22, color: "#9AA3B2", letterSpacing: 4, textTransform: "uppercase" }}>Book online</span>
-            {d?.serviceArea ? <span style={{ fontSize: 26, color: "#C9D0DB" }}>{`Mobile detailing · ${d.serviceArea}`}</span> : null}
+            {d?.serviceArea ? <span style={{ fontSize: 26, color: "#C9D0DB" }}>{`${tradeOf(d.trade).name} · ${d.serviceArea}`}</span> : null}
           </div>
         </div>
 

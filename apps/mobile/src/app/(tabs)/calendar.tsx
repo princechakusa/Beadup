@@ -8,6 +8,7 @@ import { Badge, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchBookings, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
 import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, timeOf, money } from '@/lib/format';
+import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
 
@@ -16,7 +17,6 @@ import { colors } from '@/theme/tokens';
 const DAY_START_HOUR = 7;
 const DAY_END_HOUR = 20;
 const HOUR_H = 62;
-const SIZE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck' } as const;
 
 export default function Calendar() {
   const profile = useQuery(fetchProfile, [], 'profile');
@@ -185,8 +185,7 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
           {!compact && (
             <>
               <Text variant="caption" style={{ fontSize: 13, color: '#C9D0DC' }} numberOfLines={1}>
-                {SIZE_LABEL[b.vehicleSize]}
-                {b.addOns.length ? ` · ${b.addOns.map((a) => a.name.split(' (')[0].toLowerCase()).join(', ')}` : ''}
+                {[sizeLabel(b.vehicleSize), b.addOns.map((a) => a.name.split(' (')[0].toLowerCase()).join(', ')].filter(Boolean).join(' · ')}
               </Text>
               <View style={[styles.rowBetween, { marginTop: 'auto' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>

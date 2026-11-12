@@ -14,20 +14,17 @@ import { Icon } from '@/components/ui/Icon';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { claimReferral, startPayoutsSetup, usePaymentsMode } from '@/lib/data';
 import { COUNTRIES, currencySymbol, deviceCountry, setMoneyCountry, type Country } from '@/lib/format';
+import { setCurrentTrade, STARTERS, TRADES, type TradeId } from '@/lib/trades';
+import { TradePicker, VisitPicker } from '@/components/TradePicker';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
 
-type Svc = { name: string; description: string; durationMin: number; sedan: string; suv: string; truck: string; on: boolean };
-const TEMPLATES: Svc[] = [
-  { name: 'Express wash', description: 'Hand wash, wheels, tires, glass', durationMin: 60, sedan: '60', suv: '70', truck: '80', on: true },
-  { name: 'Full detail', description: 'Inside and out, hand wax, interior deep clean', durationMin: 180, sedan: '180', suv: '210', truck: '230', on: true },
-  { name: 'Interior refresh', description: 'Vacuum, wipe-down, glass, mats', durationMin: 120, sedan: '120', suv: '140', truck: '150', on: false },
-];
 /**
- * Starter prices are written in US dollars above; this scales them to where a
- * detail typically costs locally, rounded, so a South African starts at R900,
- * not R60. Only starting values: the detailer sets their own prices.
+ * Starter prices (lib/trades.ts STARTERS) are written in US dollars; this
+ * scales them to what the service typically costs locally, rounded, so a South
+ * African starts at R900, not R60. Only starting values: the business sets
+ * its own prices.
  */
 const PRICE_SCALE: Record<Country, { factor: number; round: number }> = {
   US: { factor: 1, round: 5 },
@@ -43,14 +40,11 @@ const scalePrice = (usd: string, c: Country) => {
   const { factor, round } = PRICE_SCALE[c];
   return String(Math.max(round, Math.round((Number(usd) * factor) / round) * round));
 };
-const localTemplates = (c: Country) =>
-  TEMPLATES.map((s) => ({ ...s, sedan: scalePrice(s.sedan, c), suv: scalePrice(s.suv, c), truck: scalePrice(s.truck, c) }));
+const startersFor = (t: TradeId, c: Country) => ({
+  services: STARTERS[t].services.map((x) => ({ ...x, sedan: scalePrice(x.sedan, c), suv: scalePrice(x.suv, c), truck: scalePrice(x.truck, c) })),
+  addOns: STARTERS[t].addOns.map((a) => ({ ...a, price: scalePrice(a.price, c) })),
+});
 
-const ADD_ONS = [
-  { name: 'Pet hair removal (seats and carpets)', price: '40', on: true },
-  { name: 'Odor treatment', price: '35', on: false },
-  { name: 'Engine bay clean', price: '30', on: false },
-];
 const DAYS = [
   { wd: 1, label: 'Mon' },
   { wd: 2, label: 'Tue' },
@@ -87,17 +81,33 @@ export default function Onboarding() {
   // Country of the business: sets the currency. Starts where the phone is.
   const [country, setCountry] = useState<Country>(deviceCountry);
   const [pricesEdited, setPricesEdited] = useState(false);
-  const [services, setServices] = useState(() => localTemplates(deviceCountry()));
-  const [addOns, setAddOns] = useState(() => ADD_ONS.map((a) => ({ ...a, price: scalePrice(a.price, deviceCountry()) })));
+  // The trade: sets the starter services, how prices work and the words clients see.
+  const [tradeId, setTradeId] = useState<TradeId>('detailing');
+  const [visitMode, setVisitMode] = useState<'mobile' | 'studio'>('mobile');
+  const trade = TRADES[tradeId];
+  const tiers = trade.pricing === 'tiers';
+  const [services, setServices] = useState(() => startersFor('detailing', deviceCountry()).services);
+  const [addOns, setAddOns] = useState(() => startersFor('detailing', deviceCountry()).addOns);
   const symbol = currencySymbol();
   const pickCountry = (c: Country) => {
     haptic.select();
     setCountry(c);
     setMoneyCountry(c);
     if (!pricesEdited) {
-      setServices((xs) => localTemplates(c).map((t, i) => ({ ...t, on: xs[i]?.on ?? t.on })));
-      setAddOns((xs) => ADD_ONS.map((a, i) => ({ ...a, price: scalePrice(a.price, c), on: xs[i]?.on ?? a.on })));
+      const st = startersFor(tradeId, c);
+      setServices((xs) => st.services.map((t, i) => ({ ...t, on: xs[i]?.on ?? t.on })));
+      setAddOns((xs) => st.addOns.map((a, i) => ({ ...a, on: xs[i]?.on ?? a.on })));
     }
+  };
+  const pickTrade = (t: TradeId) => {
+    setTradeId(t);
+    setVisitMode(TRADES[t].visit);
+    setCurrentTrade(t);
+    // A new trade means new starter services (the old ones were for another trade).
+    const st = startersFor(t, country);
+    setServices(st.services);
+    setAddOns(st.addOns);
+    setPricesEdited(false);
   };
   const [days, setDays] = useState([1, 2, 3, 4, 5, 6]);
   const [times, setTimes] = useState(['08:00', '10:30', '13:00', '15:30']);
@@ -143,7 +153,8 @@ export default function Onboarding() {
         name: s.name,
         description: s.description,
         durationMin: s.durationMin,
-        priceCents: { sedan: cents(s.sedan), suv: cents(s.suv), truck: cents(s.truck) },
+        // One-price trades keep the same price in every size column.
+        priceCents: tiers ? { sedan: cents(s.sedan), suv: cents(s.suv), truck: cents(s.truck) } : { sedan: cents(s.sedan), suv: cents(s.sedan), truck: cents(s.sedan) },
       })),
       p_add_ons: addOns.filter((a) => a.on).map((a) => ({ name: a.name, priceCents: cents(a.price) })),
       p_slots: days.flatMap((wd) => times.map((time) => ({ weekday: wd, time }))),
@@ -162,7 +173,8 @@ export default function Onboarding() {
     // The business country (currency). The database guessed it from the
     // timezone; the detailer's choice wins.
     const { data: me } = await supabase.auth.getUser();
-    if (me.user) await supabase.from('detailers').update({ country }).eq('id', me.user.id);
+    if (me.user) await supabase.from('detailers').update({ country, trade: tradeId, visit_mode: visitMode }).eq('id', me.user.id);
+    setCurrentTrade(tradeId);
     setMoneyCountry(country);
     // Optional "referred by" code. Never blocks setup: a wrong code can be
     // fixed later in Settings > Invite & earn.
@@ -219,6 +231,8 @@ export default function Onboarding() {
             {step === 0 && (
               <>
                 <Text variant="title">Set up your business</Text>
+                <TradePicker value={tradeId} onChange={pickTrade} />
+                <VisitPicker value={visitMode} onChange={setVisitMode} />
                 <Field label="Business name" value={name} onChangeText={setName} placeholder="e.g. Marcus Shine Co." maxLength={80} autoCapitalize="words" />
                 <View style={{ gap: 6 }}>
                   <Field
@@ -278,7 +292,9 @@ export default function Onboarding() {
               <>
                 <Text variant="title">Services and prices</Text>
                 <Text variant="body" tone="steel">
-                  Start from these and change anything. Clients see the price for their vehicle size.
+                  {tiers
+                    ? `Start from these and change anything. Clients pick a size (${trade.tiers.sedan}, ${trade.tiers.suv}, ${trade.tiers.truck}) and see that price.`
+                    : 'Start from these and change anything. You can add a photo to each service later in Settings.'}
                 </Text>
                 {services.map((s, i) => (
                   <View key={s.name} style={[styles.card, s.on && styles.cardOn]}>
@@ -296,9 +312,9 @@ export default function Onboarding() {
                     </View>
                     {s.on && (
                       <View style={styles.prices}>
-                        {(['sedan', 'suv', 'truck'] as const).map((k) => (
+                        {(tiers ? (['sedan', 'suv', 'truck'] as const) : (['sedan'] as const)).map((k) => (
                           <View key={k} style={{ flex: 1, gap: 4 }}>
-                            <Text variant="caption">{k === 'suv' ? 'SUV' : k[0].toUpperCase() + k.slice(1)}</Text>
+                            <Text variant="caption">{tiers ? trade.tiers[k] : 'Price'}</Text>
                             <TextInput
                               value={`${symbol}${s[k]}`}
                               onChangeText={(v) => {
@@ -306,7 +322,7 @@ export default function Onboarding() {
                                 setServices((xs) => xs.map((x, j) => (j === i ? { ...x, [k]: v.replace(/[^0-9.]/g, '') } : x)));
                               }}
                               keyboardType="decimal-pad"
-                              accessibilityLabel={`${s.name} ${k} price`}
+                              accessibilityLabel={tiers ? `${s.name} ${trade.tiers[k]} price` : `${s.name} price`}
                               style={styles.price}
                             />
                           </View>
@@ -315,7 +331,7 @@ export default function Onboarding() {
                     )}
                   </View>
                 ))}
-                <Text variant="eyebrow">Add-ons</Text>
+                {addOns.length > 0 && <Text variant="eyebrow">Add-ons</Text>}
                 {addOns.map((a, i) => (
                   <View key={a.name} style={styles.addOn}>
                     <Text variant="body" style={{ flex: 1 }}>

@@ -12,17 +12,15 @@ import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchCatalog, fetchProfile, saveQuote, useQuery, type QuoteItem } from '@/lib/data';
 import { currencySymbol, money } from '@/lib/format';
+import { currentTrade, currentTradeId } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 type Size = 'sedan' | 'suv' | 'truck';
-const SIZES: { id: Size; label: string }[] = [
-  { id: 'sedan', label: 'Sedan' },
-  { id: 'suv', label: 'SUV' },
-  { id: 'truck', label: 'Truck' },
-];
+// Size choices follow the trade (Sedan/SUV/Truck, Small/Medium/Large dog...).
+const SIZE_IDS: Size[] = ['sedan', 'suv', 'truck'];
 const depositOf = (cents: number) => Math.floor((cents * 3 + 5) / 10); // same rule as the server
 
 /**
@@ -33,7 +31,9 @@ const depositOf = (cents: number) => Math.floor((cents * 3 + 5) / 10); // same r
 export default function NewQuote() {
   const catalog = useQuery(fetchCatalog);
   const profile = useQuery(fetchProfile);
-  const [size, setSize] = useState<Size>('suv');
+  const trade = currentTrade();
+  const tiers = trade.pricing === 'tiers';
+  const [size, setSize] = useState<Size>(tiers ? 'suv' : 'sedan');
   const [vehicle, setVehicle] = useState('');
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [addOnIds, setAddOnIds] = useState<string[]>([]);
@@ -49,7 +49,7 @@ export default function NewQuote() {
   const service = services.find((s) => s.id === serviceId) ?? services[0];
 
   const items: QuoteItem[] = [
-    ...(service ? [{ label: `${service.name}, ${SIZES.find((s) => s.id === size)!.label.toLowerCase()}`, cents: service.priceCents[size] }] : []),
+    ...(service ? [{ label: tiers ? `${service.name}, ${trade.tiers[size].toLowerCase()}` : service.name, cents: service.priceCents[size] }] : []),
     ...addOns.filter((a) => addOnIds.includes(a.id)).map((a) => ({ label: a.name, cents: a.priceCents })),
     ...extras,
   ];
@@ -87,6 +87,8 @@ export default function NewQuote() {
 
   return (
     <Screen title="New quote" tabs={false} right={<BackButton />}>
+      {/* The AI photo scan recognises vehicles only. */}
+      {currentTradeId() === 'detailing' && (
       <AiScan
         onSuggestion={(s) => {
           setQuoteId(s.quoteId);
@@ -96,8 +98,10 @@ export default function NewQuote() {
           setAddOnIds(s.addOnIds);
         }}
       />
+      )}
+      {tiers && (
       <View style={styles.segment}>
-        {SIZES.map((s) => {
+        {SIZE_IDS.map((id) => ({ id, label: trade.tiers[id] })).map((s) => {
           const on = s.id === size;
           return (
             <Pressable
@@ -116,8 +120,15 @@ export default function NewQuote() {
           );
         })}
       </View>
+      )}
 
-      <Field label="Vehicle (optional)" value={vehicle} onChangeText={setVehicle} placeholder="e.g. Tesla Model Y" maxLength={120} />
+      <Field
+        label={currentTradeId() === 'detailing' || currentTradeId() === 'boat_rv' ? 'Vehicle (optional)' : 'Details (optional)'}
+        value={vehicle}
+        onChangeText={setVehicle}
+        placeholder={currentTradeId() === 'detailing' ? 'e.g. Tesla Model Y' : 'e.g. what the client asked for'}
+        maxLength={120}
+      />
 
       <Text variant="eyebrow">Service</Text>
       <View style={{ gap: 8 }}>

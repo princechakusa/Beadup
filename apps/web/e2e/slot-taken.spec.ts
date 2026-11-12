@@ -13,6 +13,7 @@ test("a booked time disappears for the next client", async ({ page, browser }) =
   await p2.goto("/marcus");
   await p2.getByRole("radio", { name: /Full detail/ }).click();
   await continueButton(p2).click();
+  await p2.getByRole("radiogroup", { name: "Your vehicle" }).getByRole("radio", { name: /Sedan/ }).click();
   await continueButton(p2).click();
   await p2.getByRole("radiogroup", { name: "Day" }).getByRole("radio", { name: day, exact: true }).click();
   const times = p2.getByRole("radiogroup", { name: "Time" });

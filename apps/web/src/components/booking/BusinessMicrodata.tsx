@@ -1,10 +1,11 @@
 import type { Detailer } from "@/lib/booking-types";
+import { tradeOf } from "@/lib/trades";
 import { COUNTRIES, formatMoney } from "@/lib/countries";
 import { absoluteUrl } from "@/lib/seo";
 
 /**
- * The detailer as a schema.org AutoWash (a LocalBusiness), so their booking
- * page can show up for "mobile detailing <city>" with services and rating.
+ * The business as its schema.org type (AutoWash, HairSalon, AutoRepair...: a
+ * LocalBusiness), so its booking page can show up in local search with services and rating.
  * Microdata (meta tags only, renders nothing): CSP forbids inline JSON-LD.
  */
 export function BusinessMicrodata({ detailer }: { detailer: Detailer }) {
@@ -13,7 +14,7 @@ export function BusinessMicrodata({ detailer }: { detailer: Detailer }) {
   const from = prices.length ? Math.min(...prices) : null;
   const currency = COUNTRIES[detailer.country].currency;
   return (
-    <div itemScope itemType="https://schema.org/AutoWash" className="hidden">
+    <div itemScope itemType={`https://schema.org/${tradeOf(detailer.trade).schemaType}`} className="hidden">
       <meta itemProp="name" content={detailer.businessName} />
       {detailer.tagline && <meta itemProp="description" content={detailer.tagline} />}
       <link itemProp="url" href={url} />

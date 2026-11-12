@@ -29,9 +29,9 @@ const allBookings: Booking[] = [
 
 const catalog: { services: CatalogService[]; addOns: CatalogAddOn[] } = {
   services: [
-    { id: 's1', name: 'Express wash', description: 'Hand wash, wheels, tires, glass', durationMin: 60, priceCents: { sedan: 6000, suv: 7000, truck: 8000 }, active: true, sortOrder: 1 },
-    { id: 's2', name: 'Full detail', description: 'Inside and out, hand wax, interior deep clean', durationMin: 180, priceCents: { sedan: 18000, suv: 21000, truck: 23000 }, active: true, sortOrder: 2 },
-    { id: 's3', name: 'Ceramic coating', description: 'Paint correction + 2-year ceramic protection', durationMin: 360, priceCents: { sedan: 65000, suv: 75000, truck: 80000 }, active: true, sortOrder: 3 },
+    { id: 's1', name: 'Express wash', description: 'Hand wash, wheels, tires, glass', durationMin: 60, priceCents: { sedan: 6000, suv: 7000, truck: 8000 }, active: true, sortOrder: 1, photoPath: null },
+    { id: 's2', name: 'Full detail', description: 'Inside and out, hand wax, interior deep clean', durationMin: 180, priceCents: { sedan: 18000, suv: 21000, truck: 23000 }, active: true, sortOrder: 2, photoPath: null },
+    { id: 's3', name: 'Ceramic coating', description: 'Paint correction + 2-year ceramic protection', durationMin: 360, priceCents: { sedan: 65000, suv: 75000, truck: 80000 }, active: true, sortOrder: 3, photoPath: null },
   ],
   addOns: [
     { id: 'a1', name: 'Pet hair removal (seats and carpets)', priceCents: 4000, active: true, sortOrder: 1 },
@@ -42,7 +42,7 @@ const catalog: { services: CatalogService[]; addOns: CatalogAddOn[] } = {
 
 export const fixtures = {
   catalog,
-  profile: { id: 'preview', handle: 'marcus', businessName: 'Marcus Shine Co.', timezone: 'America/Chicago', country: 'US' } satisfies Profile,
+  profile: { id: 'preview', handle: 'marcus', businessName: 'Marcus Shine Co.', timezone: 'America/Chicago', country: 'US', trade: 'detailing', visitMode: 'mobile' } satisfies Profile,
   bookings: (from: Date, to: Date) =>
     allBookings.filter((b) => Date.parse(b.startsAt) >= from.getTime() && Date.parse(b.startsAt) < to.getTime()),
   payments: [
@@ -57,7 +57,7 @@ export const fixtures = {
     { id: 'c2', name: 'Dev Patel', phone: '+15125550102', email: null, visits: 1, spentCents: 14000, lastVisit: at(-20, 9), nextBooking: at(0, 13) },
     { id: 'c4', name: 'Kevin Lee', phone: '+15125550104', email: null, visits: 4, spentCents: 52000, lastVisit: at(-120, 9), nextBooking: null },
   ] satisfies ClientSummary[],
-  businessProfile: { businessName: 'Marcus Shine Co.', tagline: 'Mobile detailing · we come to you', serviceArea: 'Austin, TX · 25 mi', handle: 'marcus', country: 'US' as const, contactPhone: '+15125550101' as string | null },
+  businessProfile: { businessName: 'Marcus Shine Co.', tagline: 'Mobile detailing · we come to you', serviceArea: 'Austin, TX · 25 mi', handle: 'marcus', country: 'US' as const, contactPhone: '+15125550101' as string | null, trade: 'detailing' as const, visitMode: 'mobile' as const },
   reviews: [
     { id: 'r1', rating: 5, body: 'Car looks brand new. On time and super careful with the leather.', createdAt: '2026-11-02T18:00:00Z', clientName: 'Jenna R.' },
     { id: 'r2', rating: 5, body: 'Got all the dog hair out of the back seats. Booking took a minute.', createdAt: '2026-10-28T20:30:00Z', clientName: 'Chris M.' },

@@ -13,6 +13,8 @@ import { fetchBusinessProfile, saveBusinessProfile, useQuery, type BusinessProfi
 import { COUNTRIES, type Country } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { formatPhone, toE164 } from '@/lib/phone';
+import type { TradeId } from '@/lib/trades';
+import { TradePicker, VisitPicker } from '@/components/TradePicker';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
 
@@ -36,6 +38,8 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   const [tagline, setTagline] = useState(initial.tagline);
   const [area, setArea] = useState(initial.serviceArea);
   const [country, setCountry] = useState<Country>(initial.country);
+  const [trade, setTrade] = useState<TradeId>(initial.trade);
+  const [visitMode, setVisitMode] = useState(initial.visitMode);
   const [phone, setPhone] = useState(initial.contactPhone ? formatPhone(initial.contactPhone, initial.country) : '');
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +59,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
     setBusy(true);
     setError(null);
     try {
-      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone });
+      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone, trade, visitMode });
       haptic.success();
       await refreshProfile();
       router.back();
@@ -70,6 +74,8 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   return (
     <View style={{ gap: space.lg }}>
       <Field label="Business name" value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" error={error} />
+      <TradePicker value={trade} onChange={setTrade} />
+      <VisitPicker value={visitMode} onChange={setVisitMode} />
       <Field label="Tagline (optional)" value={tagline} onChangeText={setTagline} maxLength={120} placeholder="e.g. Mobile detailing · we come to you" />
       <Field label="Service area (optional)" value={area} onChangeText={setArea} maxLength={80} placeholder="e.g. Austin, TX · 25 mi" />
       <View style={{ gap: space.xs }}>

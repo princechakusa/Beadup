@@ -42,7 +42,7 @@ export default function Invite() {
 
   const site = apiBaseUrl.replace(/^https?:\/\//, '');
   const message = s
-    ? `I run my detailing bookings on Beadup: quotes from photos, one booking link, deposits straight to me. Enter my code "${s.code}" when you set up and we both get a free month of Pro.`
+    ? `I run my bookings on Beadup: one booking link, deposits straight to me, receipts and reminders on WhatsApp. Enter my code "${s.code}" when you set up and we both get a free month of Pro.`
     : '';
 
   const share = () => {
@@ -83,7 +83,7 @@ export default function Invite() {
             Give a month, get a month
           </Text>
           <Text variant="body" tone="steel" style={{ textAlign: 'center', marginTop: space.sm, maxWidth: 300 }}>
-            When a detailer you invite finishes their first job on Beadup, you both get a free month of Pro.
+            When a business you invite finishes its first job on Beadup, you both get a free month of Pro.
           </Text>
         </View>
       </Animated.View>

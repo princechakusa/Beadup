@@ -18,7 +18,7 @@ test("a removed add-on mid-booking restarts the choice with a clear message", as
   sql(`update public.add_ons set active = false where detailer_id = '${MARCUS}' and name = 'Odor treatment'`);
   await page.getByRole("button", { name: "Book", exact: true }).click();
 
-  await expect(page.getByRole("alert").filter({ hasText: "just updated their services" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "just updated its services" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pick your detail" })).toBeVisible();
 
   // The refreshed page no longer offers it, and booking without it works.
@@ -33,4 +33,18 @@ test("a removed add-on mid-booking restarts the choice with a clear message", as
   await continueButton(page).click();
   await page.getByRole("button", { name: "Book", exact: true }).click();
   await expect(page.getByRole("heading", { name: "You're booked" })).toBeVisible();
+});
+
+test("the estimate never uses a size the client didn't pick", async ({ page }) => {
+  await page.goto("/marcus");
+  await page.getByRole("radio", { name: /Express wash/ }).click();
+  // Listed "from $60" (sedan): the bar says From $60, not the SUV price.
+  await expect(page.getByText("From", { exact: true })).toBeVisible();
+  await expect(page.getByText("$60", { exact: true }).last()).toBeVisible();
+  await page.getByRole("button", { name: "Continue", exact: true }).last().click();
+  // No size chosen yet: can't continue.
+  await expect(page.getByRole("button", { name: "Continue", exact: true }).last()).toBeDisabled();
+  await page.getByRole("radiogroup", { name: "Your vehicle" }).getByRole("radio", { name: /SUV/ }).click();
+  await expect(page.getByText("Estimated total")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue", exact: true }).last()).toBeEnabled();
 });
