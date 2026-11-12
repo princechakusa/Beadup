@@ -85,9 +85,11 @@ function RootNavigator() {
           <Stack.Screen name="settings/invite" />
           <Stack.Screen name="settings/availability" />
           <Stack.Screen name="settings/media" />
+          <Stack.Screen name="settings/google" />
           <Stack.Screen name="settings/delete-account" />
           <Stack.Screen name="booking/[id]" />
           <Stack.Screen name="reschedule/[id]" />
+          <Stack.Screen name="book/[clientId]" />
           <Stack.Screen name="client/[id]" />
           <Stack.Screen name="reviews" />
           <Stack.Screen name="paid/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />

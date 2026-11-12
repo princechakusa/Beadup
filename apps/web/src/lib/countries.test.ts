@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney, formatPhone, toE164, whatsappUrl } from "./countries";
+import { formatClock, formatMoney, formatPhone, formatWhen, toE164, whatsappUrl } from "./countries";
 
 describe("toE164", () => {
   it("reads US and Canadian numbers", () => {
@@ -102,5 +102,18 @@ describe("whatsappUrl", () => {
     expect(whatsappUrl("+15125550101", "Hi, about booking AB12 & more")).toBe(
       "https://wa.me/15125550101?text=Hi%2C%20about%20booking%20AB12%20%26%20more",
     );
+  });
+});
+
+describe("formatClock / formatWhen", () => {
+  it("uses 24-hour time where people write it that way", () => {
+    expect(formatClock("14:30", "US")).toBe("2:30 PM");
+    expect(formatClock("09:05", "AU")).toBe("9:05 AM");
+    expect(formatClock("14:30", "GB")).toBe("14:30");
+    expect(formatClock("09:05", "ZA")).toBe("09:05");
+  });
+  it("writes the date and time in the business's zone", () => {
+    expect(formatWhen("2026-11-17T12:30:00Z", "Africa/Johannesburg", "ZA")).toMatch(/17 Nov.*14:30$/);
+    expect(formatWhen("2026-11-17T17:30:00Z", "America/Chicago", "US")).toMatch(/Nov 17.*11:30 AM$/);
   });
 });

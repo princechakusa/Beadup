@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { deliverEmails } from "@/lib/email";
 import { deliverQueued } from "@/lib/messages";
 import { retryFailedRefunds } from "@/lib/refunds";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -21,6 +22,7 @@ export async function GET(request: Request): Promise<Response> {
   if (!authorized(request)) return new Response("unauthorized", { status: 401 });
   const db = supabaseAdmin();
   const { data: queued } = db ? await db.rpc("enqueue_due_messages") : { data: null };
-  const [delivery, refunds] = await Promise.all([deliverQueued(), retryFailedRefunds()]);
-  return Response.json({ queued, ...delivery, refunds });
+  const { data: emailsQueued } = db ? await db.rpc("enqueue_due_emails") : { data: null };
+  const [delivery, refunds, emails] = await Promise.all([deliverQueued(), retryFailedRefunds(), deliverEmails()]);
+  return Response.json({ queued, ...delivery, refunds, emailsQueued, emails });
 }

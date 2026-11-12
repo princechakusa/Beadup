@@ -124,3 +124,23 @@ export function whatsappUrl(e164: string, text?: string): string {
   const digits = e164.replace(/\D/g, "");
   return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 }
+
+/** Countries that write times on a 24-hour clock ("14:30"); the rest use "2:30 PM". */
+const CLOCK_24H: ReadonlySet<Country> = new Set<Country>(["GB", "ZA"]);
+
+/** A wall-clock "HH:MM" the local way: "2:30 PM" (US) or "14:30" (UK, South Africa). */
+export function formatClock(hhmm: string, country: Country = "US"): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  if (CLOCK_24H.has(country)) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+}
+
+/** An instant as "Tue, Nov 18 · 2:30 PM" in a time zone, written the local way. */
+export function formatWhen(iso: string, timeZone: string, country: Country = "US"): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString(COUNTRIES[country].locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map((p) => [p.type, p.value]),
+  );
+  return `${date} · ${formatClock(`${parts.hour}:${parts.minute}`, country)}`;
+}

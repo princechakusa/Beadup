@@ -5,7 +5,9 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { whatsappUrl } from '@/lib/messaging';
+import { sendMessage, whatsappUrl } from '@/lib/messaging';
+import { apiBaseUrl } from '@/lib/supabase';
+import { haptic } from '@/lib/haptics';
 import { fetchClientBookings, fetchClients, fetchProfile, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
@@ -59,6 +61,26 @@ export default function ClientDetail() {
             </View>
             <View style={{ flex: 1 }}>
               <Button label="Call" variant="glass" onPress={() => Linking.openURL(`tel:${c.phone}`)} />
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Button label="Book again" onPress={() => router.push(`/book/${c.id}`)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                label="Invite back"
+                variant="glass"
+                onPress={() => {
+                  if (!profile.data) return;
+                  haptic.select();
+                  sendMessage(
+                    'whatsapp',
+                    c.phone,
+                    `Hi ${c.name.split(' ')[0]}, it's ${profile.data.businessName}. It's been a while! Book your next visit here: ${apiBaseUrl}/${profile.data.handle}`,
+                  );
+                }}
+              />
             </View>
           </View>
           {c.email && (

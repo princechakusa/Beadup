@@ -8,6 +8,7 @@ import { MobileMenu } from "./MobileMenu";
 const NAV = [
   { href: "/#features", label: "Features" },
   { href: "/for", label: "Who it's for" },
+  { href: "/find", label: "Find a pro" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Guides" },
   { href: "/support", label: "Support" },

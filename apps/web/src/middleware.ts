@@ -44,9 +44,9 @@ async function pageExists(handle: string): Promise<boolean> {
 
 const TRADE_SLUGS = new Set(TRADE_PAGES.map((p) => p.slug));
 
-/** "/for/<slug>" for a trade that has no page (streamed pages can't send a 404 themselves). */
+/** "/for/<slug>" or "/find/<slug>" for a trade that has no page (streamed pages can't send a 404 themselves). */
 function isUnknownTradePage(pathname: string): boolean {
-  const m = /^\/for\/([^/]+)\/?$/.exec(pathname);
+  const m = /^\/(?:for|find)\/([^/]+)\/?$/.exec(pathname);
   return !!m && !TRADE_SLUGS.has(m[1].toLowerCase());
 }
 

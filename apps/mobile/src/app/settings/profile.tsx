@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +40,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   const [country, setCountry] = useState<Country>(initial.country);
   const [trade, setTrade] = useState<TradeId>(initial.trade);
   const [visitMode, setVisitMode] = useState(initial.visitMode);
+  const [listed, setListed] = useState(initial.listed);
   const [phone, setPhone] = useState(initial.contactPhone ? formatPhone(initial.contactPhone, initial.country) : '');
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
     setBusy(true);
     setError(null);
     try {
-      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone, trade, visitMode });
+      await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone, trade, visitMode, listed });
       haptic.success();
       await refreshProfile();
       router.back();
@@ -76,6 +77,13 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       <Field label="Business name" value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" error={error} />
       <TradePicker value={trade} onChange={setTrade} />
       <VisitPicker value={visitMode} onChange={setVisitMode} />
+      <View style={styles.listedRow}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text variant="bodyStrong">Show me in the Beadup directory</Text>
+          <Text variant="caption" style={{ fontSize: 13 }}>New clients can find you at beadup.app/find by trade and area.</Text>
+        </View>
+        <Switch value={listed} onValueChange={setListed} trackColor={{ true: colors.bead, false: '#262B35' }} accessibilityLabel="Show me in the Beadup directory" />
+      </View>
       <Field label="Tagline (optional)" value={tagline} onChangeText={setTagline} maxLength={120} placeholder="e.g. Mobile detailing · we come to you" />
       <Field label="Service area (optional)" value={area} onChangeText={setArea} maxLength={80} placeholder="e.g. Austin, TX · 25 mi" />
       <View style={{ gap: space.xs }}>
@@ -141,6 +149,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
 }
 
 const styles = StyleSheet.create({
+  listedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: '#11151B', borderWidth: 1, borderColor: colors.line },
   list: { borderRadius: 22, overflow: 'hidden', backgroundColor: 'rgba(22,26,33,0.72)', borderWidth: 1, borderColor: colors.line },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, paddingHorizontal: 14 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.lineStrong },

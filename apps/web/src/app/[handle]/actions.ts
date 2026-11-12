@@ -10,6 +10,7 @@ import { bookingPageTag, getBookingPage, HANDLE_RE } from "@/lib/booking-page";
 import { VEHICLE_SIZES } from "@/lib/booking-types";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
+import { deliverEmails } from "@/lib/email";
 import { notifyPayment } from "@/lib/push";
 import { getPublicConfig } from "@/lib/site";
 import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
@@ -32,6 +33,8 @@ const bookingInput = z.object({
   // Required (6+ characters) unless the client goes to the business (checked below).
   address: z.string().trim().max(200),
   smsConsent: z.boolean(),
+  /** Optional: confirmation, reminder and receipt by email. */
+  email: z.union([z.literal(""), z.email().max(254)]).optional(),
   turnstileToken: z.string().max(2048).optional(),
 });
 
@@ -234,6 +237,13 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     // Confirmed by the database; the client pays the detailer directly. No
     // payment webhook will follow, so alert the detailer now.
     after(() => notifyPayment(result.bookingId, "booked"));
+    if (input.email) {
+      const email = input.email;
+      after(async () => {
+        await db.rpc("set_client_email", { p_booking_id: result.bookingId, p_email: email });
+        await deliverEmails();
+      });
+    }
     return { ok: true, ...booked, payments: "external", clientToken: result.clientToken };
   }
 

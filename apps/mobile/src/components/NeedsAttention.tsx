@@ -17,7 +17,7 @@ const MAX_ROWS = 3;
  */
 export function NeedsAttention({ data, tz }: { data: Attention | null | undefined; tz: string }) {
   if (!data) return null;
-  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, missingPhoto, requests, tomorrow } = data;
+  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, missingPhoto, requests, tomorrow, dueBack } = data;
   const rows = [
     ...requests.slice(0, MAX_ROWS).map(({ request: r, booking: b }) => (
       <BookingRow
@@ -45,6 +45,28 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
         detail={`${b.client.name} · ${money(b.depositCents)} deposit${b.depositReported ? ', check it arrived' : ''}`}
       />
     )),
+    ...dueBack.slice(0, MAX_ROWS).map((c) => (
+      <Pressable
+        key={`due-${c.id}`}
+        onPress={() => {
+          haptic.select();
+          router.push(`/client/${c.id}`);
+        }}
+        style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
+        accessibilityRole="button"
+        accessibilityLabel={`${c.name} is due back. Invite them to book again.`}>
+        <View style={[styles.stripe, { backgroundColor: colors.success }]} />
+        <View style={{ flex: 1, gap: 1 }}>
+          <Text variant="bodyStrong" style={{ fontSize: 14 }}>
+            {c.name}
+          </Text>
+          <Text variant="caption" style={{ fontSize: 12 }}>
+            Last visit {dayLabel(c.lastVisit!, tz)} · invite them back
+          </Text>
+        </View>
+        <Badge label="Due back" tone="success" />
+      </Pressable>
+    )),
     missingPayment && (
       <SetupRow key="pay" icon="money" title="Add how clients pay your deposit" detail="A payment link or note shows after they book." href="/settings/payment" />
     ),
@@ -56,7 +78,7 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
     ),
   ].filter(Boolean);
   if (rows.length === 0) return null;
-  const more = Math.max(0, tomorrow.length - MAX_ROWS) + Math.max(0, requests.length - MAX_ROWS) + Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
+  const more = Math.max(0, dueBack.length - MAX_ROWS) + Math.max(0, tomorrow.length - MAX_ROWS) + Math.max(0, requests.length - MAX_ROWS) + Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
 
   return (
     <View style={{ gap: 10 }}>

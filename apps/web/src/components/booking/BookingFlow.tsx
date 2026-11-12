@@ -9,7 +9,7 @@ import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
-import { COUNTRIES, formatMoney, formatPhone, toE164, whatsappUrl, type Country } from "@/lib/countries";
+import { COUNTRIES, formatClock, formatMoney, formatPhone, toE164, whatsappUrl, type Country } from "@/lib/countries";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { openDays } from "@/lib/slots";
 import { tierLabel, tradeOf } from "@/lib/trades";
@@ -53,27 +53,26 @@ const detailsSchemaFor = (country: Country, needAddress: boolean) =>
     .trim()
     .refine((p) => toE164(p, country) !== null, "Enter a valid mobile number"),
   address: needAddress ? z.string().trim().min(6, "Enter the address for the appointment").max(200) : z.string().max(200),
+  email: z.union([z.literal(""), z.string().trim().email("Check the email address")]),
   // Optional: consent to texts is never a condition of booking.
   smsConsent: z.boolean(),
 });
 
-type Details = { name: string; phone: string; address: string; smsConsent: boolean };
+type Details = { name: string; phone: string; address: string; email: string; smsConsent: boolean };
 
 const spring = { type: "spring", stiffness: 420, damping: 34 } as const;
+/** This browser's own details from the last booking, so booking again takes a few taps. */
+const REMEMBER_KEY = "beadup:my-details";
 
 function initials(name: string) {
   const words = name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean);
   return words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "B";
 }
 
-function to12h(hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
-  const suffix = h >= 12 ? "PM" : "AM";
-  return `${((h + 11) % 12) + 1}:${m.toString().padStart(2, "0")} ${suffix}`;
-}
 
 export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
   const money = (cents: number) => formatMoney(cents, detailer.country);
+  const clock = (hhmm: string) => formatClock(hhmm, detailer.country);
   const reduce = useReducedMotion();
   const router = useRouter();
   // Animation start states only after hydration: the server HTML must not
@@ -124,7 +123,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const dayKey = (pickedDay && days.some((d) => d.key === pickedDay) ? pickedDay : null) ?? days[0]?.key ?? null;
   const [pickedSlot, setSlot] = useState<string | null>(null);
   const slot = pickedSlot && days.find((d) => d.key === dayKey)?.slots.includes(pickedSlot) ? pickedSlot : null;
-  const [details, setDetails] = useState<Details>({ name: "", phone: "", address: "", smsConsent: false });
+  const [details, setDetails] = useState<Details>({ name: "", phone: "", address: "", email: "", smsConsent: false });
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({});
   const [booked, setBooked] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -132,6 +131,22 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const [bookError, setBookError] = useState<string | null>(null);
   const [paidCents, setPaidCents] = useState<number | null>(null);
   const [bookedRef, setBookedRef] = useState<{ bookingId: string; token: string } | null>(null);
+  // Returning clients: their own details, remembered in this browser only (never sent anywhere until they book).
+  function prefillDetails() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(REMEMBER_KEY) ?? "null") as Partial<Details> | null;
+      if (!saved || typeof saved.name !== "string") return;
+      setDetails((d) => ({
+        ...d,
+        name: d.name || saved.name || "",
+        phone: d.phone || saved.phone || "",
+        address: d.address || saved.address || "",
+        email: d.email || saved.email || "",
+      }));
+    } catch {
+      // storage blocked or empty: nothing to fill
+    }
+  }
 
   const service = detailer.services.find((s) => s.id === serviceId);
   // Launch mode: the client pays the deposit to the detailer directly (no card form, no booking fee).
@@ -151,6 +166,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
     (step === 0 && !!serviceId) || (step === 1 && !!tier) || (step === 2 && !!dayKey && !!slot) || step === 3 || step === 4;
 
   function go(to: number) {
+    if (to === 3) prefillDetails();
     setDir(to > step ? 1 : -1);
     setStep(to);
   }
@@ -190,6 +206,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         phone: details.phone,
         address: studio ? "" : details.address,
         smsConsent: smsEnabled && details.smsConsent,
+        email: details.email.trim(),
         turnstileToken: turnstileToken ?? undefined,
       })
         .then((res) => {
@@ -200,6 +217,11 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           }
           if (res.ok) {
             if (res.clientToken) setBookedRef({ bookingId: res.bookingId, token: res.clientToken });
+            try {
+              localStorage.setItem(REMEMBER_KEY, JSON.stringify({ name: details.name, phone: details.phone, address: details.address, email: details.email }));
+            } catch {
+              // private mode: fine
+            }
             setPaidCents(res.depositCents + res.bookingFeeCents);
             setBooked(true);
             return;
@@ -234,7 +256,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
     return (
       <BookedCelebration
         businessName={detailer.businessName}
-        when={`${day?.label ?? ""} · ${slot ? to12h(slot) : ""}`}
+        when={`${day?.label ?? ""} · ${slot ? clock(slot) : ""}`}
         paid={money(paidCents ?? totals.dueToday)}
         payment={external ? { link: detailer.paymentLink, note: detailer.paymentNote } : undefined}
         depositSent={external && bookedRef ? bookedRef : undefined}
@@ -517,7 +539,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         onClick={() => { haptic(); setSlot(s); setBookError(null); }}
                         className={`h-12 rounded-2xl border text-sm font-semibold transition-colors ${active ? "border-bead bg-bead text-bead-ink shadow-[0_8px_24px_rgba(77,216,255,0.3)]" : "border-line bg-gunmetal"}`}
                       >
-                        {to12h(s)}
+                        {clock(s)}
                       </motion.button>
                     );
                   })}
@@ -551,6 +573,9 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                       <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
                     </Field>
                   )}
+                  <Field label="Email (optional, for your confirmation and reminder)" error={errors.email}>
+                    <input type="email" inputMode="email" autoComplete="email" value={details.email} maxLength={254} onChange={(e) => setDetails({ ...details, email: e.target.value })} />
+                  </Field>
                   {smsEnabled && (
                   <label className="mt-1 flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-steel">
                     <input
@@ -575,7 +600,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                 <div className="glass glass-edge mt-5 rounded-[24px] p-5">
                   <p className="font-display text-lg font-bold">{service?.name}</p>
                   <p className="mt-1 text-sm text-steel">
-                    {[tier ? tierLabel(detailer.trade, tier) : "", day?.label, slot && to12h(slot)].filter(Boolean).join(" · ")}
+                    {[tier ? tierLabel(detailer.trade, tier) : "", day?.label, slot && clock(slot)].filter(Boolean).join(" · ")}
                   </p>
                   <div className="my-4 h-px bg-white/[0.06]" />
                   <Row label={service?.name ?? ""} value={money(totals.base)} />

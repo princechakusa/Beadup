@@ -66,6 +66,9 @@ export function Receipt({ r }: { r: ReceiptData }) {
       <p className="mt-4 text-[12px] text-steel">Paid directly to {r.businessName}. Issued with Beadup.</p>
       <div className="no-print mt-4 flex gap-2">
         <PrintButton />
+        <a href={`/${r.handle}`} className="flex h-11 flex-1 items-center justify-center rounded-full bg-bead text-[14px] font-semibold text-midnight">
+          Book again
+        </a>
         {r.contactPhone && (
           <a
             href={whatsappUrl(r.contactPhone, `Hi ${r.businessName}, it's ${r.firstName} about receipt ${r.ref}.`)}

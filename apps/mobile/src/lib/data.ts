@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
 import { addDaysKey, dateKey, isCountry, setMoneyCountry, startOfDay, type Country } from './format';
-import { isTradeId, setCurrentTrade, type TradeId } from './trades';
+import { currentTrade, isTradeId, setCurrentTrade, type TradeId } from './trades';
 import { apiBaseUrl, supabase } from './supabase';
 
 // Data access for the detailer app. Every query runs as the signed-in
@@ -581,6 +581,8 @@ export type BusinessProfile = {
   contactPhone: string | null;
   trade: TradeId;
   visitMode: 'mobile' | 'studio';
+  /** Shown in the public Beadup directory (beadup.app/find). */
+  listed: boolean;
 };
 
 export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
@@ -597,6 +599,7 @@ export async function fetchBusinessProfile(): Promise<BusinessProfile | null> {
       contactPhone: data.contact_phone ?? null,
       trade: isTradeId(data.trade) ? data.trade : 'detailing',
       visitMode: data.visit_mode === 'studio' ? 'studio' : 'mobile',
+      listed: data.listed !== false,
     }
   );
 }
@@ -616,6 +619,7 @@ export async function saveBusinessProfile(p: Omit<BusinessProfile, 'handle'>): P
       contact_phone: p.contactPhone,
       trade: p.trade,
       visit_mode: p.visitMode,
+      listed: p.listed,
     })
     .eq('id', user.user.id);
   if (error) throw error;
@@ -795,6 +799,8 @@ export type Attention = {
   toCloseOut: Booking[];
   /** Confirmed jobs tomorrow: a reminder the day before cuts no-shows. */
   tomorrow: Booking[];
+  /** Regulars with no visit for longer than usual for this trade, and nothing booked. */
+  dueBack: ClientSummary[];
   /** Setup gaps clients would notice. */
   missingPayment: boolean;
   missingPhone: boolean;
@@ -809,6 +815,7 @@ export async function fetchAttention(external: boolean, tz = 'America/Chicago'):
       toCloseOut: [],
       requests: [],
       tomorrow: [],
+      dueBack: [],
       missingPayment: false,
       missingPhone: false,
       missingPhoto: false,
@@ -816,6 +823,7 @@ export async function fetchAttention(external: boolean, tz = 'America/Chicago'):
   }
   const now = Date.now();
   const tomorrowKey = addDaysKey(dateKey(new Date(now), tz), 1);
+  const clientsP = fetchClients().catch(() => [] as ClientSummary[]);
   const [deposits, past, me, reqs, tmrw] = await Promise.all([
     external
       ? db()
@@ -863,8 +871,14 @@ export async function fetchAttention(external: boolean, tz = 'America/Chicago'):
   const requests = ((reqs.error ? [] : reqs.data) as unknown as (RequestRow & { booking: BookingRow | null })[])
     .filter((r) => r.booking)
     .map((r) => ({ request: toRequest(r), booking: toBooking(r.booking!) }));
+  const dueAfterMs = currentTrade().rebookWeeks * 7 * 86_400_000;
+  const dueBack = (await clientsP)
+    .filter((c) => c.lastVisit && !c.nextBooking && c.visits >= 1 && now - Date.parse(c.lastVisit) > dueAfterMs)
+    .sort((a, b) => Date.parse(b.lastVisit!) - Date.parse(a.lastVisit!))
+    .slice(0, 10);
   return {
     requests,
+    dueBack,
     tomorrow: tmrw.error ? [] : toBookings(tmrw.data),
     depositsToConfirm,
     toCloseOut,
@@ -880,4 +894,31 @@ export async function fetchClientLink(bookingId: string): Promise<string | null>
   const { data, error } = await db().rpc('client_link_token', { p_booking_id: bookingId });
   if (error) throw error;
   return typeof data === 'string' && /^[0-9a-f]{48}$/.test(data) ? `${apiBaseUrl}/b/${data}` : null;
+}
+
+/** The business books a client in, once or every 1/2/4 weeks. Clashing visits are skipped by the server. */
+export async function detailerBook(p: {
+  clientId: string;
+  serviceId: string;
+  size: 'sedan' | 'suv' | 'truck';
+  startsAt: Date;
+  address: string;
+  everyWeeks: 0 | 1 | 2 | 4;
+  count: number;
+}): Promise<{ ok: true; made: number; skipped: string[] } | { ok: false; error: string }> {
+  if (!supabase) return { ok: true, made: p.count, skipped: [] };
+  const { data, error } = await db().rpc('detailer_book', {
+    p_client_id: p.clientId,
+    p_service_id: p.serviceId,
+    p_vehicle_size: p.size,
+    p_starts_at: p.startsAt.toISOString(),
+    p_address: p.address,
+    p_every_weeks: p.everyWeeks,
+    p_count: p.count,
+  });
+  if (error) throw error;
+  const r = data as { ok: boolean; error?: string; made?: unknown[]; skipped?: string[] };
+  if (!r.ok) return { ok: false, error: r.error ?? 'unknown' };
+  await refreshBookingPage();
+  return { ok: true, made: r.made?.length ?? 0, skipped: r.skipped ?? [] };
 }

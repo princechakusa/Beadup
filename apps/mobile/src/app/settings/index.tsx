@@ -178,6 +178,7 @@ export default function Settings() {
 
       <ListCard>
         <Row icon="camera" label="Photo and your work" detail="Shown on your booking page" onPress={() => router.push('/settings/media')} />
+        <Row icon="search" label="Get found on Google" detail="Add your link to Search and Maps" onPress={() => router.push('/settings/google')} />
         <Row icon="car" label="Services and prices" onPress={() => router.push('/settings/services')} />
         <Row icon="calendar" label="Availability" onPress={() => router.push('/settings/availability')} />
         {paymentsMode === 'external' ? (

@@ -108,8 +108,15 @@ export function currencySymbol(): string {
   return symbol || '$';
 }
 
+/** Countries that write times on a 24-hour clock (same as the website). */
+const CLOCK_24H = new Set<Country>(['GB', 'ZA']);
+
+/** "2:30 PM", or "14:30" where people use a 24-hour clock, in the business's timezone. */
 export function timeOf(iso: string, timeZone: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { timeZone, hour: 'numeric', minute: '2-digit' });
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(iso));
+  const [h, m] = parts.split(':').map(Number);
+  if (CLOCK_24H.has(current)) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
 export function dayLabel(iso: string, timeZone: string): string {

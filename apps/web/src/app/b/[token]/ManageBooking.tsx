@@ -6,7 +6,7 @@ import { AddToCalendar, DepositSent } from "@/components/booking/BookedCelebrati
 import type { Detailer } from "@/lib/booking-types";
 import type { ClientBooking } from "@/lib/client-booking";
 import { WhatsAppIcon } from "@/components/booking/WhatsAppIcon";
-import { formatMoney, formatPhone, whatsappUrl, type Country } from "@/lib/countries";
+import { formatClock, formatMoney, formatPhone, whatsappUrl, type Country } from "@/lib/countries";
 import { haptic } from "@/lib/feedback";
 import { wallClock } from "@/lib/ics";
 import { openDays } from "@/lib/slots";
@@ -31,15 +31,11 @@ const ERRORS: Record<Exclude<ActionResult, { ok: true }>["error"], string> = {
   unavailable: "That didn't go through. Please try again shortly.",
 };
 
-const to12h = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-};
 /** "YYYY-MM-DD HH:MM" (detailer's zone) as "Tue, Nov 18 · 10:00 AM". */
-const localLabel = (s: string) => {
+const localLabel = (s: string, country: Country = "US") => {
   const [date, time] = s.split(" ");
   const d = new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
-  return `${d} · ${to12h(time)}`;
+  return `${d} · ${formatClock(time, country)}`;
 };
 
 export function ManageBooking({ token, booking: b, availability }: { token: string; booking: View; availability: Availability | null }) {
@@ -47,7 +43,7 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
   const hydrated = useHydrated();
   const money = (c: number) => formatMoney(c, b.country as Country);
   const when = wallClock(b.startsAt, b.timezone);
-  const whenLabel = localLabel(`${when.date} ${when.time}`);
+  const whenLabel = localLabel(`${when.date} ${when.time}`, b.country as Country);
   const live = b.status === "confirmed" || b.status === "pending_payment";
   const canAsk = live && availability !== null; // upcoming and not yet started (checked on the server)
   const status = STATUS[b.status];
@@ -77,7 +73,7 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
       {b.request && live && (
         <section role="status" className="rounded-[20px] border border-bead/30 bg-bead/[0.06] p-4 text-[14px] leading-relaxed">
           <p className="font-semibold">{b.request.kind === "cancel" ? "You asked to cancel" : "You asked for a new time"}</p>
-          {b.request.preferred.length > 0 && <p className="mt-1 text-steel">Preferred: {b.request.preferred.map(localLabel).join("; ")}</p>}
+          {b.request.preferred.length > 0 && <p className="mt-1 text-steel">Preferred: {b.request.preferred.map((x) => localLabel(x, b.country as Country)).join("; ")}</p>}
           {b.request.note && <p className="mt-1 text-steel">“{b.request.note}”</p>}
           <p className="mt-1 text-steel">
             {b.businessName} will get back to you. Your booking stays as it is until they do.
@@ -121,6 +117,12 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
             router.refresh();
           }}
         />
+      )}
+
+      {!live && (
+        <a href={`/${b.handle}`} className="flex h-12 items-center justify-center rounded-[16px] bg-bead text-[15px] font-semibold text-midnight">
+          Book {b.businessName} again
+        </a>
       )}
 
       {b.contactPhone && (
@@ -292,14 +294,14 @@ function Reschedule({
                   onClick={() => toggle(key)}
                   className={`h-11 rounded-[14px] border text-[14px] ${on ? "border-bead bg-bead font-semibold text-midnight" : "border-white/10"}`}
                 >
-                  {to12h(s)}
+                  {formatClock(s, b.country as Country)}
                 </button>
               );
             })}
           </div>
         </>
       )}
-      {picked.length > 0 && <p className="mt-3 text-[13px] text-steel">Picked: {picked.map(localLabel).join("; ")}</p>}
+      {picked.length > 0 && <p className="mt-3 text-[13px] text-steel">Picked: {picked.map((x) => localLabel(x, b.country as Country)).join("; ")}</p>}
       <label className="mt-4 block text-[13px] text-steel" htmlFor="resched-note">
         Note (optional)
       </label>
