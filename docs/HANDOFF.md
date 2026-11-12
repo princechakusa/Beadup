@@ -141,3 +141,20 @@ no tracking; owner presses Publish), subscription `beadup_pro_monthly` ($19, all
   No Android build exists yet, so no Android update.
 - CI green on `b4f131e`. Report: `docs/READINESS_2026-11-12.md` (fixes F-1..F-4).
 - Still open: test the new screens on a real iPhone; Supabase CLI token on this PC is invalid (`npx supabase login`).
+
+## STATUS 2026-11-12 (items 2-6 of the gap list; item 1 Android excluded by owner)
+Done in code, all checks green locally (DB tests PASS, web tsc/eslint/vitest 66/66/build + CSP check, mobile tsc/vitest/eslint):
+- 2 Client emails via Brevo outbox (`client_emails`, `apps/web/src/lib/email.ts`). Sends once `BREVO_API_KEY` (+ optional `EMAIL_FROM`) is set on Cloudflare; until then rows are `skipped`.
+- 3 Directory `/find`, `/find/<trade>` (`get_directory`), opt-out switch in app Settings > Business profile, "Get found on Google" guide (app Settings).
+- 4 Teams: `staff_members`, `bookings.staff_id`, staff-aware overlap trigger, client picks a person or Anyone, app Settings > Team. Migration `20261112000800_teams.sql`.
+- 5 Book again, recurring visits (`detailer_book`), due-back nudges (`rebookWeeks` per trade), remembered client details.
+- 6 12/24-hour times (GB/ZA 24h), 4 trade guides in `content/guides.tsx`, error monitoring (`error_log` table, `/api/log`, `instrumentation.ts`, web error pages + app ErrorBoundary report, list in /admin). Arabic/Afrikaans NOT done on purpose (English works in those markets; full i18n is a big separate project).
+
+REMAINING STEPS (next agent):
+1. `git add -A && git commit` (if not already committed) then `git push origin main` (Cloudflare + Supabase deploy migrations 000500-000900).
+2. Optional before push: `npx supabase db reset` then full Playwright E2E in apps/web (last full run 26/26 was before teams + error log).
+3. Wait for check-runs: `gh api repos/princechakusa/Beadup/commits/<sha>/check-runs` (cloudflare + supabase green) and CI.
+4. Verify prod: beadup.app/find 200, /find/barbers 200, /find/nope 404, /blog lists 8 guides, POST /api/log returns 204.
+5. iOS OTA (JS only, no package.json/app.json change): `cd apps/mobile && npx eas-cli@latest update --channel production --environment production --platform ios --non-interactive --message "Teams, book again, due-back, directory switch, Google guide, 24h times, crash reports"`.
+6. Add CLAUDE.md notes for emails, directory, teams, repeat bookings, 24h, error_log.
+Owner actions: set `BREVO_API_KEY` on Cloudflare; fill `plan_config.pro_price_by_country`.

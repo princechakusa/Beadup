@@ -31,6 +31,8 @@ export type Booking = {
   address: string;
   addOns: { name: string; priceCents?: number }[];
   client: { id: string; name: string; phone: string };
+  /** Team member the booking is with (null for one-person businesses). */
+  staffName: string | null;
 };
 
 export type Payment = {
@@ -63,7 +65,7 @@ export type Balance = {
 };
 
 const BOOKING_SELECT =
-  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, deposit_received_at, deposit_reported_at, address, add_ons, client:clients(id, name, phone)';
+  'id, starts_at, duration_min, service_name, vehicle_size, status, subtotal_cents, deposit_cents, deposit_received_at, deposit_reported_at, address, add_ons, client:clients(id, name, phone), staff:staff_members(name)';
 
 type BookingRow = {
   id: string;
@@ -79,6 +81,7 @@ type BookingRow = {
   address: string;
   add_ons: { name: string; priceCents?: number }[] | null;
   client: { id: string; name: string; phone: string } | null;
+  staff: { name: string } | null;
 };
 
 const toBooking = (r: BookingRow): Booking => ({
@@ -95,6 +98,7 @@ const toBooking = (r: BookingRow): Booking => ({
   address: r.address,
   addOns: r.add_ons ?? [],
   client: r.client ?? { id: '', name: 'Client', phone: '' },
+  staffName: r.staff?.name ?? null,
 });
 
 function db() {
@@ -905,6 +909,7 @@ export async function detailerBook(p: {
   address: string;
   everyWeeks: 0 | 1 | 2 | 4;
   count: number;
+  staffId?: string | null;
 }): Promise<{ ok: true; made: number; skipped: string[] } | { ok: false; error: string }> {
   if (!supabase) return { ok: true, made: p.count, skipped: [] };
   const { data, error } = await db().rpc('detailer_book', {
@@ -915,10 +920,46 @@ export async function detailerBook(p: {
     p_address: p.address,
     p_every_weeks: p.everyWeeks,
     p_count: p.count,
+    p_staff_id: p.staffId ?? null,
   });
   if (error) throw error;
   const r = data as { ok: boolean; error?: string; made?: unknown[]; skipped?: string[] };
   if (!r.ok) return { ok: false, error: r.error ?? 'unknown' };
   await refreshBookingPage();
   return { ok: true, made: r.made?.length ?? 0, skipped: r.skipped ?? [] };
+}
+
+// ---------------------------------------------------------------------------
+// Team (Settings > Team): people who take bookings, each with their own calendar.
+
+export type StaffMember = { id: string; name: string; active: boolean };
+
+export async function fetchStaff(): Promise<StaffMember[]> {
+  if (!supabase) return [];
+  const { data, error } = await db().from('staff_members').select('id, name, active').order('sort_order').order('created_at');
+  if (error) throw error;
+  return data;
+}
+
+export async function addStaff(name: string, sortOrder: number): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = await db().from('staff_members').insert({ detailer_id: user.user.id, name: name.slice(0, 40), sort_order: sortOrder });
+  if (error) throw error;
+  await refreshBookingPage();
+}
+
+export async function setStaffActive(id: string, active: boolean): Promise<void> {
+  if (!supabase) return;
+  const { error } = await db().from('staff_members').update({ active }).eq('id', id);
+  if (error) throw error;
+  await refreshBookingPage();
+}
+
+export async function removeStaff(id: string): Promise<void> {
+  if (!supabase) return;
+  const { error } = await db().from('staff_members').delete().eq('id', id);
+  if (error) throw error;
+  await refreshBookingPage();
 }

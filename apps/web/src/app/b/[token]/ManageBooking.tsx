@@ -63,6 +63,7 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
       <section aria-label="Booking" className="glass glass-edge rounded-[24px] p-5">
         <Row label="When" value={whenLabel} strong />
         <Row label="Service" value={b.serviceName} />
+        {b.staffName && <Row label="With" value={b.staffName} />}
         {b.addOns.length > 0 && <Row label="Add-ons" value={b.addOns.join(", ")} />}
         {tierLabel(b.trade, b.vehicleSize) && <Row label="Size" value={tierLabel(b.trade, b.vehicleSize)} />}
         {b.visitMode === "studio" && <Row label="Where" value={`At ${b.businessName}`} />}

@@ -33,6 +33,8 @@ const bookingInput = z.object({
   // Required (6+ characters) unless the client goes to the business (checked below).
   address: z.string().trim().max(200),
   smsConsent: z.boolean(),
+  /** Team member chosen by the client; omitted for "anyone" or a one-person business. */
+  staffId: z.uuid().optional(),
   /** Optional: confirmation, reminder and receipt by email. */
   email: z.union([z.literal(""), z.email().max(254)]).optional(),
   turnstileToken: z.string().max(2048).optional(),
@@ -201,6 +203,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     p_address: input.address,
     p_sms_consent: input.smsConsent,
     p_consent_text: input.smsConsent ? smsConsentText(detailer.businessName) : null,
+    p_staff_id: input.staffId ?? null,
   });
   if (error) {
     console.error("create_booking failed", error.code);
@@ -226,6 +229,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     revalidateTag(bookingPageTag(input.handle), { expire: 0 });
     if (result.error === "service" || result.error === "add_on") return { ok: false, error: "catalog_changed" };
     if (result.error === "not_found") return { ok: false, error: "unavailable" };
+    if (result.error === "staff") return { ok: false, error: "slot_unavailable" }; // that person just left the team
     const known = ["slot_taken", "slot_unavailable", "plan_limit"] as const;
     return { ok: false, error: known.find((k) => k === result.error) ?? "invalid" };
   }

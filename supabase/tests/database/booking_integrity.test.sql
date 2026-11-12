@@ -64,7 +64,7 @@ set local role anon;
 select is(public.get_booking_page('test-e1') -> 'bufferMin', '30'::jsonb, 'page has the buffer');
 select is(jsonb_array_length(public.get_booking_page('test-e1') -> 'busy'), 3, 'page lists the three live bookings');
 select is(public.get_booking_page('test-e1') -> 'busy' -> 0,
-          jsonb_build_object('start', to_char((select day from d), 'YYYY-MM-DD') || ' 08:00', 'minutes', 360),
+          jsonb_build_object('start', to_char((select day from d), 'YYYY-MM-DD') || ' 08:00', 'minutes', 360, 'staffId', null),
           'busy range is local start + minutes, nothing about the client');
 
 -- ---------------------------------------------------------------------------

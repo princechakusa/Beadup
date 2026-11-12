@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LaunchIntro } from '@/components/LaunchIntro';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { listenForNotificationTaps } from '@/lib/push';
+import { reportError } from '@/lib/report-error';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -86,6 +87,7 @@ function RootNavigator() {
           <Stack.Screen name="settings/availability" />
           <Stack.Screen name="settings/media" />
           <Stack.Screen name="settings/google" />
+          <Stack.Screen name="settings/team" />
           <Stack.Screen name="settings/delete-account" />
           <Stack.Screen name="booking/[id]" />
           <Stack.Screen name="reschedule/[id]" />
@@ -114,10 +116,11 @@ function RootNavigator() {
  * Last line of defence: a render error anywhere shows this instead of closing
  * the app. The splash is hidden so the message is visible.
  */
-export function ErrorBoundary({ retry }: { error: Error; retry: () => Promise<void> }) {
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
+  useEffect(() => reportError(error, 'ErrorBoundary'), [error]);
   return (
     <View style={{ flex: 1, backgroundColor: colors.midnight, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
       <Text style={{ color: colors.paint, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>Something went wrong</Text>

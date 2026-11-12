@@ -3,7 +3,8 @@ import type { Detailer } from "./booking-types";
 /** A day on the booking page with the start times a client can still pick. */
 export type OpenDay = { key: string; dow: string; day: number; label: string; slots: string[] };
 
-type Busy = Detailer["busy"][number];
+/** A busy range: local start, length, and the team member (none = everyone). */
+type Busy = { start: string; minutes: number; staffId?: string | null };
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
@@ -51,13 +52,19 @@ export function openDays(opts: {
   exclude?: ReadonlySet<string>;
   /** Whole days the detailer isn't working ("YYYY-MM-DD"). */
   daysOff?: readonly string[];
+  /**
+   * Team members who could take the job (one chosen person, or everyone for
+   * "anyone"). A time is open when at least one of them is free. Empty: a
+   * one-person business, where every booking counts.
+   */
+  staffIds?: readonly string[];
 }): OpenDay[] {
   const { date: today, minute } = localNow(opts.now, opts.timeZone);
   const nowWall = wallMinutes(today, `${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`);
   const ranges = opts.busy.map((b) => {
     const [date, time] = b.start.split(" ");
     const start = wallMinutes(date, time);
-    return { start, end: start + b.minutes };
+    return { start, end: start + b.minutes, staffId: b.staffId ?? null };
   });
   const [y, m, d] = today.split("-").map(Number);
   const out: OpenDay[] = [];
@@ -71,7 +78,11 @@ export function openDays(opts: {
       const start = wallMinutes(key, s);
       if (start < nowWall + 60) return false;
       const end = start + opts.durationMin;
-      return !ranges.some((r) => start < r.end + opts.bufferMin && r.start < end + opts.bufferMin);
+      const clash = (r: (typeof ranges)[number]) => start < r.end + opts.bufferMin && r.start < end + opts.bufferMin;
+      const people = opts.staffIds ?? [];
+      if (people.length === 0) return !ranges.some(clash);
+      // Free if any candidate has no clash with their own bookings or with team-wide ones (no person).
+      return people.some((p) => !ranges.some((r) => (r.staffId === null || r.staffId === p) && clash(r)));
     });
     if (slots.length === 0) continue;
     out.push({

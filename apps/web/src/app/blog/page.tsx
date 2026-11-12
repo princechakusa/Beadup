@@ -6,8 +6,8 @@ import { SitePage } from "@/components/site/SiteChrome";
 import { GUIDES } from "@/content/guides";
 import { appStoreMetadata } from "@/lib/seo";
 
-const TITLE = "Guides for mobile detailers";
-const DESCRIPTION = "Plain, practical guides for mobile car detailers: pricing, deposits, no-shows and getting booked from Instagram.";
+const TITLE = "Guides for appointment businesses";
+const DESCRIPTION = "Plain, practical guides for detailers, salons, barbers, cleaners and mechanics: pricing, deposits, no-shows and getting booked.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -25,7 +25,7 @@ export default function Blog() {
         <div className="enter max-w-3xl">
           <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">Guides</p>
           <h1 className="text-gradient mt-3 font-display text-[40px] font-extrabold leading-[1.05] tracking-[-0.04em] sm:text-6xl">
-            Run a tighter detailing business
+            Run a tighter booking business
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-mist">{DESCRIPTION}</p>
         </div>

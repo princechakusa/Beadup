@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { H2 } from "@/components/site/SiteChrome";
 
 /**
- * Long-form guides for mobile detailers (/blog/<slug>). Written to answer the
+ * Long-form guides for appointment businesses (/blog/<slug>). Written to answer the
  * questions detailers actually search for and ask AI assistants, in plain
  * words, with no invented statistics. Each guide carries its own short FAQ,
  * which is also published as FAQPage structured data.
@@ -252,6 +252,136 @@ export const GUIDES: Guide[] = [
       ["What link should a detailer put in their Instagram bio?", "A booking link where clients can pick a service, vehicle size and time without messaging you. Beadup gives every detailer one for free."],
       ["Do clients need an app to book a detailer from Instagram?", "Not with Beadup. Clients book from the link in any browser, with no download and no account."],
     ],
+  },
+  {
+    slug: "stop-no-shows-hair-salon-braiding",
+    title: "How hair salons and braiders can stop no-shows",
+    description:
+      "Long braiding and styling appointments lose the most when a client doesn't come. A deposit, clear photos with prices and a reminder the day before fix most of it.",
+    answer:
+      "Show every style with a photo and one clear price, take a deposit (around 30%) when the client books, and send a reminder the day before. Clients who have paid something and know exactly what they're getting turn up; the ones who wouldn't have usually don't book at all.",
+    published: "2026-11-12",
+    updated: "2026-11-12",
+    readMin: 4,
+    toc: ["Why salons feel no-shows most", "Photos and prices remove the back-and-forth", "Take a deposit", "Remind the day before", "A cancellation rule clients accept"],
+    body: (
+      <>
+        <H2>Why salons feel no-shows most</H2>
+        <p>
+          A braiding appointment can hold your chair for four to eight hours. When that client doesn&apos;t arrive, the whole day is
+          gone and it&apos;s too late to fill it.
+        </p>
+        <H2>Photos and prices remove the back-and-forth</H2>
+        <p>
+          Most booking messages are &quot;how much for this?&quot; with a screenshot. List each style with your own photo, its price and
+          how long it takes. Clients pick the look they want and book it, and you both agree on the job before the day.
+        </p>
+        <H2>Take a deposit</H2>
+        <p>
+          Ask for a deposit when the client books, paid to you with your payment link or bank details. Make it part of the final
+          price. On Beadup the booking page shows the deposit and how to pay it, and you mark it received in the app.
+        </p>
+        <H2>Remind the day before</H2>
+        <p>
+          A short WhatsApp message the day before (&quot;See you tomorrow at 10:00&quot;) catches clients who forgot. Beadup lists
+          tomorrow&apos;s clients on your Today screen with the reminder already written.
+        </p>
+        <H2>A cancellation rule clients accept</H2>
+        <p>
+          Keep it simple: the deposit comes back if they cancel at least 24 hours before, and it&apos;s kept if they don&apos;t
+          show. Say it once on your booking page. See <A href="/for/hair-salons">Beadup for hair salons</A>.
+        </p>
+      </>
+    ),
+    faq: [
+      ["How much deposit should a salon take?", "Around 30% of the price is common: enough that clients take the time seriously, small enough not to put them off."],
+      ["Can clients book a style from its photo?", "Yes. On Beadup each style shows its own photo and price, and the client taps it to book."],
+    ],
+  },
+  {
+    slug: "barber-booking-link-whatsapp",
+    title: "A booking link for barbers that works with WhatsApp",
+    description:
+      "Stop answering \"any slots today?\" all day. Put one booking link in your bio and WhatsApp status, and keep WhatsApp for the chat.",
+    answer:
+      "Put one booking link in your Instagram bio and WhatsApp status. Clients see your cuts, prices and open times and book in a minute, with no app. You keep WhatsApp for questions and reminders, and your chair stops being double-booked.",
+    published: "2026-11-12",
+    updated: "2026-11-12",
+    readMin: 3,
+    toc: ["The problem with booking by message", "One link, open times only", "Keep WhatsApp for the chat", "Fill quiet hours"],
+    body: (
+      <>
+        <H2>The problem with booking by message</H2>
+        <p>Every &quot;any slots today?&quot; message takes you away from the client in your chair, and two people can be promised the same time.</p>
+        <H2>One link, open times only</H2>
+        <p>
+          A booking link shows only the times you&apos;re actually free, so nobody gets the same slot. With a team, clients choose a
+          barber or &quot;anyone&quot;.
+        </p>
+        <H2>Keep WhatsApp for the chat</H2>
+        <p>
+          Clients still message you on WhatsApp; Beadup puts a WhatsApp button on your page and writes the confirmation and
+          reminder for you. See <A href="/for/barbers">Beadup for barbers</A>.
+        </p>
+        <H2>Fill quiet hours</H2>
+        <p>Share your link in your status on slow mornings. Regulars who are due for a cut show up on your Today screen.</p>
+      </>
+    ),
+    faq: [
+      ["Do my clients need an app?", "No. They book in any browser from your link."],
+      ["Can I still take walk-ins?", "Yes. Only open the times you want booked online and keep the rest for walk-ins."],
+    ],
+  },
+  {
+    slug: "mobile-mechanic-booking-without-phone-tag",
+    title: "How mobile mechanics can book jobs without phone tag",
+    description:
+      "Fixed-price services, the right time blocked for each job, a deposit, and an \"on my way\" message: book mobile mechanic jobs without calls.",
+    answer:
+      "List your common jobs with a fixed price and how long they take, share one booking link, and take a deposit at booking. The job length blocks your calendar correctly, and an \"on my way\" message means the customer is home when you arrive.",
+    published: "2026-11-12",
+    updated: "2026-11-12",
+    readMin: 3,
+    toc: ["Fixed prices for common jobs", "Block the right amount of time", "Make sure they're home"],
+    body: (
+      <>
+        <H2>Fixed prices for common jobs</H2>
+        <p>Oil changes, diagnostics and brake pads are easy to price up front. Bigger jobs can start as a diagnostic booking.</p>
+        <H2>Block the right amount of time</H2>
+        <p>Each service carries its own length, so a two-hour job never gets a second booking in the middle of it, plus your travel time.</p>
+        <H2>Make sure they&apos;re home</H2>
+        <p>
+          A reminder the day before and an &quot;on my way&quot; message from the app cut wasted trips. See{" "}
+          <A href="/for/mobile-mechanics">Beadup for mobile mechanics</A>.
+        </p>
+      </>
+    ),
+    faq: [["Do I need photos?", "No. Photos are optional; most mechanics list services with a price only."]],
+  },
+  {
+    slug: "price-house-cleaning-by-home-size",
+    title: "How to price house cleaning by home size",
+    description:
+      "Price cleans by bedrooms instead of guessing on every message: standard, deep and move-out cleans, extras, and a deposit that holds the slot.",
+    answer:
+      "Set three home sizes (for example 1 to 2, 3 and 4+ bedrooms) and a price for each clean at each size, add extras like the oven or fridge, and let clients pick their size when they book. They see the exact price before booking, and you stop quoting every home by message.",
+    published: "2026-11-12",
+    updated: "2026-11-12",
+    readMin: 3,
+    toc: ["Why price by size", "Extras, not surprises", "Hold the slot with a deposit"],
+    body: (
+      <>
+        <H2>Why price by size</H2>
+        <p>Bedrooms are a fair stand-in for time. Clients understand it, and you can set how long each size usually takes.</p>
+        <H2>Extras, not surprises</H2>
+        <p>Inside the oven, fridge or laundry are add-ons the client ticks, so the total is clear before you arrive.</p>
+        <H2>Hold the slot with a deposit</H2>
+        <p>
+          A deposit at booking keeps last-minute cancellations rare. See <A href="/for/house-cleaners">Beadup for house cleaners</A>.
+        </p>
+      </>
+    ),
+    faq: [["Can I offer regular weekly cleans?", "Yes. From the app you can book a client in every week, every 2 or every 4 weeks."]],
   },
 ];
 

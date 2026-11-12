@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
+import { reportError } from "@/lib/report-error";
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
+    reportError(error);
   }, [error]);
 
   return (

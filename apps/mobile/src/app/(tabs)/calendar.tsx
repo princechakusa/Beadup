@@ -185,7 +185,7 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
           {!compact && (
             <>
               <Text variant="caption" style={{ fontSize: 13, color: '#C9D0DC' }} numberOfLines={1}>
-                {[sizeLabel(b.vehicleSize), b.addOns.map((a) => a.name.split(' (')[0].toLowerCase()).join(', ')].filter(Boolean).join(' · ')}
+                {[b.staffName, sizeLabel(b.vehicleSize), b.addOns.map((a) => a.name.split(' (')[0].toLowerCase()).join(', ')].filter(Boolean).join(' · ')}
               </Text>
               <View style={[styles.rowBetween, { marginTop: 'auto' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>

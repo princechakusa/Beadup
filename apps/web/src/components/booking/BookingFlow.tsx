@@ -99,6 +99,8 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   // is read in their browser and never during the server prerender.
   // Times booked by others during this visit, on top of what the page loaded with.
   const [lostSlots, setLostSlots] = useState<string[]>([]);
+  // Team: a chosen person, or null for "anyone".
+  const [staffId, setStaffId] = useState<string | null>(null);
   const showDays = step >= 2;
   const durationMin = detailer.services.find((s) => s.id === serviceId)?.durationMin ?? 60;
   const days = useMemo(
@@ -114,9 +116,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             count: 7,
             exclude: new Set([...detailer.taken, ...lostSlots]),
             daysOff: detailer.daysOff,
+            staffIds: staffId ? [staffId] : detailer.staff.map((m) => m.id),
           })
         : [],
-    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, detailer.daysOff, durationMin, lostSlots],
+    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, detailer.daysOff, detailer.staff, staffId, durationMin, lostSlots],
   );
   const [pickedDay, setDayKey] = useState<string | null>(null);
   // A longer service picked after going back can close the chosen day or time.
@@ -207,6 +210,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         address: studio ? "" : details.address,
         smsConsent: smsEnabled && details.smsConsent,
         email: details.email.trim(),
+        staffId: staffId ?? undefined,
         turnstileToken: turnstileToken ?? undefined,
       })
         .then((res) => {
@@ -497,6 +501,25 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             {step === 2 && (
               <>
                 <StepTitle eyebrow="Step 3" title="Pick a time" />
+                {detailer.staff.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-2" role="radiogroup" aria-label="With">
+                    {[{ id: null, name: "Anyone" }, ...detailer.staff].map((m) => {
+                      const on = m.id === staffId;
+                      return (
+                        <button
+                          key={m.id ?? "anyone"}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          onClick={() => { haptic(); setStaffId(m.id); setSlot(null); }}
+                          className={`h-10 rounded-full border px-4 text-[14px] font-semibold transition-colors ${on ? "border-bead bg-bead text-bead-ink" : "border-white/15 text-mist"}`}
+                        >
+                          {m.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="radiogroup" aria-label="Day">
                   {days.map((d) => {
                     const active = d.key === dayKey;

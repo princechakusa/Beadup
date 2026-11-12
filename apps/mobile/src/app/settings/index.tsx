@@ -181,6 +181,7 @@ export default function Settings() {
         <Row icon="search" label="Get found on Google" detail="Add your link to Search and Maps" onPress={() => router.push('/settings/google')} />
         <Row icon="car" label="Services and prices" onPress={() => router.push('/settings/services')} />
         <Row icon="calendar" label="Availability" onPress={() => router.push('/settings/availability')} />
+        <Row icon="clients" label="Team" detail="People who take bookings" onPress={() => router.push('/settings/team')} />
         {paymentsMode === 'external' ? (
           <>
             <Row icon="money" label="Deposit" detail="30% · paid to you directly" />

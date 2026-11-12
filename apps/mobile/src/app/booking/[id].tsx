@@ -91,7 +91,7 @@ export default function BookingDetail() {
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
         <Badge label={s.label} tone={s.tone} />
         <Text variant="caption">
-          {[sizeLabel(b.vehicleSize), `${Math.round((b.durationMin / 60) * 10) / 10} h`].filter(Boolean).join(' · ')}
+          {[sizeLabel(b.vehicleSize), `${Math.round((b.durationMin / 60) * 10) / 10} h`, b.staffName && `with ${b.staffName}`].filter(Boolean).join(' · ')}
         </Text>
       </View>
 

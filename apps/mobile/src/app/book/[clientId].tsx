@@ -6,7 +6,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { detailerBook, fetchBookings, fetchCatalog, fetchClientBookings, fetchClients, fetchProfile, useQuery } from '@/lib/data';
+import { detailerBook, fetchBookings, fetchCatalog, fetchClientBookings, fetchClients, fetchProfile, fetchStaff, useQuery } from '@/lib/data';
 import { addDaysKey, dateKey, dayLabel, localTime, money, startOfDay, timeOf } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { currentTrade } from '@/lib/trades';
@@ -41,6 +41,9 @@ export default function BookAgain() {
   const tiers = trade.pricing === 'tiers';
   const services = (catalog.data?.services ?? []).filter((s) => s.active);
 
+  const team = useQuery(fetchStaff, [], 'staff');
+  const people = (team.data ?? []).filter((m) => m.active);
+  const [staffId, setStaffId] = useState<string | null>(null);
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [size, setSize] = useState<Size | null>(null);
   const todayKey = dateKey(new Date(now), tz);
@@ -60,7 +63,14 @@ export default function BookAgain() {
     const start = localTime(day, t, tz).getTime();
     if (start < now || !svc) return true;
     const end = start + svc.durationMin * 60_000;
-    return (dayJobs.data ?? []).some((o) => o.status === 'confirmed' && start < Date.parse(o.startsAt) + o.durationMin * 60_000 && Date.parse(o.startsAt) < end);
+    const chosenName = people.find((m) => m.id === staffId)?.name ?? null;
+    return (dayJobs.data ?? []).some(
+      (o) =>
+        o.status === 'confirmed' &&
+        (!chosenName || !o.staffName || o.staffName === chosenName) &&
+        start < Date.parse(o.startsAt) + o.durationMin * 60_000 &&
+        Date.parse(o.startsAt) < end,
+    );
   };
   const chosen = time ? localTime(day, time, tz) : null;
 
@@ -76,6 +86,7 @@ export default function BookAgain() {
         address: last?.address ?? '',
         everyWeeks: weeks,
         count: weeks ? count : 1,
+        staffId,
       });
       if (!r.ok) {
         haptic.error();
@@ -120,6 +131,17 @@ export default function BookAgain() {
           <View style={styles.wrap}>
             {(['sedan', 'suv', 'truck'] as const).map((k) => (
               <Chip key={k} on={k === tier} onPress={() => setSize(k)} label={trade.tiers[k]} />
+            ))}
+          </View>
+        </>
+      )}
+
+      {people.length > 0 && (
+        <>
+          <Text variant="eyebrow">With</Text>
+          <View style={styles.wrap}>
+            {people.map((m) => (
+              <Chip key={m.id} on={m.id === staffId} onPress={() => setStaffId(m.id === staffId ? null : m.id)} label={m.name} />
             ))}
           </View>
         </>

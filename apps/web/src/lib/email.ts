@@ -28,6 +28,7 @@ const ctxSchema = z.object({
   paymentNote: z.string().nullable(),
   payments: z.string(),
   serviceName: z.string(),
+  staffName: z.string().nullable().default(null),
   vehicleSize: z.enum(["sedan", "suv", "truck"]),
   startsAt: z.string(),
   durationMin: z.number(),
@@ -64,7 +65,7 @@ export function composeEmail(c: Ctx): { subject: string; text: string; html: str
   const rows: [string, string][] =
     c.kind === "receipt"
       ? [["Service", what], ["Total", money(c.subtotalCents)], ["Ref", c.ref]]
-      : [["When", when], ["Service", what], ["Where", where], ["Total", money(c.subtotalCents)], ["Ref", c.ref]];
+      : [["When", when], ["Service", what], ...(c.staffName ? ([["With", c.staffName]] as [string, string][]) : []), ["Where", where], ["Total", money(c.subtotalCents)], ["Ref", c.ref]];
   if (depositDue && c.kind !== "cancelled" && c.kind !== "receipt") rows.splice(4, 0, ["Deposit due", money(c.depositCents)]);
   const cta: [string, string] | null =
     c.kind === "receipt" ? ["See receipt and rate", `${SITE_URL}/r/${c.reviewToken}`] : c.kind === "cancelled" ? [`Book ${c.businessName} again`, `${SITE_URL}/${c.handle}`] : ["Your booking page", page];

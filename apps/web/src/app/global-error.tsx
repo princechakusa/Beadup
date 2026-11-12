@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
+import { reportError } from "@/lib/report-error";
 import "./globals.css";
 
 // Replaces the root layout when it fails, so it brings its own <html>.
 // Class names only: the CSP forbids inline styles.
-export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => reportError(error), [error]);
   return (
     <html lang="en">
       <body className="flex min-h-dvh items-center justify-center bg-midnight px-5 text-center text-paint">

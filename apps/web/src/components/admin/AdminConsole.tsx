@@ -212,6 +212,28 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
         </section>
       )}
 
+      <section aria-labelledby="err-title" className="glass rounded-[24px] p-6">
+        <h2 id="err-title" className="font-display text-xl font-bold">
+          Recent errors <span className="text-steel">({data.errors.length})</span>
+        </h2>
+        <p className="mt-1 text-[13px] text-steel">Crashes from the website, the server and the app, last 30 days. No personal details are stored.</p>
+        {data.errors.length === 0 ? (
+          <p className="mt-4 text-[14px] text-mist">Nothing reported.</p>
+        ) : (
+          <ul className="mt-4 flex flex-col divide-y divide-white/[0.06]">
+            {data.errors.map((e) => (
+              <li key={e.id} className="py-3">
+                <p className="break-words font-mono text-[13px] text-paint">{e.message}</p>
+                <p className="mt-1 text-[12px] text-steel">
+                  {e.source} · {shortDate(e.createdAt)}
+                  {e.where ? ` · ${e.where}` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section aria-labelledby="det-title">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="det-title" className="font-display text-2xl font-bold">

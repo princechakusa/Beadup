@@ -46,8 +46,17 @@ export const detailerSchema = z.object({
   taken: z.array(z.string()).default([]),
   /** Live bookings as local start + length, so overlapping start times can be hidden. */
   busy: z
-    .array(z.object({ start: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/), minutes: z.number().int().positive() }))
+    .array(
+      z.object({
+        start: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/),
+        minutes: z.number().int().positive(),
+        /** The team member this booking is with; null blocks the whole team. */
+        staffId: z.uuid().nullable().default(null),
+      }),
+    )
     .default([]),
+  /** Team members clients can choose (empty for a one-person business). */
+  staff: z.array(z.object({ id: z.uuid(), name: z.string() })).default([]),
   /** Minutes the detailer keeps free between jobs (travel). */
   bufferMin: z.number().int().min(0).max(240).default(0),
   /** Whole dates the detailer isn't working ("YYYY-MM-DD", their zone). */

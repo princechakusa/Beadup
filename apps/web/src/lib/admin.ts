@@ -98,6 +98,7 @@ export type AdminOverview = {
   }[];
   reviews: { id: string; rating: number; body: string; hidden: boolean; createdAt: string; handle: string }[];
   deletionRequests: { id: number; email: string; note: string; createdAt: string }[];
+  errors: { id: number; source: string; message: string; where: string; createdAt: string }[];
 };
 
 const since = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
@@ -120,7 +121,7 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
   ]);
 
   const now = new Date().toISOString();
-  const [{ data: accounts }, { data: list }, { data: reviews }, { data: deletions }, { data: countries }] = await Promise.all([
+  const [{ data: accounts }, { data: list }, { data: reviews }, { data: deletions }, { data: countries }, { data: errors }] = await Promise.all([
     db.from("detailer_accounts").select("detailer_id, plan, plan_renews_at, bonus_pro_until"),
     db
       .from("detailers")
@@ -134,6 +135,7 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
       .limit(40),
     db.from("deletion_requests").select("id, email, note, created_at").eq("status", "open").order("created_at").limit(50),
     db.from("detailers").select("country"),
+    db.from("error_log").select("id, source, message, where_at, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
 
   const acct = new Map((accounts ?? []).map((a) => [a.detailer_id as string, a]));
@@ -177,5 +179,6 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
       return { id: r.id as string, rating: r.rating as number, body: r.body as string, hidden: r.hidden as boolean, createdAt: r.created_at as string, handle: d?.handle ?? "" };
     }),
     deletionRequests: (deletions ?? []).map((d) => ({ id: d.id as number, email: d.email as string, note: d.note as string, createdAt: d.created_at as string })),
+    errors: (errors ?? []).map((e) => ({ id: e.id as number, source: e.source as string, message: e.message as string, where: e.where_at as string, createdAt: e.created_at as string })),
   };
 }

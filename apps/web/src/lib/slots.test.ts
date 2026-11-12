@@ -75,3 +75,21 @@ describe("openDays with days off", () => {
     expect(days.map((d) => d.key)).toEqual(["2026-11-18", "2026-11-19"]);
   });
 });
+
+describe("openDays with a team", () => {
+  const A = "11111111-1111-4111-8111-111111111111";
+  const B = "22222222-2222-4222-8222-222222222222";
+  const busy = [{ start: "2026-11-17 10:00", minutes: 60, staffId: A }];
+  it("anyone: a time is open while one person is free", () => {
+    const [tue] = openDays({ ...base, busy, count: 1, staffIds: [A, B] });
+    expect(tue.slots).toContain("10:00");
+  });
+  it("a chosen person: their own bookings close the time", () => {
+    expect(openDays({ ...base, busy, count: 1, staffIds: [A] })[0].slots).not.toContain("10:00");
+    expect(openDays({ ...base, busy, count: 1, staffIds: [B] })[0].slots).toContain("10:00");
+  });
+  it("a booking with no person blocks everyone", () => {
+    const [tue] = openDays({ ...base, busy: [{ ...busy[0], staffId: null }], count: 1, staffIds: [A, B] });
+    expect(tue.slots).not.toContain("10:00");
+  });
+});

@@ -20,6 +20,7 @@ export const clientBookingSchema = z.object({
   timezone: z.string(),
   firstName: z.string(),
   serviceName: z.string(),
+  staffName: z.string().nullable().default(null),
   vehicleSize: z.enum(["sedan", "suv", "truck"]),
   addOns: z.array(z.string()),
   startsAt: z.string(),

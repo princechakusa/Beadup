@@ -1,0 +1,11 @@
+begin;
+select plan(5);
+select ok((select relrowsecurity from pg_class where oid = 'public.error_log'::regclass), 'error_log has RLS');
+select ok(not has_table_privilege('anon', 'public.error_log', 'select'), 'anon cannot read errors');
+select ok(not has_table_privilege('authenticated', 'public.error_log', 'insert'), 'authenticated cannot write errors');
+insert into public.error_log (source, message, created_at) values ('web', 'old', now() - interval '40 days'), ('app', 'new', now());
+select public.prune_error_log();
+select is((select count(*)::int from public.error_log where message in ('old', 'new')), 1, 'prune keeps 30 days');
+select throws_ok($$insert into public.error_log (source, message) values ('evil', 'x')$$, '23514', null, 'unknown source refused');
+select * from finish();
+rollback;
