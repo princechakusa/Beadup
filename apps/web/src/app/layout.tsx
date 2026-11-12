@@ -9,19 +9,30 @@ const sora = Sora({ variable: "--font-sora", subsets: ["latin"], weight: ["600",
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const DESCRIPTION =
-  "Quote, book and get paid from your phone. AI photo quotes, a booking link your clients use without an app, and deposits that cut no-shows. Built for mobile car detailers.";
+  "One booking link for appointment businesses: detailers, salons, barbers, nail techs, groomers, cleaners and mechanics. Clients book without an app, pay a deposit to you, and get reminders on WhatsApp.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "Beadup", template: "%s · Beadup" },
   description: DESCRIPTION,
   applicationName: "Beadup",
-  keywords: ["mobile detailing app", "car detailing booking", "detailing quotes", "auto detailer scheduling", "detailing deposits"],
+  keywords: [
+    "booking link",
+    "appointment booking app",
+    "booking app with deposits",
+    "WhatsApp booking",
+    "salon booking app",
+    "barber booking app",
+    "mobile detailing app",
+    "pet grooming booking",
+    "mobile mechanic booking",
+    "cleaning business booking",
+  ],
   openGraph: {
     type: "website",
     siteName: "Beadup",
     locale: "en_US",
-    title: "Beadup: quote, book and get paid as a mobile detailer",
+    title: "Beadup: the booking link for appointment businesses",
     description: DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },

@@ -79,7 +79,7 @@ export default async function Pricing() {
       <section className="mx-auto w-full max-w-6xl px-5 pt-14 text-center sm:px-8 sm:pt-20">
         <p className="enter text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">Pricing</p>
         <h1 className="enter d-1 text-gradient mx-auto mt-3 max-w-3xl font-display text-[42px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-7xl">
-          Simple pricing for busy detailers
+          Simple pricing for busy pros
         </h1>
         <p className="enter d-2 mx-auto mt-5 max-w-xl text-lg leading-relaxed text-mist">
           Start free with every feature. Upgrade in the app when you&apos;re booking more.

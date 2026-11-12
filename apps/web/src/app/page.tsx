@@ -29,12 +29,14 @@ import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { BookInSeconds, FeatureBar, HeroLanding } from "@/components/site/HeroLanding";
 import { appStoreMetadata } from "@/lib/seo";
+import { TRADE_PAGES } from "@/content/trade-pages";
+import { TRADES } from "@/lib/trades";
 import type { Country } from "@/lib/countries";
 import { getPublicConfig, proPriceFor, siteCountry, visitorCountry, type PublicConfig } from "@/lib/site";
 
-const TITLE = "Beadup: quote, book and get paid as a mobile detailer";
+const TITLE = "Beadup: booking link, deposits and WhatsApp reminders for appointment businesses";
 const DESCRIPTION =
-  "The app for mobile car detailers. AI photo quotes from your own prices, a booking link clients use without an app, and a deposit step that cuts no-shows.";
+  "One booking link for detailers, salons, barbers, nail techs, groomers, cleaners and mechanics. Clients pick a service and a time without an app, pay a deposit straight to you, and get WhatsApp reminders.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -60,6 +62,7 @@ export default async function Home() {
       <BookInSeconds />
       <NoShows country={siteCountry(visitor)} />
       <HowItWorks external={external} />
+      <Trades />
       <Features external={external} ai={ai} />
       <Compare external={external} />
       <Showcase />
@@ -77,7 +80,7 @@ function NoShows({ country }: { country: Country }) {
   return (
     <section aria-labelledby="noshow-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
       <SectionHead eyebrow="The problem" title={<span id="noshow-title">What a no-show really costs</span>}>
-        You drove out, you blocked the slot, you turned someone else away. Slide your own numbers and see what a deposit keeps.
+        You blocked the slot, turned someone else away, maybe drove out. Slide your own numbers and see what a deposit keeps.
       </SectionHead>
       <Reveal className="mt-12">
         <NoShowCalculator country={country} />
@@ -105,15 +108,15 @@ function HowItWorks({ external }: { external: boolean }) {
     {
       n: "01",
       icon: <IconCamera size={21} />,
-      title: "Quote from photos",
-      body: "Take a few photos of the car. Beadup suggests an itemized price from your own services and add-ons. Adjust it, approve it, send it.",
+      title: "Set up your services",
+      body: "Pick your trade and start from ready-made services. Set prices (by size, or one price), how long each takes, and add a photo so clients pick by what they see.",
       screen: "quote" as const,
     },
     {
       n: "02",
       icon: <IconLink size={21} />,
       title: "Share your booking link",
-      body: "Put it in your bio, your texts and your quotes. Clients pick a detail, their vehicle and an open time, from any browser.",
+      body: "Put it in your bio, your WhatsApp status and your messages. Clients pick a service and an open time from any browser, no app needed.",
       screen: "booking" as const,
     },
     {
@@ -128,14 +131,14 @@ function HowItWorks({ external }: { external: boolean }) {
     {
       n: "04",
       icon: <IconRoute size={21} />,
-      title: "Show up, finish, get paid",
-      body: "Today shows the next job with a Start route button. Mark it done, collect the balance, and ask for a review while the car still shines.",
+      title: "Remind, finish, get reviewed",
+      body: "Send the reminder on WhatsApp in one tap. When the job is done, send the receipt and a rating link in one message.",
       screen: "today" as const,
     },
   ];
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
-      <SectionHead eyebrow="How it works" title={<span id="how-title">From driveway photo to booked job</span>}>
+      <SectionHead eyebrow="How it works" title={<span id="how-title">From first message to booked and paid</span>}>
         Four steps, all from your phone, between jobs.
       </SectionHead>
       <div className="mt-14">
@@ -145,13 +148,39 @@ function HowItWorks({ external }: { external: boolean }) {
   );
 }
 
+/* ----------------------------------------------------------------- Trades */
+
+function Trades() {
+  return (
+    <section id="trades" aria-labelledby="trades-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
+      <SectionHead eyebrow="Who it's for" title={<span id="trades-title">Set up for your trade in one tap</span>}>
+        Pick what you do and Beadup speaks your language: prices by vehicle, dog or home size, or one price per style; photos on
+        your services; clients come to you, or you go to them.
+      </SectionHead>
+      <ul className="mt-10 flex flex-wrap gap-2.5">
+        {TRADE_PAGES.map((p) => (
+          <li key={p.slug}>
+            <Link
+              href={`/for/${p.slug}`}
+              className="glass inline-flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-semibold text-paint transition-colors hover:bg-white/[0.07]"
+            >
+              {TRADES[p.trade].name}
+              <IconArrowRight size={15} className="text-bead" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /* --------------------------------------------------------------- Features */
 
 function Features({ external, ai }: { external: boolean; ai: string }) {
   return (
     <section id="features" aria-labelledby="features-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
-      <SectionHead eyebrow="Features" title={<span id="features-title">Everything a one-person detailing business needs</span>}>
-        Built around how mobile detailers actually work: in the driveway, between jobs, with one phone.
+      <SectionHead eyebrow="Features" title={<span id="features-title">Everything a one-person business needs</span>}>
+        Built around how solo pros actually work: between appointments, with one phone, and clients who live on WhatsApp.
       </SectionHead>
 
       <div className="mt-14 grid gap-5 lg:grid-cols-6">
@@ -160,10 +189,10 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
           <div className="grid h-full gap-6 p-7 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-9">
             <div className="flex flex-col gap-4">
               <FeatureIcon icon={IconSparkle} />
-              <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">AI photo quotes</h3>
+              <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">AI photo quotes for detailers</h3>
               <p className="text-[15px] leading-relaxed text-steel">
-                Photos in, itemized quote out, priced only from your own price list. It flags add-ons like pet hair or
-                odor treatment when it sees them. Nothing is sent until you approve it.
+                Car detailers: photos in, itemized quote out, priced only from your own price list. It flags add-ons like
+                pet hair or odor treatment when it sees them. Nothing is sent until you approve it.
               </p>
               <ul className="mt-auto flex flex-col gap-2.5 pt-2 text-[14px] text-mist">
                 <Bullet>Suggestions, never automatic charges</Bullet>
@@ -182,7 +211,7 @@ function Features({ external, ai }: { external: boolean; ai: string }) {
           <FeatureIcon icon={IconLink} />
           <h3 className="font-display text-[26px] font-bold leading-tight tracking-[-0.03em]">One link, no app for clients</h3>
           <p className="text-[15px] leading-relaxed text-steel">
-            Clients choose a detail, vehicle size, add-ons and a time in under a minute. No account, no download.
+            Clients choose a service (with its photo), extras and a time in under a minute. No account, no download.
           </p>
           <div className="mt-auto pt-2">
             <LinkClaim />
@@ -368,12 +397,12 @@ function Trust({ external, ai }: { external: boolean; ai: string }) {
     {
       icon: IconSparkle,
       title: "AI only with your consent",
-      body: `Vehicle photos are sent to ${ai} only after you turn on AI photo quotes${ai === "OpenAI" ? ", with request storage turned off" : ""}. Photos are kept private.`,
+      body: `Quote photos are sent to ${ai} only after you turn on AI photo quotes${ai === "OpenAI" ? ", with request storage turned off" : ""}. Photos are kept private.`,
     },
     {
       icon: IconUsers,
       title: "Your clients stay yours",
-      body: "Each detailer can only ever see their own clients and bookings. That rule is enforced inside the database itself.",
+      body: "Each business can only ever see its own clients and bookings. That rule is enforced inside the database itself.",
     },
     {
       icon: IconEyeOff,
@@ -462,6 +491,19 @@ function PricingTeaser({ config, price }: { config: PublicConfig; price: string 
 function Faq({ config, external, ai }: { config: PublicConfig; external: boolean; ai: string }) {
   const qa: [string, ReactNode][] = [
     [
+      "What kinds of businesses use Beadup?",
+      <>
+        Any business that books appointments: car, boat and RV detailers, hair salons and braiders, barbers, nail and beauty
+        technicians, makeup artists, pet groomers, house and window cleaners, pressure washers, mechanics and handymen. You pick
+        your trade at sign-up and Beadup sets the words, pricing and booking steps for it.{" "}
+        <Link href="/for" className="text-bead underline underline-offset-4">See every trade</Link>.
+      </>,
+    ],
+    [
+      "Can clients message me on WhatsApp?",
+      "Yes. Your booking page, the confirmation and the receipt all have a WhatsApp button with the message already written, and the app has one-tap WhatsApp templates to confirm, remind and say you're on your way.",
+    ],
+    [
       "Do my clients need to download anything?",
       "No. Clients book from your link in any browser, on any phone or computer, with no account. It takes under a minute.",
     ],
@@ -482,7 +524,7 @@ function Faq({ config, external, ai }: { config: PublicConfig; external: boolean
     ],
     [
       "Can I set my own services, prices and hours?",
-      "Yes. Your services, prices by vehicle size, add-ons and weekly hours are all yours to set in Settings. Your booking link updates right away.",
+      "Yes. Your services, prices (by size or one price), photos, add-ons, weekly hours and days off are all yours to set in Settings. Your booking link updates right away.",
     ],
     [
       "What does Beadup cost?",

@@ -7,7 +7,7 @@ import { MobileMenu } from "./MobileMenu";
 
 const NAV = [
   { href: "/#features", label: "Features" },
-  { href: "/#how-it-works", label: "How it works" },
+  { href: "/for", label: "Who it's for" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Guides" },
   { href: "/support", label: "Support" },
@@ -83,8 +83,20 @@ const FOOTER = [
     links: [
       { href: "/support", label: "Support" },
       { href: "/#faq", label: "FAQ" },
-      { href: "/blog", label: "Guides for detailers" },
+      { href: "/blog", label: "Guides" },
       { href: "/delete-account", label: "Delete account" },
+    ],
+  },
+  {
+    title: "Who it's for",
+    links: [
+      { href: "/for/car-detailers", label: "Car detailers" },
+      { href: "/for/hair-salons", label: "Hair salons" },
+      { href: "/for/barbers", label: "Barbers" },
+      { href: "/for/nail-technicians", label: "Nails and beauty" },
+      { href: "/for/pet-groomers", label: "Pet groomers" },
+      { href: "/for/mobile-mechanics", label: "Mechanics" },
+      { href: "/for", label: "All businesses" },
     ],
   },
   {

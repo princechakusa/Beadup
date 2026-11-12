@@ -1,4 +1,5 @@
 import { GUIDES } from "@/content/guides";
+import { TRADE_PAGES } from "@/content/trade-pages";
 import { SITE_URL } from "@/lib/seo";
 import { getPublicConfig } from "@/lib/site";
 
@@ -12,25 +13,30 @@ export async function GET() {
   const ai = c.ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
   const text = `# Beadup
 
-> Beadup is an iPhone app for solo mobile car detailers in the United States, Canada, the United Kingdom, Australia, New Zealand, the United Arab Emirates, South Africa and Singapore. Detailers send quotes, get booked from one link, and take deposits that cut no-shows. Their clients book in any web browser with no app and no account.
+> Beadup is an iPhone app and booking link for solo and small appointment businesses: car, boat and RV detailers, hair salons and braiders, barbers, nail and beauty technicians, makeup artists, pet groomers, house and window cleaners, pressure washers, mobile mechanics and handymen. It works in the United States, Canada, the United Kingdom, Australia, New Zealand, the United Arab Emirates, South Africa and Singapore. Clients book in any web browser with no app and no account.
 
 ## What it does
-- Booking link: every detailer gets a public page (${SITE_URL}/<handle>) where clients pick a service, vehicle size (sedan, SUV, truck), add-ons and an open time, then enter their name, phone and address.
+- Trades: the business picks its trade at sign-up. Beadup then uses that trade's words, starter services and pricing: by size (vehicle, boat length, dog size, home size, job size) or one price per service.
+- Booking link: every business gets a public page (${SITE_URL}/<handle>) with its photo, services (each can have a photo, for example a hairstyle), prices, recent work and open times. Clients pick a service, extras and a time. Businesses where clients come to them don't ask for an address.
 - Deposits: every booking shows a 30% deposit. ${
     external
-      ? "Clients pay it directly to the detailer through the detailer's own payment link or instructions (for example Square, PayPal, Venmo, Cash App or Zelle). Beadup never handles client money and takes no cut."
+      ? "Clients pay it directly to the business through its own payment link or instructions (for example PayPal, Venmo, Square, Cash App, Zelle or a bank transfer). Beadup never handles client money and takes no cut. Clients can tell the business they've sent it; the business confirms receipt."
       : "Clients pay it by card at booking, plus a small booking fee that covers card processing."
   }
-- AI photo quotes: the detailer takes photos of a vehicle and gets a suggested itemized quote priced only from their own price list. The detailer reviews and approves every quote. Photos are sent to ${ai} only after the detailer agrees in the app.
-- Run the day: today's jobs, calendar, client list, directions, earnings by week and month, optional push alerts for new bookings, offline copy of the schedule.
-- Clients can add the appointment to their calendar from the confirmation screen.
+- WhatsApp: booking pages, confirmations and receipts have WhatsApp buttons with the message written in. The app has one-tap WhatsApp or SMS templates to confirm, remind the day before and say "on my way". No WhatsApp Business API or fees.
+- Client self-service: each client gets a private booking page to see the booking, pay the deposit, ask for a new time or ask to cancel.
+- After the job: a printable receipt and a rating link in one message.
+- Scheduling: no overlapping bookings, travel time between jobs, days off, rescheduling.
+- AI photo quotes (car detailing): photos of a vehicle give a suggested quote priced only from the business's own price list; the business approves every quote. Photos go to ${ai} only after the business agrees in the app.
 
 ## Pricing
 - Free plan: up to ${c.free_bookings_per_month} bookings a month, every feature included.
 - Beadup Pro: optional monthly subscription bought in the app through the App Store, removing the booking limit. The current price is shown in the App Store and at ${SITE_URL}/pricing.
 
 ## Who it's for
-Solo and small mobile car detailing businesses (mobile detailers, ceramic coating installers, mobile car wash operators) in the United States, Canada, the United Kingdom, Australia, New Zealand, the United Arab Emirates, South Africa and Singapore. Prices show in the detailer's own currency (USD, CAD, GBP, AUD, NZD, AED, ZAR or SGD) and clients enter local phone numbers.
+${TRADE_PAGES.map((t) => `- [${t.title}](${SITE_URL}/for/${t.slug}): ${t.answer}`).join("\n")}
+
+Prices show in the business's own currency (USD, CAD, GBP, AUD, NZD, AED, ZAR or SGD) and clients enter local phone numbers.
 
 ## Key pages
 - [Home](${SITE_URL}/)

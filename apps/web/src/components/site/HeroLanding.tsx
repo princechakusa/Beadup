@@ -67,7 +67,7 @@ export function HeroLanding() {
             </span>
           </h1>
           <p className="enter d-2 max-w-[440px] text-[22px] leading-snug text-mist">
-            The booking and quoting app built for mobile car detailers.
+            The booking link for appointment businesses. Detailers, salons, barbers, groomers, cleaners and mechanics.
           </p>
           <div className="enter d-3 flex flex-wrap items-center gap-4">
             <AppStoreButton />
@@ -109,7 +109,7 @@ export function FeatureBar() {
     <section aria-labelledby="features-title" className="mx-auto w-full max-w-6xl px-5 sm:px-8">
       <div className="text-center">
         <h2 id="features-title" className="font-display text-[36px] font-extrabold tracking-[-0.03em] text-paint sm:text-[44px]">Powerful features</h2>
-        <p className="mt-2 text-[17px] text-mist">Everything you need to grow your detailing business.</p>
+        <p className="mt-2 text-[17px] text-mist">Everything you need to grow your business.</p>
       </div>
       <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {items.map(({ icon: Icon, title, text }) => (
@@ -151,7 +151,7 @@ export function BookInSeconds() {
             </span>
           </div>
           <div className="bg-[#f4f6fa] px-6 pb-7 pt-5 text-[#0a0c10]">
-            <div className="font-display text-[22px] font-bold">Book your detailing service</div>
+            <div className="font-display text-[22px] font-bold">Book your appointment</div>
             <div className="text-[13px] text-[#4a5468]">Choose a service and pick a time that works for you.</div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl bg-white p-4 shadow-sm">
