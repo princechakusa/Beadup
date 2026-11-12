@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { documentCsp, newNonce } from "@/lib/csp";
 import { getDemoDetailer } from "@/lib/demo";
 import { SITE_PAGES } from "@/lib/site-pages";
+import { TRADE_PAGES } from "@/content/trade-pages";
 
 // 1. Every HTML page gets a per-request CSP nonce (no 'unsafe-inline').
 //    Next.js reads it from the request's CSP header and applies it to the
@@ -41,6 +42,14 @@ async function pageExists(handle: string): Promise<boolean> {
   return exists;
 }
 
+const TRADE_SLUGS = new Set(TRADE_PAGES.map((p) => p.slug));
+
+/** "/for/<slug>" for a trade that has no page (streamed pages can't send a 404 themselves). */
+function isUnknownTradePage(pathname: string): boolean {
+  const m = /^\/for\/([^/]+)\/?$/.exec(pathname);
+  return !!m && !TRADE_SLUGS.has(m[1].toLowerCase());
+}
+
 /** Only one-segment paths can be booking handles ("/marcus"). */
 async function isUnknownHandle(pathname: string): Promise<boolean> {
   const segment = pathname.slice(1);
@@ -67,7 +76,7 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("content-security-policy", csp);
 
-  const response = (await isUnknownHandle(request.nextUrl.pathname))
+  const response = (isUnknownTradePage(request.nextUrl.pathname) || (await isUnknownHandle(request.nextUrl.pathname)))
     ? NextResponse.rewrite(new URL("/_not-found", request.url), { status: 404, request: { headers: requestHeaders } })
     : NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
