@@ -114,3 +114,13 @@ export function formatPhone(e164: string, country: Country): string {
       return group(`0${n}`, [3, 3, 4]);
   }
 }
+
+/**
+ * A WhatsApp click-to-chat link ("https://wa.me/27821234567?text=..."): opens a
+ * chat with that number, the message typed in and editable. Free, no account
+ * or API needed. Digits only, no "+" (WhatsApp's format).
+ */
+export function whatsappUrl(e164: string, text?: string): string {
+  const digits = e164.replace(/\D/g, "");
+  return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}

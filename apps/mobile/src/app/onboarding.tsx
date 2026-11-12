@@ -13,6 +13,7 @@ import { signOut, useAuth } from '@/lib/auth';
 import { Icon } from '@/components/ui/Icon';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { claimReferral, startPayoutsSetup, usePaymentsMode } from '@/lib/data';
+import { COUNTRIES, currencySymbol, deviceCountry, setMoneyCountry, type Country } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
@@ -23,6 +24,28 @@ const TEMPLATES: Svc[] = [
   { name: 'Full detail', description: 'Inside and out, hand wax, interior deep clean', durationMin: 180, sedan: '180', suv: '210', truck: '230', on: true },
   { name: 'Interior refresh', description: 'Vacuum, wipe-down, glass, mats', durationMin: 120, sedan: '120', suv: '140', truck: '150', on: false },
 ];
+/**
+ * Starter prices are written in US dollars above; this scales them to where a
+ * detail typically costs locally, rounded, so a South African starts at R900,
+ * not R60. Only starting values: the detailer sets their own prices.
+ */
+const PRICE_SCALE: Record<Country, { factor: number; round: number }> = {
+  US: { factor: 1, round: 5 },
+  CA: { factor: 1.3, round: 5 },
+  AU: { factor: 1.4, round: 5 },
+  NZ: { factor: 1.4, round: 5 },
+  SG: { factor: 1.2, round: 5 },
+  GB: { factor: 0.8, round: 5 },
+  AE: { factor: 3.5, round: 10 },
+  ZA: { factor: 15, round: 50 },
+};
+const scalePrice = (usd: string, c: Country) => {
+  const { factor, round } = PRICE_SCALE[c];
+  return String(Math.max(round, Math.round((Number(usd) * factor) / round) * round));
+};
+const localTemplates = (c: Country) =>
+  TEMPLATES.map((s) => ({ ...s, sedan: scalePrice(s.sedan, c), suv: scalePrice(s.suv, c), truck: scalePrice(s.truck, c) }));
+
 const ADD_ONS = [
   { name: 'Pet hair removal (seats and carpets)', price: '40', on: true },
   { name: 'Odor treatment', price: '35', on: false },
@@ -61,8 +84,21 @@ export default function Onboarding() {
   const [area, setArea] = useState('');
   const [referral, setReferral] = useState('');
   const [handleOk, setHandleOk] = useState<boolean | null>(null);
-  const [services, setServices] = useState(TEMPLATES);
-  const [addOns, setAddOns] = useState(ADD_ONS);
+  // Country of the business: sets the currency. Starts where the phone is.
+  const [country, setCountry] = useState<Country>(deviceCountry);
+  const [pricesEdited, setPricesEdited] = useState(false);
+  const [services, setServices] = useState(() => localTemplates(deviceCountry()));
+  const [addOns, setAddOns] = useState(() => ADD_ONS.map((a) => ({ ...a, price: scalePrice(a.price, deviceCountry()) })));
+  const symbol = currencySymbol();
+  const pickCountry = (c: Country) => {
+    haptic.select();
+    setCountry(c);
+    setMoneyCountry(c);
+    if (!pricesEdited) {
+      setServices((xs) => localTemplates(c).map((t, i) => ({ ...t, on: xs[i]?.on ?? t.on })));
+      setAddOns((xs) => ADD_ONS.map((a, i) => ({ ...a, price: scalePrice(a.price, c), on: xs[i]?.on ?? a.on })));
+    }
+  };
   const [days, setDays] = useState([1, 2, 3, 4, 5, 6]);
   const [times, setTimes] = useState(['08:00', '10:30', '13:00', '15:30']);
   const [busy, setBusy] = useState(false);
@@ -123,6 +159,11 @@ export default function Onboarding() {
       }
       return setError('Something in your setup didn’t check out. Check the prices and try again.');
     }
+    // The business country (currency). The database guessed it from the
+    // timezone; the detailer's choice wins.
+    const { data: me } = await supabase.auth.getUser();
+    if (me.user) await supabase.from('detailers').update({ country }).eq('id', me.user.id);
+    setMoneyCountry(country);
     // Optional "referred by" code. Never blocks setup: a wrong code can be
     // fixed later in Settings > Invite & earn.
     if (referral.trim()) await claimReferral(referral.trim()).catch(() => null);
@@ -207,6 +248,27 @@ export default function Onboarding() {
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
+                <View style={{ gap: space.sm }}>
+                  <Text variant="caption">Country (sets your currency)</Text>
+                  <View style={styles.countries} accessibilityRole="radiogroup">
+                    {(Object.keys(COUNTRIES) as Country[]).map((c) => {
+                      const on = c === country;
+                      return (
+                        <Pressable
+                          key={c}
+                          onPress={() => pickCountry(c)}
+                          style={[styles.countryChip, on && styles.countryChipOn]}
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: on }}
+                          accessibilityLabel={`${COUNTRIES[c].name}, ${COUNTRIES[c].currency}`}>
+                          <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontWeight: on ? '700' : '500' }}>
+                            {c} · {COUNTRIES[c].currency}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
                 <Text variant="caption">Times are in your timezone: {timezone.replace(/_/g, ' ')}</Text>
                 <Button label="Continue" onPress={() => go(1)} disabled={!name.trim() || !handleValid} />
               </>
@@ -238,8 +300,11 @@ export default function Onboarding() {
                           <View key={k} style={{ flex: 1, gap: 4 }}>
                             <Text variant="caption">{k === 'suv' ? 'SUV' : k[0].toUpperCase() + k.slice(1)}</Text>
                             <TextInput
-                              value={`$${s[k]}`}
-                              onChangeText={(v) => setServices((xs) => xs.map((x, j) => (j === i ? { ...x, [k]: v.replace(/[^0-9.]/g, '') } : x)))}
+                              value={`${symbol}${s[k]}`}
+                              onChangeText={(v) => {
+                                setPricesEdited(true);
+                                setServices((xs) => xs.map((x, j) => (j === i ? { ...x, [k]: v.replace(/[^0-9.]/g, '') } : x)));
+                              }}
                               keyboardType="decimal-pad"
                               accessibilityLabel={`${s.name} ${k} price`}
                               style={styles.price}
@@ -257,8 +322,11 @@ export default function Onboarding() {
                       {a.name}
                     </Text>
                     <TextInput
-                      value={`$${a.price}`}
-                      onChangeText={(v) => setAddOns((xs) => xs.map((x, j) => (j === i ? { ...x, price: v.replace(/[^0-9.]/g, '') } : x)))}
+                      value={`${symbol}${a.price}`}
+                      onChangeText={(v) => {
+                        setPricesEdited(true);
+                        setAddOns((xs) => xs.map((x, j) => (j === i ? { ...x, price: v.replace(/[^0-9.]/g, '') } : x)));
+                      }}
                       keyboardType="decimal-pad"
                       accessibilityLabel={`${a.name} price`}
                       style={[styles.price, { width: 72 }]}
@@ -375,6 +443,9 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
 }
 
 const styles = StyleSheet.create({
+  countries: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  countryChip: { height: 34, paddingHorizontal: 12, borderRadius: 17, justifyContent: 'center', backgroundColor: colors.gunmetal, borderWidth: 1, borderColor: '#262B35' },
+  countryChipOn: { backgroundColor: colors.bead, borderColor: colors.bead },
   backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)', marginRight: 10 },
   root: { flex: 1, backgroundColor: colors.midnight },
   aurora: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },

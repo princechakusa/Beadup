@@ -51,7 +51,7 @@ export default function Today() {
   }, [monday, tz, external], `today-week-${monday}-${external ? 'x' : 's'}`);
   const next = useQuery(() => fetchNextBookings(6), [], 'today-next');
   const rating = useQuery(fetchRating);
-  const attention = useQuery(() => fetchAttention(external), [external], `attention-${external ? 'x' : 's'}`);
+  const attention = useQuery(() => fetchAttention(external, tz), [external, tz], `attention-${external ? 'x' : 's'}`);
 
   // Cumulative earnings per day this week (Mon..Sun), and last week's total.
   const daily = Array<number>(7).fill(0);

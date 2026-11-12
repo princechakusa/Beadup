@@ -5,7 +5,7 @@ import { AppStoreButton } from "@/components/site/AppStoreButton";
 import { IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
-import { getPublicConfig } from "@/lib/site";
+import { getPublicConfig, proPriceFor, visitorCountry } from "@/lib/site";
 
 const DESCRIPTION = "Start free with every feature. Upgrade to Beadup Pro in the app when you're booking more.";
 
@@ -33,7 +33,7 @@ export default async function Pricing() {
   const free = config.free_bookings_per_month;
   // The price is display-only and comes from config; the real price is set in
   // the App Store / Google Play and shown by the store at purchase.
-  const price = config.pro_price_display;
+  const price = proPriceFor(config, await visitorCountry());
 
   const external = config.payments_mode === "external";
   const everything = external
@@ -92,7 +92,7 @@ export default async function Pricing() {
             <h2 className="font-display text-2xl font-bold">Free</h2>
             <p className="mt-1 text-steel">For getting started</p>
           </div>
-          <p className="font-display text-6xl font-extrabold tracking-[-0.05em]">$0</p>
+          <p className="font-display text-6xl font-extrabold tracking-[-0.05em]">Free</p>
           <ul className="flex flex-col gap-3.5 text-[15px] text-mist">
             <Check>
               <strong className="font-semibold text-paint">Up to {free} bookings a month</strong>
@@ -118,7 +118,7 @@ export default async function Pricing() {
               <span className="text-xl font-semibold tracking-normal text-steel">/{config.pro_price_period ?? "month"}</span>
             </p>
           ) : (
-            <p className="relative font-display text-3xl font-bold text-mist">Price shown in the app</p>
+            <p className="relative font-display text-3xl font-bold text-mist">In your currency in the app</p>
           )}
           <ul className="relative flex flex-col gap-3.5 text-[15px] text-mist">
             <Check>
@@ -129,7 +129,7 @@ export default async function Pricing() {
           <p className="relative mt-auto rounded-[20px] border border-white/[0.07] bg-black/20 p-4 text-sm leading-relaxed text-steel">
             Pro is a monthly subscription bought in the Beadup app through the App Store. It renews automatically until
             you cancel in your App Store subscription settings.
-            {price ? " US price shown; prices in other countries are set by the store." : ""}
+            {" Prices are set per country by the store and shown in your own currency."}
           </p>
         </div>
       </section>

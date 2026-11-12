@@ -15,9 +15,49 @@ export const COUNTRIES = {
 export type Country = keyof typeof COUNTRIES;
 export const isCountry = (c: unknown): c is Country => typeof c === 'string' && c in COUNTRIES;
 
-// The signed-in detailer's country, set when their profile loads. Every money
-// amount in the app is in their own currency.
-let current: Country = 'US';
+const CANADA_ZONES = new Set([
+  'America/Toronto', 'America/Vancouver', 'America/Edmonton', 'America/Winnipeg', 'America/Halifax', 'America/St_Johns',
+  'America/Regina', 'America/Moncton', 'America/Glace_Bay', 'America/Goose_Bay', 'America/Whitehorse', 'America/Dawson',
+  'America/Dawson_Creek', 'America/Fort_Nelson', 'America/Creston', 'America/Yellowknife', 'America/Inuvik',
+  'America/Cambridge_Bay', 'America/Iqaluit', 'America/Rankin_Inlet', 'America/Resolute', 'America/Swift_Current',
+  'America/Atikokan', 'America/Blanc-Sablon', 'America/Nipigon', 'America/Thunder_Bay', 'America/Rainy_River',
+  'America/Pangnirtung', 'America/Montreal',
+]);
+const UK_ZONES = new Set(['Europe/London', 'Europe/Belfast', 'Europe/Guernsey', 'Europe/Isle_of_Man', 'Europe/Jersey', 'GB', 'GB-Eire']);
+
+/** Same rule as the database's country_from_timezone(), or null outside Beadup's countries. */
+export function countryFromTimezone(tz: string): Country | null {
+  if (tz.startsWith('Australia/')) return 'AU';
+  if (['Pacific/Auckland', 'Pacific/Chatham', 'NZ', 'NZ-CHAT'].includes(tz)) return 'NZ';
+  if (tz === 'Asia/Dubai') return 'AE';
+  if (tz === 'Africa/Johannesburg') return 'ZA';
+  if (tz === 'Asia/Singapore' || tz === 'Singapore') return 'SG';
+  if (UK_ZONES.has(tz)) return 'GB';
+  if (tz.startsWith('Canada/') || CANADA_ZONES.has(tz)) return 'CA';
+  if (tz.startsWith('America/') || tz.startsWith('US/') || tz === 'Pacific/Honolulu') return 'US';
+  return null;
+}
+
+/**
+ * Where this phone is: its timezone, else its region setting, else the US.
+ * Used until the detailer's own country loads, and as the default in onboarding,
+ * so nobody outside the US starts in dollars.
+ */
+export function deviceCountry(): Country {
+  try {
+    const opts = Intl.DateTimeFormat().resolvedOptions();
+    const byZone = countryFromTimezone(opts.timeZone ?? '');
+    if (byZone) return byZone;
+    const region = (opts.locale ?? '').split(/[-_]/).pop()?.toUpperCase();
+    return isCountry(region) ? region : 'US';
+  } catch {
+    return 'US';
+  }
+}
+
+// The signed-in detailer's country, set when their profile loads (and the
+// phone's own country until then). Every money amount is in their currency.
+let current: Country = deviceCountry();
 export function setMoneyCountry(c: string | null | undefined) {
   current = isCountry(c) ? c : 'US';
 }

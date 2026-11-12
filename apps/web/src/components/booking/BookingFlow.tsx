@@ -9,9 +9,10 @@ import type { Detailer, VehicleSize } from "@/lib/booking-types";
 import { haptic, primeAudio } from "@/lib/feedback";
 import { createBooking, type BookingResult } from "@/app/[handle]/actions";
 import { smsConsentText } from "@/lib/consent";
-import { COUNTRIES, formatMoney, formatPhone, toE164, type Country } from "@/lib/countries";
+import { COUNTRIES, formatMoney, formatPhone, toE164, whatsappUrl, type Country } from "@/lib/countries";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { openDays } from "@/lib/slots";
+import { WhatsAppIcon } from "./WhatsAppIcon";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
@@ -260,9 +261,21 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(77,216,255,0.16),transparent)]" />
       {/* Header */}
       <header className="flex items-center gap-3.5">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-b from-white to-[#cfd8e4] font-display text-xl font-extrabold text-midnight shadow-[0_10px_30px_-8px_rgba(77,216,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.12)]">
-          {initials(detailer.businessName)}
-        </div>
+        {detailer.photo ? (
+          // The detailer's own photo, so a new client knows who is coming. Served by this site (CSP: img-src 'self').
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/media/${detailer.handle}/avatar?v=${detailer.photo}`}
+            alt={`${detailer.businessName}, the detailer`}
+            width={56}
+            height={56}
+            className="h-14 w-14 shrink-0 rounded-[18px] object-cover shadow-[0_10px_30px_-8px_rgba(77,216,255,0.45)] ring-1 ring-white/15"
+          />
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-b from-white to-[#cfd8e4] font-display text-xl font-extrabold text-midnight shadow-[0_10px_30px_-8px_rgba(77,216,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.12)]">
+            {initials(detailer.businessName)}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[19px] font-bold">{detailer.businessName}</h1>
           <p className="truncate text-[13px] text-steel">{detailer.tagline}</p>
@@ -283,6 +296,24 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       </header>
 
       {/* Progress */}
+      {detailer.contactPhone && (
+        <div className="mt-4 flex items-center gap-2 text-[13px]">
+          <span className="text-steel">Questions first?</span>
+          <a
+            href={whatsappUrl(detailer.contactPhone, `Hi ${shortName}, I found you on Beadup and have a question about a detail.`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-9 items-center gap-1.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-3 font-semibold text-[#7ff0a8]"
+          >
+            <WhatsAppIcon />
+            WhatsApp
+          </a>
+          <a href={`tel:${detailer.contactPhone}`} className="flex h-9 items-center rounded-full border border-white/15 px-3 font-semibold">
+            Call
+          </a>
+        </div>
+      )}
+
       <nav aria-label="Booking steps" className="mt-6 flex gap-1.5">
         {STEPS.map((label, i) => (
           <button
@@ -354,6 +385,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     );
                   })}
                 </div>
+                {detailer.portfolio.length > 0 && <OurWork handle={detailer.handle} items={detailer.portfolio} businessName={shortName} />}
               </>
             )}
 
@@ -659,5 +691,30 @@ function AnimatedPrice({ cents, animate, country }: { cents: number; animate: bo
         {formatMoney(cents, country)}
       </motion.p>
     </AnimatePresence>
+  );
+}
+
+/** Photos of the detailer's work: a swipeable strip under the services. */
+function OurWork({ handle, items, businessName }: { handle: string; items: Detailer["portfolio"]; businessName: string }) {
+  return (
+    <section aria-label={`Work by ${businessName}`} className="mt-7">
+      <h3 className="font-display text-[17px] font-bold">Recent work</h3>
+      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+        {items.map((p) => (
+          <li key={p.id} className="w-[72%] max-w-[280px] shrink-0 snap-start">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/media/${handle}/${p.id}`}
+              alt={p.caption || `Work by ${businessName}`}
+              loading="lazy"
+              width={280}
+              height={210}
+              className="aspect-[4/3] w-full rounded-[18px] object-cover ring-1 ring-white/10"
+            />
+            {p.caption && <p className="mt-1.5 truncate text-[13px] text-steel">{p.caption}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

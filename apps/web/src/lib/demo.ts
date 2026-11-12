@@ -50,6 +50,8 @@ const DETAILERS: Record<string, Detailer> = {
     bufferMin: 0,
     daysOff: [],
     contactPhone: "+15125550100",
+    photo: null,
+    portfolio: [],
     weeklySlots: { "1": WEEKDAY_SLOTS, "2": WEEKDAY_SLOTS, "3": WEEKDAY_SLOTS, "4": WEEKDAY_SLOTS, "5": WEEKDAY_SLOTS, "6": WEEKDAY_SLOTS },
   },
 };

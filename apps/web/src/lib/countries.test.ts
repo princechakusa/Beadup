@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney, formatPhone, toE164 } from "./countries";
+import { formatMoney, formatPhone, toE164, whatsappUrl } from "./countries";
 
 describe("toE164", () => {
   it("reads US and Canadian numbers", () => {
@@ -93,5 +93,14 @@ describe("formatPhone", () => {
   });
   it("keeps foreign numbers international", () => {
     expect(formatPhone("+447700900123", "US")).toBe("+447700900123");
+  });
+});
+
+describe("whatsappUrl", () => {
+  it("uses digits only and encodes the message", () => {
+    expect(whatsappUrl("+27821234567")).toBe("https://wa.me/27821234567");
+    expect(whatsappUrl("+15125550101", "Hi, about booking AB12 & more")).toBe(
+      "https://wa.me/15125550101?text=Hi%2C%20about%20booking%20AB12%20%26%20more",
+    );
   });
 });

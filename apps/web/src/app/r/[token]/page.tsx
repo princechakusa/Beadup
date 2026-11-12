@@ -3,8 +3,13 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ReviewForm } from "./ReviewForm";
+import { Receipt, receiptSchema } from "./Receipt";
 
-export const metadata: Metadata = { title: "Rate your detail", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Your receipt",
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
+};
 
 const contextSchema = z.object({
   businessName: z.string(),
@@ -24,7 +29,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-async function Review({ params }: { params: PageProps<"/r/[token]">["params"] }) {
+async function Rating({ params }: { params: PageProps<"/r/[token]">["params"] }) {
   const { token } = await params;
   const db = supabaseAdmin();
   const ctx =
@@ -59,6 +64,26 @@ async function Review({ params }: { params: PageProps<"/r/[token]">["params"] })
     );
   }
   return <ReviewForm token={token} businessName={c.businessName} firstName={c.firstName} />;
+}
+
+/** The receipt for a finished job (when the link is valid and the job is done), then the rating. */
+async function Review({ params }: { params: PageProps<"/r/[token]">["params"] }) {
+  const { token } = await params;
+  const db = supabaseAdmin();
+  const data = db && /^[0-9a-f]{48}$/.test(token) ? (await db.rpc("receipt_context", { p_token: token })).data : null;
+  const receipt = receiptSchema.safeParse(data);
+  return (
+    <>
+      {receipt.success && receipt.data.status === "completed" && (
+        <div className="mb-8">
+          <Receipt r={receipt.data} />
+        </div>
+      )}
+      <div className="no-print">
+        <Rating params={params} />
+      </div>
+    </>
+  );
 }
 
 export default function ReviewPage(props: PageProps<"/r/[token]">) {

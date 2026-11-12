@@ -95,10 +95,10 @@ export async function takePhoto(): Promise<string | null> {
 }
 
 /** Downscale and re-encode as JPEG. Re-encoding writes a fresh file with no EXIF/GPS. */
-async function prepare(uri: string): Promise<Uint8Array> {
+export async function prepare(uri: string, longEdge = LONG_EDGE): Promise<Uint8Array> {
   const ctx = ImageManipulator.manipulate(uri);
   const probe = await ctx.renderAsync();
-  const scale = Math.min(1, LONG_EDGE / Math.max(probe.width, probe.height));
+  const scale = Math.min(1, longEdge / Math.max(probe.width, probe.height));
   const image =
     scale < 1
       ? await ImageManipulator.manipulate(uri)
@@ -109,7 +109,7 @@ async function prepare(uri: string): Promise<Uint8Array> {
   return new File(saved.uri).bytes();
 }
 
-function randomName(): string {
+export function randomName(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   return Array.from({ length: 20 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }

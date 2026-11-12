@@ -17,7 +17,7 @@ const MAX_ROWS = 3;
  */
 export function NeedsAttention({ data, tz }: { data: Attention | null | undefined; tz: string }) {
   if (!data) return null;
-  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, requests } = data;
+  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, missingPhoto, requests, tomorrow } = data;
   const rows = [
     ...requests.slice(0, MAX_ROWS).map(({ request: r, booking: b }) => (
       <BookingRow
@@ -28,6 +28,9 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
         badge={r.kind === 'cancel' ? 'Wants to cancel' : 'Wants new time'}
         detail={`${b.client.name}${r.note ? ` · “${r.note}”` : r.preferred.length ? ` · ${r.preferred.length} time${r.preferred.length > 1 ? 's' : ''} suggested` : ''}`}
       />
+    )),
+    ...tomorrow.slice(0, MAX_ROWS).map((b) => (
+      <BookingRow key={`t-${b.id}`} b={b} tz={tz} tone="bead" badge="Remind" detail={`${b.client.name} · send a reminder on WhatsApp`} />
     )),
     ...toCloseOut.slice(0, MAX_ROWS).map((b) => (
       <BookingRow key={`c-${b.id}`} b={b} tz={tz} tone="steel" badge="Close out" detail={`${b.client.name} · ended, not marked done`} />
@@ -45,12 +48,15 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
     missingPayment && (
       <SetupRow key="pay" icon="money" title="Add how clients pay your deposit" detail="A payment link or note shows after they book." href="/settings/payment" />
     ),
+    missingPhoto && (
+      <SetupRow key="photo" icon="camera" title="Add your photo and your work" detail="New clients book faster when they can see who is coming." href="/settings/media" />
+    ),
     missingPhone && (
       <SetupRow key="phone" icon="phone" title="Add a phone number for clients" detail="So they can text or call you about a booking." href="/settings/profile" />
     ),
   ].filter(Boolean);
   if (rows.length === 0) return null;
-  const more = Math.max(0, requests.length - MAX_ROWS) + Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
+  const more = Math.max(0, tomorrow.length - MAX_ROWS) + Math.max(0, requests.length - MAX_ROWS) + Math.max(0, toCloseOut.length - MAX_ROWS) + Math.max(0, deposits.length - MAX_ROWS);
 
   return (
     <View style={{ gap: 10 }}>
@@ -95,7 +101,7 @@ function BookingRow({ b, tz, tone, badge, detail }: { b: Booking; tz: string; to
   );
 }
 
-function SetupRow({ icon, title, detail, href }: { icon: 'money' | 'phone'; title: string; detail: string; href: Href }) {
+function SetupRow({ icon, title, detail, href }: { icon: 'money' | 'phone' | 'camera'; title: string; detail: string; href: Href }) {
   return (
     <Pressable
       onPress={() => {

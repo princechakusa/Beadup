@@ -1,15 +1,16 @@
-import { Linking } from 'react-native';
+import { View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
+import { Text } from '@/components/ui/Text';
 import { fetchReviewLink, useQuery } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
-import { shareLink } from '@/lib/share';
+import { sendMessage, type Channel } from '@/lib/messaging';
 
 /**
- * "Ask for a review" on a completed job. Opens the detailer's own Messages app
- * with the client's private review link written in, so it comes from a number
- * the client knows (Beadup itself sends no texts yet). Falls back to the share
- * sheet. Shows "Review received" once the client has rated the job.
+ * "Send receipt" on a completed job: one private link with the client's
+ * receipt (printable, or save as PDF) and a 30-second rating. Opens WhatsApp
+ * or Messages with the text written in, from the detailer's own number (Beadup
+ * sends no texts itself). Once rated, it says so and still lets you resend the receipt.
  */
 export function AskReviewButton({
   bookingId,
@@ -24,22 +25,29 @@ export function AskReviewButton({
 }) {
   const link = useQuery(() => fetchReviewLink(bookingId), [bookingId], `review-link:${bookingId}`);
   if (!link.data) return null;
-  if (link.data.reviewed) return <Button label="Review received · thank you" variant="ghost" disabled onPress={() => {}} />;
 
   const first = clientName.split(' ')[0] || 'there';
-  const message = `Hi ${first}, thanks for choosing ${businessName}! If you have 30 seconds, a quick rating helps a lot: ${link.data.url}`;
+  const reviewed = link.data.reviewed;
+  const message = reviewed
+    ? `Hi ${first}, here's your receipt from ${businessName}: ${link.data.url}`
+    : `Hi ${first}, thanks for choosing ${businessName}! Here's your receipt, and if you have 30 seconds, a quick rating helps a lot: ${link.data.url}`;
 
-  const ask = async () => {
+  const send = (channel: Channel) => {
     haptic.select();
-    // iOS: sms:<number>&body=<text> opens a new message to the client.
-    const sms = `sms:${clientPhone}&body=${encodeURIComponent(message)}`;
-    try {
-      if (clientPhone && (await Linking.canOpenURL(sms))) return await Linking.openURL(sms);
-    } catch {
-      // fall through to the share sheet
-    }
-    shareLink(`Hi ${first}, thanks for choosing ${businessName}! If you have 30 seconds, a quick rating helps a lot:`, link.data!.url);
+    return sendMessage(channel, clientPhone, message);
   };
 
-  return <Button label="Ask for a review" variant="glass" onPress={ask} />;
+  return (
+    <View style={{ gap: 8 }}>
+      <Text variant="eyebrow">{reviewed ? 'Receipt · review received, thank you' : 'Send receipt and ask for a rating'}</Text>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flex: 1 }}>
+          <Button label="WhatsApp" onPress={() => send('whatsapp')} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label="Messages" variant="glass" onPress={() => send('sms')} />
+        </View>
+      </View>
+    </View>
+  );
 }

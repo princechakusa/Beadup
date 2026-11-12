@@ -84,6 +84,7 @@ function RootNavigator() {
           <Stack.Screen name="settings/profile" />
           <Stack.Screen name="settings/invite" />
           <Stack.Screen name="settings/availability" />
+          <Stack.Screen name="settings/media" />
           <Stack.Screen name="settings/delete-account" />
           <Stack.Screen name="booking/[id]" />
           <Stack.Screen name="reschedule/[id]" />

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
-import { isCountry, setMoneyCountry, type Country } from './format';
+import { addDaysKey, dateKey, isCountry, setMoneyCountry, startOfDay, type Country } from './format';
 import { apiBaseUrl, supabase } from './supabase';
 
 // Data access for the detailer app. Every query runs as the signed-in
@@ -780,24 +780,30 @@ export type Attention = {
   depositsToConfirm: Booking[];
   /** Jobs that ended but were never marked done or no-show. */
   toCloseOut: Booking[];
+  /** Confirmed jobs tomorrow: a reminder the day before cuts no-shows. */
+  tomorrow: Booking[];
   /** Setup gaps clients would notice. */
   missingPayment: boolean;
   missingPhone: boolean;
+  missingPhoto: boolean;
 };
 
-export async function fetchAttention(external: boolean): Promise<Attention> {
+export async function fetchAttention(external: boolean, tz = 'America/Chicago'): Promise<Attention> {
   if (!supabase) {
     const all = fixtures.bookings(new Date(Date.now() - 7 * 86_400_000), new Date(Date.now() + 7 * 86_400_000));
     return {
       depositsToConfirm: external ? all.filter((b) => b.status === 'confirmed' && !b.depositReceived && Date.parse(b.startsAt) > Date.now()) : [],
       toCloseOut: [],
       requests: [],
+      tomorrow: [],
       missingPayment: false,
       missingPhone: false,
+      missingPhoto: false,
     };
   }
   const now = Date.now();
-  const [deposits, past, me, reqs] = await Promise.all([
+  const tomorrowKey = addDaysKey(dateKey(new Date(now), tz), 1);
+  const [deposits, past, me, reqs, tmrw] = await Promise.all([
     external
       ? db()
           .from('bookings')
@@ -823,6 +829,14 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(10),
+    db()
+      .from('bookings')
+      .select(BOOKING_SELECT)
+      .eq('status', 'confirmed')
+      .gte('starts_at', startOfDay(tomorrowKey, tz).toISOString())
+      .lt('starts_at', startOfDay(addDaysKey(tomorrowKey, 1), tz).toISOString())
+      .order('starts_at')
+      .limit(10),
   ]);
   // Requests are an extra: if they can't load, still show the rest of the card.
   if (reqs.error) console.warn('booking requests unavailable', reqs.error.code);
@@ -838,9 +852,19 @@ export async function fetchAttention(external: boolean): Promise<Attention> {
     .map((r) => ({ request: toRequest(r), booking: toBooking(r.booking!) }));
   return {
     requests,
+    tomorrow: tmrw.error ? [] : toBookings(tmrw.data),
     depositsToConfirm,
     toCloseOut,
     missingPayment: external && !me.data?.payment_link && !me.data?.payment_note,
     missingPhone: !me.data?.contact_phone,
+    missingPhoto: !me.data?.photo_path,
   };
+}
+
+/** The client's private booking page (view, pay the deposit, ask to change), for the detailer to resend. */
+export async function fetchClientLink(bookingId: string): Promise<string | null> {
+  if (!supabase) return `${apiBaseUrl}/b/${'0'.repeat(48)}`;
+  const { data, error } = await db().rpc('client_link_token', { p_booking_id: bookingId });
+  if (error) throw error;
+  return typeof data === 'string' && /^[0-9a-f]{48}$/.test(data) ? `${apiBaseUrl}/b/${data}` : null;
 }

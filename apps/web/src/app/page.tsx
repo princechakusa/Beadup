@@ -29,7 +29,8 @@ import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { BookInSeconds, FeatureBar, HeroLanding } from "@/components/site/HeroLanding";
 import { appStoreMetadata } from "@/lib/seo";
-import { getPublicConfig, type PublicConfig } from "@/lib/site";
+import type { Country } from "@/lib/countries";
+import { getPublicConfig, proPriceFor, siteCountry, visitorCountry, type PublicConfig } from "@/lib/site";
 
 const TITLE = "Beadup: quote, book and get paid as a mobile detailer";
 const DESCRIPTION =
@@ -46,6 +47,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const config = await getPublicConfig();
+  const visitor = await visitorCountry();
   const external = config.payments_mode === "external";
   const ai = config.ai_provider === "anthropic" ? "Anthropic" : "OpenAI";
 
@@ -56,13 +58,13 @@ export default async function Home() {
       <HeroLanding />
       <FeatureBar />
       <BookInSeconds />
-      <NoShows />
+      <NoShows country={siteCountry(visitor)} />
       <HowItWorks external={external} />
       <Features external={external} ai={ai} />
       <Compare external={external} />
       <Showcase />
       <Trust external={external} ai={ai} />
-      <PricingTeaser config={config} />
+      <PricingTeaser config={config} price={proPriceFor(config, visitor)} />
       <Faq config={config} external={external} ai={ai} />
       <FinalCta free={config.free_bookings_per_month} />
     </SitePage>
@@ -71,14 +73,14 @@ export default async function Home() {
 
 /* ---------------------------------------------------------------- No-shows */
 
-function NoShows() {
+function NoShows({ country }: { country: Country }) {
   return (
     <section aria-labelledby="noshow-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
       <SectionHead eyebrow="The problem" title={<span id="noshow-title">What a no-show really costs</span>}>
         You drove out, you blocked the slot, you turned someone else away. Slide your own numbers and see what a deposit keeps.
       </SectionHead>
       <Reveal className="mt-12">
-        <NoShowCalculator />
+        <NoShowCalculator country={country} />
       </Reveal>
     </section>
   );
@@ -420,15 +422,14 @@ function Trust({ external, ai }: { external: boolean; ai: string }) {
 
 /* ---------------------------------------------------------------- Pricing */
 
-function PricingTeaser({ config }: { config: PublicConfig }) {
-  const price = config.pro_price_display;
+function PricingTeaser({ config, price }: { config: PublicConfig; price: string | null }) {
   return (
     <section aria-labelledby="pricing-title" className="mx-auto mt-32 w-full max-w-6xl px-5 sm:px-8">
       <SectionHead eyebrow="Pricing" title={<span id="pricing-title">Start free. Upgrade when you&apos;re busy.</span>} center />
       <div className="mx-auto mt-12 grid max-w-4xl gap-5 md:grid-cols-2">
         <Reveal className="glass flex flex-col gap-4 rounded-[30px] p-8">
           <h3 className="font-display text-xl font-bold">Free</h3>
-          <p className="font-display text-5xl font-extrabold tracking-[-0.04em]">$0</p>
+          <p className="font-display text-5xl font-extrabold tracking-[-0.04em]">Free</p>
           <p className="text-[15px] text-steel">Up to {config.free_bookings_per_month} bookings a month, with every feature.</p>
         </Reveal>
         <Reveal delay={80} className="glass glass-edge spot spot relative flex flex-col gap-4 overflow-hidden rounded-[30px] p-8 shadow-[0_0_80px_-20px_rgba(77,216,255,0.35)]">

@@ -5,6 +5,7 @@ import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Badge, EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { whatsappUrl } from '@/lib/messaging';
 import { fetchClientBookings, fetchClients, fetchProfile, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
@@ -50,6 +51,9 @@ export default function ClientDetail() {
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Button label="WhatsApp" variant="glass" onPress={() => Linking.openURL(whatsappUrl(c.phone, `Hi ${c.name.split(' ')[0]}, `))} />
+            </View>
             <View style={{ flex: 1 }}>
               <Button label="Text" variant="glass" onPress={() => Linking.openURL(`sms:${c.phone}`)} />
             </View>

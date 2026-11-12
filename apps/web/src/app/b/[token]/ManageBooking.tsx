@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { AddToCalendar, DepositSent } from "@/components/booking/BookedCelebration";
 import type { Detailer } from "@/lib/booking-types";
 import type { ClientBooking } from "@/lib/client-booking";
-import { formatMoney, formatPhone, type Country } from "@/lib/countries";
+import { WhatsAppIcon } from "@/components/booking/WhatsAppIcon";
+import { formatMoney, formatPhone, whatsappUrl, type Country } from "@/lib/countries";
 import { haptic } from "@/lib/feedback";
 import { wallClock } from "@/lib/ics";
 import { openDays } from "@/lib/slots";
@@ -128,6 +129,15 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
             <p className="truncate text-[15px] font-semibold">{formatPhone(b.contactPhone, b.country as Country)}</p>
           </div>
           <div className="flex shrink-0 gap-2">
+            <a
+              href={whatsappUrl(b.contactPhone, `Hi ${b.businessName}, it's ${b.firstName} about my booking (ref ${b.ref}).`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`WhatsApp ${b.businessName}`}
+              className="flex h-11 items-center rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-3 text-[#7ff0a8]"
+            >
+              <WhatsAppIcon size={18} />
+            </a>
             <a href={`sms:${b.contactPhone}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold">
               Text
             </a>

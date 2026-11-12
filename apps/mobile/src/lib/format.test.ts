@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { dateKey, initials, localTime, mondayOf, minutesOfDay, startOfDay, money, moneyParts, weekdayIndex } from './format';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { dateKey, initials, localTime, mondayOf, minutesOfDay, startOfDay, money, moneyParts, setMoneyCountry, weekdayIndex } from './format';
 
 // Reference instants below were confirmed with the browser/Node Intl engine
 // for the 2026 DST transitions in America/Chicago:
@@ -68,6 +68,7 @@ describe('weekdayIndex / mondayOf', () => {
 });
 
 describe('money', () => {
+  beforeEach(() => setMoneyCountry('US'));
   it('hides cents on whole dollars', () => {
     expect(money(6000)).toBe('$60');
     expect(money(21000)).toBe('$210');
@@ -84,6 +85,7 @@ describe('money', () => {
 });
 
 describe('moneyParts', () => {
+  beforeEach(() => setMoneyCountry('US'));
   it('splits whole dollars and a fraction', () => {
     expect(moneyParts(184000)).toEqual({ whole: '$1,840', fraction: '.00' });
     expect(moneyParts(184034)).toEqual({ whole: '$1,840', fraction: '.34' });
@@ -137,5 +139,20 @@ describe('localTime (wall time in a zone as an instant)', () => {
   it('works without DST and east of UTC', () => {
     expect(localTime('2026-11-18', '09:30', 'Asia/Dubai').toISOString()).toBe('2026-11-18T05:30:00.000Z');
     expect(localTime('2026-11-18', '09:30', 'Pacific/Auckland').toISOString()).toBe('2026-11-17T20:30:00.000Z');
+  });
+});
+
+describe('countryFromTimezone (same rule as the database)', () => {
+  it('maps every Beadup country', async () => {
+    const { countryFromTimezone } = await import('./format');
+    expect(countryFromTimezone('Africa/Johannesburg')).toBe('ZA');
+    expect(countryFromTimezone('Asia/Dubai')).toBe('AE');
+    expect(countryFromTimezone('Europe/London')).toBe('GB');
+    expect(countryFromTimezone('Australia/Sydney')).toBe('AU');
+    expect(countryFromTimezone('Pacific/Auckland')).toBe('NZ');
+    expect(countryFromTimezone('Asia/Singapore')).toBe('SG');
+    expect(countryFromTimezone('America/Toronto')).toBe('CA');
+    expect(countryFromTimezone('America/Chicago')).toBe('US');
+    expect(countryFromTimezone('Africa/Harare')).toBeNull();
   });
 });

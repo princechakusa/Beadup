@@ -537,3 +537,12 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+
+/* Receipts (/r/<token>): print only the receipt, black on white. */
+@media print {
+  body * { visibility: hidden !important; }
+  .print-receipt, .print-receipt * { visibility: visible !important; color: #000 !important; border-color: #ccc !important; }
+  .print-receipt { position: absolute; inset: 0 auto auto 0; width: 100%; background: #fff !important; }
+  .no-print, .print-receipt .no-print { display: none !important; }
+  html, body { background: #fff !important; }
+}

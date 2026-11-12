@@ -32,14 +32,16 @@ export async function DELETE(request: Request): Promise<Response> {
 
   const { data: detailer } = await db.from("detailers").select("handle").eq("id", userId).maybeSingle();
 
-  // Remove the detailer's vehicle photos first: storage is not covered by
-  // the database cascade.
-  for (;;) {
-    const { data: files, error: listError } = await db.storage.from("quote-photos").list(userId, { limit: 1000 });
-    if (listError) return new Response("error", { status: 500 });
-    if (!files?.length) break;
-    const { error: removeError } = await db.storage.from("quote-photos").remove(files.map((f) => `${userId}/${f.name}`));
-    if (removeError) return new Response("error", { status: 500 });
+  // Remove the detailer's photos first (vehicle photos, profile photo and
+  // portfolio): storage is not covered by the database cascade.
+  for (const bucket of ["quote-photos", "profile-media"]) {
+    for (;;) {
+      const { data: files, error: listError } = await db.storage.from(bucket).list(userId, { limit: 1000 });
+      if (listError) return new Response("error", { status: 500 });
+      if (!files?.length) break;
+      const { error: removeError } = await db.storage.from(bucket).remove(files.map((f) => `${userId}/${f.name}`));
+      if (removeError) return new Response("error", { status: 500 });
+    }
   }
 
   await db.from("audit_log").insert({ detailer_id: userId, actor: userId, event: "account.deleted", data: {} });

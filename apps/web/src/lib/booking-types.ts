@@ -55,6 +55,10 @@ export const detailerSchema = z.object({
     .regex(/^\+[1-9]\d{7,14}$/)
     .nullable()
     .default(null),
+  /** Version of the detailer's photo (changes with the photo), or null when there is none. */
+  photo: z.string().regex(/^[0-9a-f]{10}$/).nullable().default(null),
+  /** Photos of the detailer's work, served by /api/media/<handle>/<id>. */
+  portfolio: z.array(z.object({ id: z.uuid(), caption: z.string().max(80) })).max(12).default([]),
   /** Start times keyed by weekday ("0" = Sunday), in the detailer's timezone. */
   weeklySlots: z.partialRecord(z.enum(["0", "1", "2", "3", "4", "5", "6"]), z.array(hhmm)),
 });

@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { reportDepositSent } from "@/app/[handle]/actions";
+import { WhatsAppIcon } from "@/components/booking/WhatsAppIcon";
+import { whatsappUrl } from "@/lib/countries";
 import { haptic, playBookedChime } from "@/lib/feedback";
 import { GlassBead } from "@/components/GlassBead";
 import { buildIcs, type CalendarEvent } from "@/lib/ics";
@@ -161,6 +163,15 @@ export function BookedCelebration({
               <p className="truncate text-[15px] font-semibold">{contact.display}</p>
             </div>
             <div className="flex shrink-0 gap-2">
+              <a
+                href={whatsappUrl(contact.e164, `Hi ${businessName}, I just booked ${serviceName} (${when}) on Beadup.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`WhatsApp ${businessName}`}
+                className="flex h-11 items-center rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-3 text-[#7ff0a8] transition-transform active:scale-[0.97]"
+              >
+                <WhatsAppIcon size={18} />
+              </a>
               <a href={`sms:${contact.e164}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold transition-transform active:scale-[0.97]">
                 Text
               </a>

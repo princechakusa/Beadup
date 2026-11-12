@@ -4,6 +4,8 @@ import { Linking, Share, StyleSheet, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { AskReviewButton } from '@/components/AskReviewButton';
+import { MessageClient } from '@/components/MessageClient';
+import { whatsappUrl } from '@/lib/messaging';
 import { Button } from '@/components/ui/Button';
 import { Badge, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -111,6 +113,9 @@ export default function BookingDetail() {
             {b.client.name}
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+            <View style={{ flex: 1 }}>
+              <Button label="WhatsApp" variant="glass" onPress={() => Linking.openURL(whatsappUrl(b.client.phone, `Hi ${b.client.name.split(' ')[0]}, `))} />
+            </View>
             <View style={{ flex: 1 }}>
               <Button label="Text" variant="glass" onPress={() => Linking.openURL(`sms:${b.client.phone}`)} />
             </View>
@@ -221,6 +226,7 @@ export default function BookingDetail() {
           {started && (
             <Button label="Client didn’t show" variant="ghost" loading={busy === 'noshow'} onPress={() => run('noshow', () => setBookingStatus(b.id, 'no_show'))} />
           )}
+          {!started && <MessageClient b={b} tz={tz} businessName={profile.data?.businessName ?? 'your detailer'} />}
           {!started && <Button label="Reschedule" variant="glass" onPress={() => router.push(`/reschedule/${b.id}`)} />}
           {!confirmCancel ? (
             <Button label="Cancel booking" variant="danger" onPress={() => setConfirmCancel(true)} />

@@ -23,7 +23,7 @@ export default defineConfig({
   webServer: {
     // Start from an empty data cache: `supabase db reset` re-creates the seed with new ids, and a cached booking
     // page from before the reset would offer add-ons that no longer exist.
-    command: `node -e "require('fs').rmSync('.next/cache', { recursive: true, force: true })" && npx next dev -p ${PORT}`,
+    command: `node -e "for (const d of ['.next/cache', '.next/dev/cache']) require('fs').rmSync(d, { recursive: true, force: true })" && npx next dev -p ${PORT}`,
     url: `http://localhost:${PORT}/pricing`,
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
