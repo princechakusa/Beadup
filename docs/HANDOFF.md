@@ -158,3 +158,4 @@ REMAINING STEPS (next agent):
 5. iOS OTA (JS only, no package.json/app.json change): `cd apps/mobile && npx eas-cli@latest update --channel production --environment production --platform ios --non-interactive --message "Teams, book again, due-back, directory switch, Google guide, 24h times, crash reports"`.
 6. Add CLAUDE.md notes for emails, directory, teams, repeat bookings, 24h, error_log.
 Owner actions: set `BREVO_API_KEY` on Cloudflare; fill `plan_config.pro_price_by_country`.
+UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod verified, iOS OTA e6fba081 published). Only the full E2E rerun is still open.
