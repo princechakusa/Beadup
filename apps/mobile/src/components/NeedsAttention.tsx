@@ -17,7 +17,8 @@ const MAX_ROWS = 3;
  */
 export function NeedsAttention({ data, tz }: { data: Attention | null | undefined; tz: string }) {
   if (!data) return null;
-  const { depositsToConfirm: deposits, toCloseOut, missingPayment, missingPhone, missingPhoto, requests, tomorrow, dueBack } = data;
+  // Defaults guard against older cached data that lacks newer lists.
+  const { depositsToConfirm: deposits = [], toCloseOut = [], missingPayment, missingPhone, missingPhoto, requests = [], tomorrow = [], dueBack = [] } = data;
   const rows = [
     ...requests.slice(0, MAX_ROWS).map(({ request: r, booking: b }) => (
       <BookingRow

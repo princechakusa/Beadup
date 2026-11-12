@@ -1,4 +1,5 @@
 import { Directory, File, Paths } from 'expo-file-system';
+import * as Updates from 'expo-updates';
 
 /**
  * Offline cache for the last fetched schedule, clients and money, so the app
@@ -7,7 +8,10 @@ import { Directory, File, Paths } from 'expo-file-system';
  * never in backups we control, and wiped on sign-out and account deletion.
  */
 const dir = () => new Directory(Paths.document, 'beadup-cache');
-const fileFor = (key: string) => new File(dir(), `${key.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 120)}.json`);
+// Cached data belongs to the JS that wrote it: after an update its shape may differ
+// (e.g. a new field), so each update reads only its own cache.
+const VERSION = (Updates.updateId ?? 'embedded').slice(0, 8);
+const fileFor = (key: string) => new File(dir(), `${VERSION}-${key.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 120)}.json`);
 
 export async function readCache<T>(key: string): Promise<{ data: T; savedAt: number } | null> {
   try {
