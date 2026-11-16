@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { authClient, clearAdminSession, isAdminEmail, sameOrigin, setAdminSession } from "@/lib/admin";
+import { authClient, clearAdminSession, currentAdmin, isAdminEmail, sameOrigin, setAdminSession } from "@/lib/admin";
 import { clientIp } from "@/lib/client-ip";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -60,9 +60,17 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: true });
   }
 
-  if (!isAdminEmail(email)) return Response.json({ ok: false, error: "code" }, { status: 401 });
+  // Failed attempts are recorded (hashed IP, never the code) so /admin > Audit trail shows guessing.
+  const failed = () => db.from("audit_log").insert({ actor: isAdminEmail(email) ? email : "unknown", event: "admin.sign_in_failed", data: { ip: hash(ip) } });
+  if (!isAdminEmail(email)) {
+    await failed();
+    return Response.json({ ok: false, error: "code" }, { status: 401 });
+  }
   const { data, error } = await auth.auth.verifyOtp({ email, token: parsed.data.code, type: "email" });
-  if (error || !data.session) return Response.json({ ok: false, error: "code" }, { status: 401 });
+  if (error || !data.session) {
+    await failed();
+    return Response.json({ ok: false, error: "code" }, { status: 401 });
+  }
   await setAdminSession(data.session.access_token, data.session.expires_in);
   await db.from("audit_log").insert({ actor: email, event: "admin.sign_in", data: {} });
   return Response.json({ ok: true });
@@ -70,6 +78,9 @@ export async function POST(request: Request): Promise<Response> {
 
 export async function DELETE(): Promise<Response> {
   if (!(await sameOrigin())) return new Response("forbidden", { status: 403 });
+  const admin = await currentAdmin();
+  const db = supabaseAdmin();
+  if (admin && db) await db.from("audit_log").insert({ actor: admin, event: "admin.sign_out", data: {} });
   await clearAdminSession();
   return Response.json({ ok: true });
 }

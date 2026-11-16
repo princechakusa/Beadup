@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
 import type { AdminOverview } from "@/lib/admin";
+import { AuditTrail, Security } from "./AdminSections";
+
+const IDLE_MS = 15 * 60_000; // signed out after 15 minutes without use
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "detailers", label: "Businesses" },
+  { id: "moderation", label: "Moderation" },
+  { id: "errors", label: "Errors" },
+  { id: "audit", label: "Audit trail" },
+  { id: "security", label: "Security" },
+] as const;
+type Tab = (typeof TABS)[number]["id"];
 
 type State = { kind: "loading" } | { kind: "signed-out" } | { kind: "ready"; data: AdminOverview } | { kind: "error" };
 
@@ -23,6 +35,26 @@ export function AdminConsole() {
     const json = (await res.json().catch(() => null)) as { overview?: AdminOverview } | null;
     setState(json?.overview ? { kind: "ready", data: json.overview } : { kind: "error" });
   }, []);
+
+  const signedIn = state.kind === "ready";
+  useEffect(() => {
+    if (!signedIn) return;
+    const expire = async () => {
+      await fetch("/api/admin/auth", { method: "DELETE" }).catch(() => {});
+      setState({ kind: "signed-out" });
+    };
+    let t = setTimeout(expire, IDLE_MS);
+    const bump = () => {
+      clearTimeout(t);
+      t = setTimeout(expire, IDLE_MS);
+    };
+    const events = ["pointerdown", "keydown", "scroll"] as const;
+    events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
+    return () => {
+      clearTimeout(t);
+      events.forEach((e) => window.removeEventListener(e, bump));
+    };
+  }, [signedIn]);
 
   useEffect(() => {
     // Initial load from the admin API (client-only page).
@@ -139,6 +171,7 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("overview");
 
   const detailers = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -157,7 +190,32 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
   }
 
   return (
-    <div className="mt-10 flex flex-col gap-10">
+    <div className="mt-8 flex flex-col gap-8 md:flex-row md:gap-10">
+      <nav aria-label="Admin sections" className="md:sticky md:top-6 md:h-fit md:w-52 md:shrink-0">
+        <ul className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
+          {TABS.map((x) => (
+            <li key={x.id}>
+              <button
+                type="button"
+                aria-current={tab === x.id ? "page" : undefined}
+                onClick={() => setTab(x.id)}
+                className={`flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-[14px] px-4 py-2.5 text-left text-[14px] font-semibold transition-colors ${tab === x.id ? "bg-bead/15 text-bead" : "text-mist hover:bg-white/[0.05]"}`}
+              >
+                {x.label}
+                {x.id === "moderation" && t.openDeletionRequests > 0 ? <span className="rounded-full bg-danger/20 px-2 text-[12px] text-danger">{t.openDeletionRequests}</span> : null}
+                {x.id === "errors" && data.errors.length > 0 ? <span className="text-[12px] text-steel">{data.errors.length}</span> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="flex min-w-0 flex-1 flex-col gap-10">
+      {notice && (
+        <p role="status" className="rounded-[14px] border border-bead/30 bg-bead/[0.06] px-4 py-3 text-[14px] text-paint">
+          {notice}
+        </p>
+      )}
+      {tab === "overview" && (<>
       <section aria-label="Totals" className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
         <Tile label="Detailers" value={t.detailers} sub={`+${t.newThisWeek} this week`} />
         <Tile label="Live booking pages" value={t.published} />
@@ -174,13 +232,10 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
         ))}
       </section>
 
-      {notice && (
-        <p role="status" className="rounded-[14px] border border-bead/30 bg-bead/[0.06] px-4 py-3 text-[14px] text-paint">
-          {notice}
-        </p>
-      )}
+      </>)}
 
-      {data.deletionRequests.length > 0 && (
+      {tab === "moderation" && data.deletionRequests.length === 0 && <p className="text-steel">No open deletion requests.</p>}
+      {tab === "moderation" && data.deletionRequests.length > 0 && (
         <section aria-labelledby="del-title" className="glass rounded-[24px] border border-danger/25 p-6">
           <h2 id="del-title" className="font-display text-xl font-bold">
             Account deletion requests <span className="text-danger">({t.openDeletionRequests})</span>
@@ -212,7 +267,7 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
         </section>
       )}
 
-      <section aria-labelledby="err-title" className="glass rounded-[24px] p-6">
+      {tab === "errors" && (<section aria-labelledby="err-title" className="glass rounded-[24px] p-6">
         <h2 id="err-title" className="font-display text-xl font-bold">
           Recent errors <span className="text-steel">({data.errors.length})</span>
         </h2>
@@ -239,9 +294,9 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
             ))}
           </ul>
         )}
-      </section>
+      </section>)}
 
-      <section aria-labelledby="det-title">
+      {tab === "detailers" && (<section aria-labelledby="det-title">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="det-title" className="font-display text-2xl font-bold">
             Detailers
@@ -308,9 +363,9 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
             </tbody>
           </table>
         </div>
-      </section>
+      </section>)}
 
-      <section aria-labelledby="rev-title">
+      {tab === "moderation" && (<section aria-labelledby="rev-title">
         <h2 id="rev-title" className="font-display text-2xl font-bold">
           Reviews
         </h2>
@@ -340,7 +395,10 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
           ))}
           {data.reviews.length === 0 && <li className="text-steel">No reviews yet.</li>}
         </ul>
-      </section>
+      </section>)}
+      {tab === "audit" && <AuditTrail />}
+      {tab === "security" && <Security data={data} />}
+      </div>
     </div>
   );
 }

@@ -1,15 +1,20 @@
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { bookingPageTag } from "@/lib/booking-page";
-import { currentAdmin, loadOverview, sameOrigin } from "@/lib/admin";
+import { currentAdmin, loadAudit, loadOverview, sameOrigin } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const noStore = { "Cache-Control": "no-store" };
 
 /** Dashboard data for the signed-in admin. */
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   const admin = await currentAdmin();
   if (!admin) return Response.json({ ok: false }, { status: 401, headers: noStore });
+  const url = new URL(request.url);
+  if (url.searchParams.get("view") === "audit") {
+    const q = (url.searchParams.get("q") ?? "").slice(0, 60);
+    return Response.json({ ok: true, audit: await loadAudit(q) }, { headers: noStore });
+  }
   return Response.json({ ok: true, overview: await loadOverview(admin) }, { headers: noStore });
 }
 

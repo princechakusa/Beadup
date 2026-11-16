@@ -72,6 +72,8 @@ export async function clearAdminSession() {
 
 export type AdminOverview = {
   admin: string;
+  /** When this sign-in stops working (ISO), read from the session token. */
+  sessionExpiresAt: string | null;
   totals: {
     detailers: number;
     newThisWeek: number;
@@ -102,6 +104,33 @@ export type AdminOverview = {
 };
 
 const since = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+
+/** Expiry of the admin session token (its `exp` claim). The token itself is verified by Supabase in currentAdmin(). */
+export async function sessionExpiry(): Promise<string | null> {
+  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
+  try {
+    const exp = JSON.parse(Buffer.from(token?.split(".")[1] ?? "", "base64url").toString("utf8")).exp;
+    return typeof exp === "number" ? new Date(exp * 1000).toISOString() : null;
+  } catch {
+    return null;
+  }
+}
+
+export type AuditEntry = { id: number; actor: string; event: string; data: unknown; handle: string | null; createdAt: string };
+
+/** Newest audit_log rows, optionally only events that contain `q` (event, actor). Read only. */
+export async function loadAudit(q: string, limit = 100): Promise<AuditEntry[]> {
+  const db = supabaseAdmin();
+  if (!db) throw new Error("no database");
+  let query = db.from("audit_log").select("id, actor, event, data, created_at, detailer:detailers(handle)").order("id", { ascending: false }).limit(Math.min(limit, 200));
+  const needle = q.replace(/[^a-zA-Z0-9._:@ -]/g, "").trim();
+  if (needle) query = query.or(`event.ilike.%${needle}%,actor.ilike.%${needle}%`);
+  const { data } = await query;
+  return (data ?? []).map((r) => {
+    const d = (Array.isArray(r.detailer) ? r.detailer[0] : r.detailer) as { handle?: string } | null;
+    return { id: r.id as number, actor: r.actor as string, event: r.event as string, data: r.data, handle: d?.handle ?? null, createdAt: r.created_at as string };
+  });
+}
 
 export async function loadOverview(admin: string): Promise<AdminOverview> {
   const db = supabaseAdmin();
@@ -146,6 +175,7 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
 
   return {
     admin,
+    sessionExpiresAt: await sessionExpiry(),
     totals: {
       detailers,
       newThisWeek,
