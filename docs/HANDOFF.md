@@ -170,3 +170,8 @@ UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod
 - Done: E2E specs (api-security, teams, /api/log), /admin rebuilt (nav tabs, audit trail with filter, security tab, 15-min idle sign-out, failed sign-ins and sign-outs audited), premium `Dropdown` (trade, country, payment method), trade change offers starter services (`switchToStarters`), preview data follows the trade (Expo web: fixtures, Skia fallbacks `*.web.tsx`), payment method picker per country (`lib/payment-methods.ts`, South Africa: PayShap, Yoco, PayFast, SnapScan, EFT).
 - Expo web preview: `cd apps/mobile && EXPO_PUBLIC_SUPABASE_URL= EXPO_PUBLIC_SUPABASE_ANON_KEY= npx expo start --web --port 8099` (empty env = sample data).
 - Not done: translations (plan in `docs/I18N_PLAN.md`), publish the iOS OTA (owner will do together with a new build), Pay-on-the-day still shows the 30% deposit line on the client page (copy only).
+
+## 2026-11-16 (night), Claude Code: translations
+- Web: client booking flow, confirmation, `/b/<token>`, review form, Stripe return page in ES/FR/PT (`apps/web/src/lib/i18n`, `LocaleProvider`). E2E 33/33, unit 75.
+- Mobile: i18n layer + tabs, Today, Needs attention, link card, Calendar, Clients, Money (see `docs/I18N_PLAN.md` for the exact list of what is left). Unit 40, iOS export OK. All JS only (OTA safe, no new native module).
+- Native speaker review of every draft is still needed before launch.

@@ -3,7 +3,10 @@
 ## Status 2026-11-16
 - DONE (web): infrastructure in `apps/web/src/lib/i18n/` (typed catalogs `en/es/fr/pt`, `negotiate()` from Accept-Language or the `bd_lang` cookie, `fmt()`, `I18nProvider`/`useI18n`), the client booking flow and the confirmation screen are translated into Spanish, French and Portuguese (dates follow the language; trade wording via `phrases`). Tests: `i18n.test.ts` (every key, same placeholders) and `e2e/i18n.spec.ts`.
 - Drafts are machine-assisted: a native speaker must review before launch.
-- NOT done: `/b/<token>` manage page, `/[handle]/booked`, the review form, emails, the mobile app, Arabic (right-to-left), localized store listings, marketing pages.
+- DONE (web, later 2026-11-16): the client's private page `/b/<token>`, the review form `/r/<token>` and the Stripe return page are translated too (`LocaleProvider` wraps them).
+- DONE (mobile): `apps/mobile/src/lib/i18n/` (device language from `Intl`, so no native module and it ships OTA; per-key English fallback so a half-translated screen never breaks). Translated: tab bar, Today, Needs attention, booking link card, Calendar, Clients, Money (live external-payments path; the Stripe-only Money screen stays English), greetings and day names in `format.ts`.
+- NOT done (mobile, same pattern, add keys to `en.ts` first): sign-in, onboarding, Settings (index, profile, services, availability, payment, media, team, invite, google, delete), booking detail, reschedule, book again, client detail, AI quote, paywall (`pro.tsx`), reviews, paid, consent screens, message templates (`MessageClient`), QR sheet, PaymentDetailsForm and the Dropdown placeholders.
+- NOT done (everything else): client emails (needs the client's language stored on the booking: a migration plus `create_booking`), Arabic with right-to-left layout (native build), localized store listings and screenshots, marketing pages and blog guides, SMS copy (SMS is off).
 
 
 ## Languages
