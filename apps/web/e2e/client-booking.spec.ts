@@ -42,7 +42,7 @@ test("the client sees their booking, reports the deposit and asks for changes", 
 
   // Deposit reported: shown as waiting, never as paid.
   await page.getByRole("button", { name: "I've sent the deposit" }).click();
-  await expect(page.getByText("You said it's sent. Waiting for the detailer to confirm.")).toBeVisible();
+  await expect(page.getByText("You said it's sent. Waiting for the business to confirm.")).toBeVisible();
   expect(sql(`select deposit_received_at is null and deposit_reported_at is not null from public.bookings where client_token = '${tokenOf(path)}'`)).toBe("t");
 
   // Ask for a new time.

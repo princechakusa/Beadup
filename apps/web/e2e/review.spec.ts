@@ -16,7 +16,7 @@ test("a client reviews a finished job once", async ({ page }) => {
   expect(token).toMatch(/^[0-9a-f]{48}$/);
 
   await page.goto(`/r/${token}`);
-  await page.getByRole("radio", { name: "5 stars" }).click();
+  await page.getByRole("radio", { name: "5 out of 5 stars" }).click();
   await page.getByRole("textbox").fill("Car looks brand new.");
   await page.getByRole("button", { name: "Send review" }).click();
   await expect(page.getByRole("heading", { name: /Thank you|Thanks for your review/ })).toBeVisible();
