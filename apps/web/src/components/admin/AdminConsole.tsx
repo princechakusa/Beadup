@@ -227,7 +227,14 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
                 <p className="mt-1 text-[12px] text-steel">
                   {e.source} · {shortDate(e.createdAt)}
                   {e.where ? ` · ${e.where}` : ""}
+                  {e.release ? ` · ${e.release}` : ""}
                 </p>
+                {e.stack ? (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-[12px] text-bead">Stack</summary>
+                    <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] text-steel">{e.stack}</pre>
+                  </details>
+                ) : null}
               </li>
             ))}
           </ul>

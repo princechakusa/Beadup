@@ -25,6 +25,8 @@ export async function POST(request: Request, ctx: RouteContext<"/api/bookings/[i
 
   const db = supabaseAdmin();
   if (!db) return new Response("not configured", { status: 503 });
+  const { data: rl } = await db.rpc("hit_rate_limit", { p_key: `cancel:${userId}`, p_limit: 30, p_window_seconds: 3600 });
+  if (rl !== true) return new Response("rate limited", { status: 429 });
 
   const { data, error } = await db.rpc("cancel_booking", { p_booking_id: id, p_by: "detailer", p_detailer_id: userId });
   if (error) return new Response("error", { status: 500 });

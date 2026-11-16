@@ -159,3 +159,9 @@ REMAINING STEPS (next agent):
 6. Add CLAUDE.md notes for emails, directory, teams, repeat bookings, 24h, error_log.
 Owner actions: set `BREVO_API_KEY` on Cloudflare; fill `plan_config.pro_price_by_country`.
 UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod verified, iOS OTA e6fba081 published). Only the full E2E rerun is still open.
+
+## 2026-11-16, Claude Code: Monday session (partial)
+- E2E after `db reset`: DB tests 387 pass, Playwright 26/26.
+- Cold-start error: fix 903a25a (per-update offline cache, Needs attention defaults) is pushed but NOT yet published as an OTA (needs owner go-ahead). /admin Recent errors now shows stack and release.
+- Security: `docs/SECURITY_ROUTES.md` (15 routes, 6 server actions, Burp checklist); rate limits added to cancel, revalidate, stripe/balance.
+- Not started: /admin rebuild, translations (i18n), E2E specs for teams and POST /api/log. Queued after: payment-method presets for countries without payment links (ZA).

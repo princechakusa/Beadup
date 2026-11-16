@@ -11,6 +11,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!userId) return new Response("unauthorized", { status: 401 });
   const db = supabaseAdmin();
   if (!db) return new Response("not configured", { status: 503 });
+  const { data: rl } = await db.rpc("hit_rate_limit", { p_key: `revalidate:${userId}`, p_limit: 60, p_window_seconds: 60 });
+  if (rl !== true) return new Response("rate limited", { status: 429 });
 
   const { data } = await db.from("detailers").select("handle").eq("id", userId).maybeSingle();
   if (!data?.handle) return new Response("not found", { status: 404 });

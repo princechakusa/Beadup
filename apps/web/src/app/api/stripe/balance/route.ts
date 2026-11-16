@@ -10,6 +10,8 @@ export async function GET(request: Request): Promise<Response> {
 
   const db = supabaseAdmin();
   if (!db) return new Response("not configured", { status: 503 });
+  const { data: rl } = await db.rpc("hit_rate_limit", { p_key: `stripebal:${userId}`, p_limit: 60, p_window_seconds: 60 });
+  if (rl !== true) return new Response("rate limited", { status: 429 });
   const { data: account } = await db
     .from("detailer_accounts")
     .select("stripe_account_id, charges_enabled")
