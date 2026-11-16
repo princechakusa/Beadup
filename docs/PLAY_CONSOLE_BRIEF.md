@@ -13,7 +13,7 @@ Console: https://play.google.com/console/u/0/developers/8257127577906479212/app/
 
 ## Store listing (default language: English, United States)
 - **App name (30):** `Beadup: Bookings & Quotes` (replace the old "Beadup: Detailer Bookings")
-- **Short description (80):** `Your booking link, calendar and quotes. Clients book in a browser, no app needed.`
+- **Short description (80):** `Your booking link, calendar and quotes. Clients book in a browser, no app needed` (80, no final period)
 - **Full description (4000):**
 ```
 Beadup is the booking and quote app for independent service businesses: car detailers, barbers, hair salons, nail and makeup artists, pet groomers, cleaners, mobile mechanics, handymen and more.
@@ -92,3 +92,6 @@ Camera and photo picker only when adding photos. Notifications optional. No loca
 ## Not possible yet (needs the owner or a build)
 - Android build and release: no Android app bundle exists. Do not create a release.
 - App access credentials, trader status, payments profile, tax and merchant info.
+
+## Status (2026-11-17)
+Saved by agents: English listing (name `Beadup: Bookings & Quotes`, descriptions, icon, feature graphic, 6 phone screenshots), category Business, contact, translations es-419, fr-FR, pt-BR (short descriptions trimmed to 80). Play requires 7-inch and 10-inch tablet screenshots for the review step: not made (the app is phone-first); add them or untick tablet support before review.

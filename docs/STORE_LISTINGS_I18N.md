@@ -12,7 +12,7 @@ The privacy policy, terms and account-deletion page stay in English for now and 
 
 **Name:** Beadup
 **Subtitle (App Store, 30):** Reservas y cobros en un enlace
-**Short description (Play, 80):** Tu enlace de reservas, tu agenda y tus presupuestos. Tus clientes no instalan nada.
+**Short description (Play, 80):** Tu enlace de reservas, agenda y presupuestos. Tus clientes no instalan nada.
 **Promotional text:** Un enlace para que tus clientes reserven, un depósito que llega directo a ti y una agenda que se llena sola.
 **Keywords:** reservas,citas,agenda,presupuestos,negocio,peluquería,limpieza,mecánico,estética,autónomo,cobros
 **Description:**
@@ -44,7 +44,7 @@ Beadup Pro
 
 **Name:** Beadup
 **Subtitle (App Store, 30):** Réservations et paiements
-**Short description (Play, 80):** Votre lien de réservation, votre agenda et vos devis. Vos clients n'installent rien.
+**Short description (Play, 80):** Votre lien de réservation, agenda et devis. Vos clients n'installent rien.
 **Promotional text:** Un lien pour que vos clients réservent, un acompte versé directement à vous et un agenda qui se remplit tout seul.
 **Keywords:** réservation,rendez-vous,agenda,devis,indépendant,coiffure,ménage,mécanicien,esthétique,paiement
 **Description:**
@@ -76,7 +76,7 @@ Beadup Pro
 
 **Name:** Beadup
 **Subtitle (App Store, 30):** Reservas e pagamentos
-**Short description (Play, 80):** Seu link de reservas, sua agenda e seus orçamentos. Seus clientes não instalam nada.
+**Short description (Play, 80):** Seu link de reservas, agenda e orçamentos. Seus clientes não instalam nada.
 **Promotional text:** Um link para seus clientes reservarem, um sinal pago direto para você e uma agenda que se preenche sozinha.
 **Keywords:** reservas,agendamento,agenda,orçamentos,autônomo,salão,limpeza,mecânico,estética,pagamentos
 **Description:**
