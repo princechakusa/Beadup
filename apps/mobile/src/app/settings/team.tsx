@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { addStaff, fetchStaff, removeStaff, setStaffActive, useQuery } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /**
  * Settings: the team. Each person gets their own calendar, so two clients can
@@ -30,15 +31,14 @@ export default function Team() {
       await staff.refresh();
     } catch {
       haptic.error();
-      setError('That didn’t save. Check your connection and try again.');
+      setError(t('tm_fail'));
     }
   };
 
   return (
-    <Screen title="Team" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('tm_title')} tabs={false} right={<BackButton variant="back" />}>
       <Text variant="caption" style={{ fontSize: 14, lineHeight: 20 }}>
-        Add the people who take bookings (chairs, stylists, groomers, cleaners). Clients pick a person or “Anyone”, and each
-        person can only be booked once at a time. Leave this empty if it’s just you.
+        {t('tm_intro')}
       </Text>
       {(staff.data ?? []).length > 0 && (
         <ListCard>
@@ -51,9 +51,9 @@ export default function Team() {
                 value={m.active}
                 onValueChange={(v) => run(() => setStaffActive(m.id, v))}
                 trackColor={{ true: colors.bead, false: '#262B35' }}
-                accessibilityLabel={`${m.name} takes bookings`}
+                accessibilityLabel={t('tm_takes', { name: m.name })}
               />
-              <Pressable onPress={() => run(() => removeStaff(m.id))} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Remove ${m.name}`}>
+              <Pressable onPress={() => run(() => removeStaff(m.id))} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('tm_remove', { name: m.name })}>
                 <Icon name="trash" size={18} color={colors.danger} />
               </Pressable>
             </View>
@@ -61,9 +61,9 @@ export default function Team() {
         </ListCard>
       )}
       <View style={{ gap: space.md }}>
-        <Field label="Add a person" value={name} onChangeText={setName} placeholder="e.g. Thabo" maxLength={40} autoCapitalize="words" />
+        <Field label={t('tm_add_person')} value={name} onChangeText={setName} placeholder={t('tm_ph')} maxLength={40} autoCapitalize="words" />
         <Button
-          label="Add to team"
+          label={t('tm_add')}
           loading={busy}
           disabled={!name.trim()}
           onPress={async () => {
@@ -80,7 +80,7 @@ export default function Team() {
         </Text>
       )}
       <Text variant="caption" style={{ fontSize: 12 }}>
-        Removing someone keeps their past bookings. Turn them off instead to pause new bookings.
+        {t('tm_note')}
       </Text>
     </Screen>
   );

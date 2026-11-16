@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { ApiError, deleteAccount } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 // In-app account deletion (Apple 5.1.1(v), Google Play; rules.md section 2).
 export default function DeleteAccount() {
@@ -30,8 +31,8 @@ export default function DeleteAccount() {
       const body = e instanceof ApiError ? (e.body as { error?: string; count?: number } | null) : null;
       setError(
         body?.error === 'upcoming_bookings'
-          ? `You have ${body.count} upcoming paid booking${body.count === 1 ? '' : 's'}. Cancel ${body.count === 1 ? 'it' : 'them'} first so clients get their deposits back.`
-          : 'Could not delete your account. Check your connection and try again.',
+          ? t(body.count === 1 ? 'da_upcoming' : 'da_upcoming_many', { n: body.count ?? 0 })
+          : t('da_fail'),
       );
     } finally {
       setBusy(false);
@@ -39,39 +40,38 @@ export default function DeleteAccount() {
   };
 
   return (
-    <Screen title="Delete account" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('da_title')} tabs={false} right={<BackButton variant="back" />}>
       <GlassCard>
         <View style={{ gap: space.md }}>
-          <Text variant="bodyStrong">This permanently deletes:</Text>
+          <Text variant="bodyStrong">{t('da_deletes')}</Text>
           {[
-            'Your Beadup account and sign-in',
-            'Your business profile and booking link',
-            'Services, prices and availability',
-            'Clients, bookings, quotes and photos',
-            'Messages and payment history in Beadup',
-          ].map((t) => (
-            <Text key={t} variant="body" tone="steel">
-              ·  {t}
+            t('da_l1'),
+            t('da_l2'),
+            t('da_l3'),
+            t('da_l4'),
+            t('da_l5'),
+          ].map((line) => (
+            <Text key={line} variant="body" tone="steel">
+              ·  {line}
             </Text>
           ))}
           <Text variant="caption" style={{ marginTop: space.sm }}>
-            Your Stripe account is yours and is not deleted. Stripe and the card networks keep payment records they are
-            required to by law. Beadup keeps a security log entry that the account was deleted, without your details.
+            {t('da_note')}
           </Text>
         </View>
       </GlassCard>
 
       <Field
-        label='Type DELETE to confirm'
+        label={t('da_type')}
         value={confirm}
         onChangeText={setConfirm}
         autoCapitalize="characters"
         autoCorrect={false}
         error={error}
       />
-      <Button label="Delete my account" variant="danger" onPress={remove} loading={busy} disabled={confirm.trim() !== 'DELETE'} />
+      <Button label={t('da_btn')} variant="danger" onPress={remove} loading={busy} disabled={confirm.trim() !== 'DELETE'} />
       <Text variant="caption" style={{ textAlign: 'center' }}>
-        This can&apos;t be undone.
+        {t('da_undo')}
       </Text>
     </Screen>
   );

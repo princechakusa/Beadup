@@ -10,10 +10,13 @@ import { addDaysKey, dateKey, mondayOf } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, space } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
+import { t as tr } from '@/lib/i18n';
 
 // Weekly start times shown on the booking link (availability_slots).
 const DAYS = [1, 2, 3, 4, 5, 6, 0]; // Monday first; 0 = Sunday in the database
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// 2023-01-01 was a Sunday, so index 0 is Sunday (the database's weekday 0).
+const dayName = (wd: number) => new Date(Date.UTC(2023, 0, 1 + wd)).toLocaleDateString(dateLocale(), { weekday: 'long', timeZone: 'UTC' });
 const CHOICES = Array.from({ length: 29 }, (_, i) => {
   const m = 6 * 60 + i * 30; // 6:00 AM to 8:00 PM, every 30 minutes
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
@@ -27,8 +30,7 @@ type Slot = { id: string; weekday: number; time: string };
 
 // Travel time kept free between jobs (detailers.buffer_min).
 const BUFFERS = [0, 15, 30, 45, 60, 90];
-const bufferLabel = (m: number) => (m === 0 ? 'None' : m < 60 ? `${m} min` : `${m / 60} h`.replace('1.5 h', '1 h 30'));
-const WEEK_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const bufferLabel = (m: number) => (m === 0 ? t('av_none') : m < 60 ? `${m} min` : `${m / 60} h`.replace('1.5 h', '1 h 30'));
 
 async function fetchSlots(): Promise<Slot[]> {
   if (!supabase) return [];
@@ -58,21 +60,21 @@ export default function Availability() {
   };
 
   return (
-    <Screen title="Availability" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('av_title')} tabs={false} right={<BackButton variant="back" />}>
       <TravelTime />
-      <Text variant="caption">Start times clients can pick each week, in your business timezone. Booked times are hidden automatically.</Text>
+      <Text variant="caption">{t('av_intro')}</Text>
       {DAYS.map((wd) => {
         const daySlots = (slots.data ?? []).filter((s) => s.weekday === wd);
         const taken = new Set(daySlots.map((s) => s.time));
         return (
           <View key={wd} style={styles.day}>
             <View style={styles.dayHead}>
-              <Text variant="bodyStrong">{DAY_NAMES[wd]}</Text>
-              <Text variant="caption">{daySlots.length ? `${daySlots.length} start time${daySlots.length > 1 ? 's' : ''}` : 'Day off'}</Text>
+              <Text variant="bodyStrong">{dayName(wd)}</Text>
+              <Text variant="caption">{daySlots.length ? t(daySlots.length > 1 ? 'av_starts' : 'av_start', { n: daySlots.length }) : t('av_day_off')}</Text>
             </View>
             <View style={styles.wrap}>
               {daySlots.map((s) => (
-                <Pressable key={s.id} onPress={() => remove(s.id)} accessibilityRole="button" accessibilityLabel={`Remove ${to12h(s.time)} on ${DAY_NAMES[wd]}`} style={styles.slot}>
+                <Pressable key={s.id} onPress={() => remove(s.id)} accessibilityRole="button" accessibilityLabel={t('av_remove', { time: to12h(s.time), day: dayName(wd) })} style={styles.slot}>
                   <Text variant="caption" style={{ color: colors.beadInk, fontFamily: fonts.bodySemi }}>
                     {to12h(s.time)}
                   </Text>
@@ -82,7 +84,7 @@ export default function Availability() {
               <Pressable
                 onPress={() => setOpen(open === wd ? null : wd)}
                 accessibilityRole="button"
-                accessibilityLabel={`Add a start time on ${DAY_NAMES[wd]}`}
+                accessibilityLabel={t('av_add_a11y', { day: dayName(wd) })}
                 style={styles.addSlot}>
                 <Icon name="plus" size={14} color={colors.bead} strokeWidth={2.4} />
               </Pressable>
@@ -90,7 +92,7 @@ export default function Availability() {
             {open === wd && (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingTop: 10 }}>
                 {CHOICES.filter((t) => !taken.has(t)).map((t) => (
-                  <Pressable key={t} onPress={() => add(wd, t)} style={styles.choice} accessibilityRole="button" accessibilityLabel={`Add ${to12h(t)}`}>
+                  <Pressable key={t} onPress={() => add(wd, t)} style={styles.choice} accessibilityRole="button" accessibilityLabel={tr('av_add', { time: to12h(t) })}>
                     <Text variant="caption" style={{ color: colors.paint }}>
                       {to12h(t)}
                     </Text>
@@ -128,7 +130,7 @@ function TravelTime() {
   return (
     <View style={styles.day}>
       <View style={styles.dayHead}>
-        <Text variant="bodyStrong">Travel time between jobs</Text>
+        <Text variant="bodyStrong">{t('av_travel')}</Text>
         <Text variant="caption">{bufferLabel(value)}</Text>
       </View>
       <View style={styles.wrap} accessibilityRole="radiogroup">
@@ -141,7 +143,7 @@ function TravelTime() {
               style={on ? styles.slot : styles.choice}
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
-              accessibilityLabel={`Travel time ${bufferLabel(m)}`}>
+              accessibilityLabel={t('av_travel_a11y', { value: bufferLabel(m) })}>
               <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontFamily: on ? fonts.bodySemi : undefined }}>
                 {bufferLabel(m)}
               </Text>
@@ -150,7 +152,7 @@ function TravelTime() {
         })}
       </View>
       <Text variant="caption" style={{ marginTop: space.sm, fontSize: 13, lineHeight: 19 }}>
-        {error ? 'Could not save. Check your connection and try again.' : 'Clients can’t book a time that leaves you less than this between jobs.'}
+        {error ? t('av_save_fail') : t('av_buffer_d')}
       </Text>
     </View>
   );
@@ -188,17 +190,17 @@ function DaysOff() {
 
   const start = mondayOf(todayKey);
   const weeks = Array.from({ length: 6 }, (_, w) => Array.from({ length: 7 }, (_, d) => addDaysKey(start, w * 7 + d)));
-  const monthOf = (k: string) => new Date(`${k}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+  const monthOf = (k: string) => new Date(`${k}T12:00:00Z`).toLocaleDateString(dateLocale(), { month: 'short', timeZone: 'UTC' });
   const count = [...off].length;
 
   return (
     <View style={styles.day}>
       <View style={styles.dayHead}>
-        <Text variant="bodyStrong">Days off</Text>
-        <Text variant="caption">{count ? `${count} coming up` : 'None'}</Text>
+        <Text variant="bodyStrong">{t('av_days_off')}</Text>
+        <Text variant="caption">{count ? t('av_coming', { n: count }) : t('av_none')}</Text>
       </View>
       <View style={styles.weekRow}>
-        {WEEK_LETTERS.map((l, i) => (
+        {t('week_letters').split(',').map((l, i) => (
           <Text key={i} variant="caption" style={styles.weekLetter}>
             {l}
           </Text>
@@ -218,7 +220,7 @@ function DaysOff() {
                 style={[styles.cell, on && styles.cellOff, past && { opacity: 0.25 }]}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: on, disabled: past }}
-                accessibilityLabel={`${monthOf(k)} ${dayNum}${on ? ', day off' : ''}`}>
+                accessibilityLabel={`${monthOf(k)} ${dayNum}${on ? t('av_off_a11y') : ''}`}>
                 <Text variant="caption" style={{ color: on ? colors.danger : k === todayKey ? colors.bead : colors.paint, fontFamily: on ? fonts.bodySemi : undefined }}>
                   {dayNum === 1 ? monthOf(k) : dayNum}
                 </Text>
@@ -228,7 +230,7 @@ function DaysOff() {
         </View>
       ))}
       <Text variant="caption" style={{ marginTop: space.sm, fontSize: 13, lineHeight: 19 }}>
-        {error ? 'Could not save. Check your connection and try again.' : 'Tap a day to close it. Jobs already booked that day stay booked.'}
+        {error ? t('av_save_fail') : t('av_off_d')}
       </Text>
     </View>
   );

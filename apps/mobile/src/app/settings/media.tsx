@@ -11,6 +11,7 @@ import { useQuery } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { addWork, fetchMedia, MAX_WORK, pickPhoto, removeWork, setProfilePhoto, setWorkCaption, type WorkItem } from '@/lib/media';
 import { colors, fonts, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /**
  * Settings: your photo and photos of your work, shown on your booking page.
@@ -32,23 +33,23 @@ export default function MediaSettings() {
       await media.refresh();
     } catch {
       haptic.error();
-      setError('That didn’t save. Check your connection and try again.');
+      setError(t('tm_fail'));
     } finally {
       setBusy(null);
     }
   };
 
   return (
-    <Screen title="Photo and your work" tabs={false} right={<BackButton variant="back" />} onRefresh={media.refresh} refreshing={media.loading && !!media.data}>
+    <Screen title={t('md_title')} tabs={false} right={<BackButton variant="back" />} onRefresh={media.refresh} refreshing={media.loading && !!media.data}>
       <Text variant="caption" style={styles.lead}>
-        Clients see these on your booking page. A friendly photo of you and a few before-and-afters help a new client say yes.
+        {t('md_lead')}
       </Text>
 
       <View style={styles.card}>
-        <Text variant="bodyStrong">Your photo</Text>
+        <Text variant="bodyStrong">{t('md_photo')}</Text>
         <View style={styles.photoRow}>
           {media.data?.photoUrl ? (
-            <Image source={{ uri: media.data.photoUrl }} style={styles.avatar} contentFit="cover" accessibilityLabel="Your photo" />
+            <Image source={{ uri: media.data.photoUrl }} style={styles.avatar} contentFit="cover" accessibilityLabel={t('md_photo_a11y')} />
           ) : (
             <View style={[styles.avatar, styles.avatarEmpty]}>
               <Icon name="camera" size={22} color={colors.steel} />
@@ -56,7 +57,7 @@ export default function MediaSettings() {
           )}
           <View style={{ flex: 1, gap: space.sm }}>
             <Button
-              label={media.data?.photoUrl ? 'Change photo' : 'Add your photo'}
+              label={media.data?.photoUrl ? t('md_change') : t('md_add_photo')}
               variant="glass"
               loading={busy === 'photo'}
               onPress={async () => {
@@ -65,20 +66,20 @@ export default function MediaSettings() {
               }}
             />
             {!!media.data?.photoPath && (
-              <Button label="Remove" variant="ghost" loading={busy === 'photo-off'} onPress={() => run('photo-off', () => setProfilePhoto(null, media.data?.photoPath ?? null))} />
+              <Button label={t('md_remove')} variant="ghost" loading={busy === 'photo-off'} onPress={() => run('photo-off', () => setProfilePhoto(null, media.data?.photoPath ?? null))} />
             )}
           </View>
         </View>
         <Text variant="caption" style={{ fontSize: 13 }}>
-          Your face or your logo, clear and well lit. Square photos work best.
+          {t('md_photo_d')}
         </Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.head}>
-          <Text variant="bodyStrong">Your work</Text>
+          <Text variant="bodyStrong">{t('md_work')}</Text>
           <Text variant="caption">
-            {work.length} of {MAX_WORK}
+            {t('md_of', { n: work.length, max: MAX_WORK })}
           </Text>
         </View>
         {work.map((item) => (
@@ -86,7 +87,7 @@ export default function MediaSettings() {
         ))}
         {work.length < MAX_WORK && (
           <Button
-            label="Add a photo of your work"
+            label={t('md_add_work')}
             loading={busy === 'add'}
             onPress={async () => {
               const uri = await pickPhoto([4, 3]);
@@ -95,7 +96,7 @@ export default function MediaSettings() {
           />
         )}
         <Text variant="caption" style={{ fontSize: 13 }}>
-          Real jobs you did: a shiny finish, a clean interior, before and after. No people’s faces or number plates.
+          {t('md_work_d')}
         </Text>
       </View>
 
@@ -117,7 +118,7 @@ function WorkRow({ item, busy, onRemove, onCaption }: { item: WorkItem; busy: bo
         value={caption}
         onChangeText={setCaption}
         onEndEditing={() => caption !== item.caption && onCaption(caption)}
-        placeholder="Caption, e.g. Ceramic coat, black Hilux"
+        placeholder={t('md_caption_ph')}
         placeholderTextColor={colors.steel}
         maxLength={80}
         style={styles.caption}

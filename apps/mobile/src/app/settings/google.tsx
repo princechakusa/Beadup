@@ -11,12 +11,13 @@ import { fetchProfile, useQuery } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
-const STEPS = [
-  ['Open your Google Business Profile', 'Search your business name on Google or open Google Business. If you have no profile yet, create one: it’s free.'],
-  ['Add your booking link', 'Edit profile, then Contact, then add your Beadup link as your Website and as your Appointment link.'],
-  ['Turn on “Book”', 'Google shows a Book button that opens your Beadup page. Clients can book straight from Search and Maps.'],
-  ['Ask for Google reviews', 'After a job, send the receipt from Beadup, then ask happy clients to review you on Google too.'],
+const STEP_KEYS = [
+  ['gg_s1t', 'gg_s1b'],
+  ['gg_s2t', 'gg_s2b'],
+  ['gg_s3t', 'gg_s3b'],
+  ['gg_s4t', 'gg_s4b'],
 ] as const;
 
 /** How to put the Beadup booking link on Google Search and Maps (no API, no fees). */
@@ -24,19 +25,19 @@ export default function GoogleGuide() {
   const profile = useQuery(fetchProfile, [], 'profile');
   const link = profile.data ? `${apiBaseUrl}/${profile.data.handle}` : '';
   const [copied, setCopied] = useState(false);
+  const STEPS = STEP_KEYS.map(([a, b]) => [t(a), t(b)] as const);
   return (
-    <Screen title="Get found on Google" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('gg_title')} tabs={false} right={<BackButton variant="back" />}>
       <Text variant="caption" style={{ fontSize: 14, lineHeight: 20 }}>
-        Most clients search Google or Maps first. Put your Beadup link on your free Google Business Profile so they can book you
-        in one tap. Your Beadup page is also listed in the Beadup directory and is set up for search engines.
+        {t('gg_intro')}
       </Text>
       <View style={styles.card}>
-        <Text variant="eyebrow">Your booking link</Text>
+        <Text variant="eyebrow">{t('gg_link')}</Text>
         <Text variant="bodyStrong" selectable>
           {link.replace(/^https?:\/\//, '') || '…'}
         </Text>
         <Button
-          label={copied ? 'Copied' : 'Copy link'}
+          label={copied ? t('gg_copied') : t('gg_copy')}
           variant="glass"
           onPress={async () => {
             await Clipboard.setStringAsync(link);
@@ -48,7 +49,7 @@ export default function GoogleGuide() {
       </View>
       {STEPS.map(([title, body], i) => (
         <View key={title} style={styles.card}>
-          <Text variant="eyebrow">Step {i + 1}</Text>
+          <Text variant="eyebrow">{t('gg_step', { n: i + 1 })}</Text>
           <Text variant="bodyStrong">{title}</Text>
           <Text variant="caption" style={{ fontSize: 14, lineHeight: 20 }}>
             {body}

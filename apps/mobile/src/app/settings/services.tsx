@@ -15,6 +15,8 @@ import { currentTrade } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { t } from '@/lib/i18n';
 
 type Draft = { id?: string; name: string; description: string; hours: string; sedan: string; suv: string; truck: string; photoPath?: string | null };
 const toCents = (v: string) => Math.round(Number(v.replace(/[^0-9.]/g, '')) * 100);
@@ -73,7 +75,7 @@ export default function Services() {
     // Single-price trades keep one price in all three columns.
     const prices = tiers ? [toCents(draft.sedan), toCents(draft.suv), toCents(draft.truck)] : [toCents(draft.sedan), toCents(draft.sedan), toCents(draft.sedan)];
     if (!draft.name.trim() || !(minutes >= 15 && minutes <= 720) || prices.some((p) => !(p >= 0 && p <= 1_000_000))) {
-      setError(`Add a name, a duration between 15 minutes and 12 hours, and ${tiers ? 'a price for each size' : 'a price'}.`);
+      setError(t('sv_err', { what: tiers ? t('sv_a_price_each') : t('sv_a_price') }));
       return;
     }
     setBusy(true);
@@ -109,7 +111,7 @@ export default function Services() {
     const { error: e } = await supabase.from(table).update({ active }).eq('id', id);
     if (e) {
       haptic.error();
-      setError('Could not update. Check your connection and try again.');
+      setError(t('sv_update_fail'));
     } else {
       catalog.refresh();
       refreshBookingPage();
@@ -135,16 +137,16 @@ export default function Services() {
   };
 
   return (
-    <Screen title="Services and prices" tabs={false} right={<BackButton variant="back" />}>
-      <Text variant="caption">Clients see these on your booking link. Turn a service off to hide it without deleting it.</Text>
+    <Screen title={t('sv_title')} tabs={false} right={<BackButton variant="back" />}>
+      <Text variant="caption">{t('sv_intro')}</Text>
 
       <ListCard>
         {(catalog.data?.services ?? []).map((s) => (
           <View key={s.id} style={styles.row}>
             {s.photoPath && photos.data?.[s.photoPath] ? (
-              <Image source={{ uri: photos.data[s.photoPath] }} style={styles.thumb} contentFit="cover" accessibilityLabel={`${s.name} photo`} />
+              <Image source={{ uri: photos.data[s.photoPath] }} style={styles.thumb} contentFit="cover" accessibilityLabel={t('sv_photo_a11y', { name: s.name })} />
             ) : null}
-            <Pressable style={{ flex: 1, gap: 2 }} onPress={() => edit(s)} accessibilityRole="button" accessibilityLabel={`Edit ${s.name}`}>
+            <Pressable style={{ flex: 1, gap: 2 }} onPress={() => edit(s)} accessibilityRole="button" accessibilityLabel={t('sv_edit_a11y', { name: s.name })}>
               <Text variant="bodyStrong" style={{ color: s.active ? colors.paint : colors.steel }}>
                 {s.name}
               </Text>
@@ -156,7 +158,7 @@ export default function Services() {
               value={pending[s.id] ?? s.active}
               onValueChange={(v) => toggle('services', s.id, v)}
               trackColor={{ true: colors.bead, false: '#262B35' }}
-              accessibilityLabel={`${s.name} shown on booking link`}
+              accessibilityLabel={t('sv_shown_a11y', { name: s.name })}
             />
           </View>
         ))}
@@ -165,55 +167,55 @@ export default function Services() {
       {draft ? (
         <GlassCard glowing>
           <View style={{ gap: space.md }}>
-            <Text variant="heading">{draft.id ? 'Edit service' : 'New service'}</Text>
-            <Field label="Name" value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} maxLength={60} />
-            <Field label="Description" value={draft.description} onChangeText={(description) => setDraft({ ...draft, description })} maxLength={200} />
-            <Field label="Hours" value={draft.hours} onChangeText={(hours) => setDraft({ ...draft, hours })} keyboardType="decimal-pad" />
+            <Text variant="heading">{draft.id ? t('sv_edit') : t('sv_new')}</Text>
+            <Field label={t('sv_name')} value={draft.name} onChangeText={(name) => setDraft({ ...draft, name })} maxLength={60} />
+            <Field label={t('sv_desc')} value={draft.description} onChangeText={(description) => setDraft({ ...draft, description })} maxLength={200} />
+            <Field label={t('sv_hours')} value={draft.hours} onChangeText={(hours) => setDraft({ ...draft, hours })} keyboardType="decimal-pad" />
             {tiers ? (
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {(['sedan', 'suv', 'truck'] as const).map((k) => (
                   <View key={k} style={{ flex: 1 }}>
-                    <Field label={`${trade.tiers[k]} ${symbol}`} value={draft[k]} onChangeText={(v) => setDraft({ ...draft, [k]: v })} keyboardType="decimal-pad" />
+                    <Field label={`${phrase(trade.tiers[k])} ${symbol}`} value={draft[k]} onChangeText={(v) => setDraft({ ...draft, [k]: v })} keyboardType="decimal-pad" />
                   </View>
                 ))}
               </View>
             ) : (
-              <Field label={`Price ${symbol}`} value={draft.sedan} onChangeText={(v) => setDraft({ ...draft, sedan: v })} keyboardType="decimal-pad" />
+              <Field label={t('sv_price', { symbol })} value={draft.sedan} onChangeText={(v) => setDraft({ ...draft, sedan: v })} keyboardType="decimal-pad" />
             )}
             {draft.id ? (
               <View style={{ gap: space.sm }}>
                 <Text variant="caption">
-                  {trade.photoFirst ? 'Photo of this service: clients choose by what they see.' : 'Photo of this service (optional).'}
+                  {trade.photoFirst ? t('sv_photo_first') : t('sv_photo_opt')}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <View style={{ flex: 1 }}>
-                    <Button label={draft.photoPath ? 'Change photo' : 'Add photo'} variant="glass" loading={photoBusy} onPress={() => changePhoto(false)} />
+                    <Button label={draft.photoPath ? t('sv_change_photo') : t('sv_add_photo')} variant="glass" loading={photoBusy} onPress={() => changePhoto(false)} />
                   </View>
                   {draft.photoPath ? (
                     <View style={{ flex: 1 }}>
-                      <Button label="Remove photo" variant="ghost" onPress={() => changePhoto(true)} />
+                      <Button label={t('sv_remove_photo')} variant="ghost" onPress={() => changePhoto(true)} />
                     </View>
                   ) : null}
                 </View>
               </View>
             ) : (
-              <Text variant="caption">Save the service first, then you can add a photo.</Text>
+              <Text variant="caption">{t('sv_save_first')}</Text>
             )}
             {error && (
               <Text variant="caption" tone="danger">
                 {error}
               </Text>
             )}
-            <Button label="Save" onPress={save} loading={busy} />
-            <Button label="Cancel" variant="ghost" onPress={() => setDraft(null)} />
+            <Button label={t('save')} onPress={save} loading={busy} />
+            <Button label={t('cancel')} variant="ghost" onPress={() => setDraft(null)} />
           </View>
         </GlassCard>
       ) : (
-        <Button label="Add a service" variant="glass" onPress={() => setDraft(blank)} />
+        <Button label={t('sv_add')} variant="glass" onPress={() => setDraft(blank)} />
       )}
 
       <Text variant="heading" style={{ fontSize: 18, marginTop: space.sm }}>
-        Add-ons
+        {t('sv_addons')}
       </Text>
       <ListCard>
         {(catalog.data?.addOns ?? []).map((a) => (
@@ -228,20 +230,20 @@ export default function Services() {
               value={pending[a.id] ?? a.active}
               onValueChange={(v) => toggle('add_ons', a.id, v)}
               trackColor={{ true: colors.bead, false: '#262B35' }}
-              accessibilityLabel={`${a.name} shown on booking link`}
+              accessibilityLabel={t('sv_shown_a11y', { name: a.name })}
             />
           </View>
         ))}
       </ListCard>
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
         <View style={{ flex: 1 }}>
-          <Field label="New add-on" value={addOn.name} onChangeText={(name) => setAddOn({ ...addOn, name })} placeholder="e.g. Headlight restore" maxLength={60} />
+          <Field label={t('sv_new_addon')} value={addOn.name} onChangeText={(name) => setAddOn({ ...addOn, name })} placeholder={t('sv_addon_ph')} maxLength={60} />
         </View>
         <View style={{ width: 96 }}>
-          <Field label={`Price ${symbol}`} value={addOn.price} onChangeText={(price) => setAddOn({ ...addOn, price })} keyboardType="decimal-pad" />
+          <Field label={t('sv_price', { symbol })} value={addOn.price} onChangeText={(price) => setAddOn({ ...addOn, price })} keyboardType="decimal-pad" />
         </View>
       </View>
-      <Button label="Add add-on" variant="glass" onPress={addAddOn} disabled={!addOn.name.trim() || !addOn.price} />
+      <Button label={t('sv_add_addon')} variant="glass" onPress={addAddOn} disabled={!addOn.name.trim() || !addOn.price} />
     </Screen>
   );
 }
