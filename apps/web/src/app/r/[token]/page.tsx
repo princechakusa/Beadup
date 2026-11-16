@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { ReviewForm } from "./ReviewForm";
 import { Receipt, receiptSchema } from "./Receipt";
 
@@ -63,7 +64,11 @@ async function Rating({ params }: { params: PageProps<"/r/[token]">["params"] })
       </div>
     );
   }
-  return <ReviewForm token={token} businessName={c.businessName} firstName={c.firstName} />;
+  return (
+    <LocaleProvider>
+      <ReviewForm token={token} businessName={c.businessName} firstName={c.firstName} />
+    </LocaleProvider>
+  );
 }
 
 /** The receipt for a finished job (when the link is valid and the job is done), then the rating. */

@@ -8,6 +8,7 @@ import { clientIp } from "@/lib/client-ip";
 import { loadClientBooking } from "@/lib/client-booking";
 import { wallClock } from "@/lib/ics";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { ManageBooking, type Availability } from "./ManageBooking";
 
 // Private: never indexed, and the token in the URL is never sent to other sites.
@@ -91,7 +92,11 @@ async function Booking({ params }: { params: PageProps<"/b/[token]">["params"] }
   // The booking id stays on the server; the browser only has its own token.
   const { bookingId, ...view } = booking;
   void bookingId;
-  return <ManageBooking token={token} booking={view} availability={availability} />;
+  return (
+    <LocaleProvider>
+      <ManageBooking token={token} booking={view} availability={availability} />
+    </LocaleProvider>
+  );
 }
 
 export default function ClientBookingPage({ params }: PageProps<"/b/[token]">) {

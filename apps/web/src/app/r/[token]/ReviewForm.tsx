@@ -4,12 +4,13 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
 import { haptic, primeAudio, playBookedChime } from "@/lib/feedback";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { submitReview } from "./actions";
-
-const LABELS = ["", "Not good", "Could be better", "Good", "Great", "Outstanding"];
 
 export function ReviewForm({ token, businessName, firstName }: { token: string; businessName: string; firstName: string }) {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
+  const labels = ["", t("rv_l1"), t("rv_l2"), t("rv_l3"), t("rv_l4"), t("rv_l5")];
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [body, setBody] = useState("");
@@ -29,7 +30,7 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
       setState("done");
     } else {
       setState("idle");
-      setError(res.error === "rate_limited" ? "Too many tries. Please wait a little and try again." : "Something went wrong. Please try again.");
+      setError(res.error === "rate_limited" ? t("rv_rate") : t("rv_wrong"));
     }
   };
 
@@ -41,8 +42,8 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
         className="flex flex-col items-center gap-4 text-center"
       >
         <BeadLogo size={64} />
-        <h1 className="font-display text-3xl font-extrabold">Thank you{firstName ? `, ${firstName}` : ""}</h1>
-        <p className="text-steel">Your review helps {businessName} and other drivers nearby.</p>
+        <h1 className="font-display text-3xl font-extrabold">{firstName ? t("rv_thanksName", { name: firstName }) : t("rv_thanks")}</h1>
+        <p className="text-steel">{t("rv_helps", { name: businessName })}</p>
       </motion.div>
     );
   }
@@ -51,11 +52,11 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
     <div className="flex w-full flex-col items-center gap-6 text-center">
       <BeadLogo size={56} />
       <div>
-        <h1 className="text-gradient font-display text-[28px] font-extrabold leading-tight tracking-[-0.03em]">How did {businessName} do?</h1>
-        <p className="mt-2 text-[15px] text-steel">Tap a star to rate your visit.</p>
+        <h1 className="text-gradient font-display text-[28px] font-extrabold leading-tight tracking-[-0.03em]">{t("rv_title", { name: businessName })}</h1>
+        <p className="mt-2 text-[15px] text-steel">{t("rv_tap")}</p>
       </div>
 
-      <div className="flex gap-2" role="radiogroup" aria-label="Rating" onMouseLeave={() => setHover(0)}>
+      <div className="flex gap-2" role="radiogroup" aria-label={t("rv_rating")} onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((n) => {
           const on = n <= shown;
           return (
@@ -64,7 +65,7 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
               type="button"
               role="radio"
               aria-checked={rating === n}
-              aria-label={`${n} star${n > 1 ? "s" : ""}`}
+              aria-label={t("rv_star", { n })}
               onMouseEnter={() => setHover(n)}
               onClick={() => {
                 haptic("select");
@@ -83,22 +84,22 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
         })}
       </div>
       <p className="h-5 text-sm font-semibold text-paint" aria-live="polite">
-        {LABELS[shown]}
+        {labels[shown]}
       </p>
 
       <label className="flex w-full flex-col gap-2 text-left">
         <span className="text-[13px] text-steel">
           {rating === 0
-            ? "Anything to add? (optional)"
+            ? t("rv_add")
             : rating <= 3
-              ? "What could have been better? Your detailer reads every review."
-              : "What did you like most? (optional)"}
+              ? t("rv_better")
+              : t("rv_like")}
         </span>
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, 1000))}
           rows={4}
-          placeholder={rating > 0 && rating <= 3 ? "For example: arrived late, missed a spot on the wheels" : "For example: on time, interior looks brand new"}
+          placeholder={rating > 0 && rating <= 3 ? t("rv_ph_low") : t("rv_ph_high")}
           className="w-full resize-none rounded-2xl border border-line bg-black/30 p-4 text-base text-paint outline-none transition-[border-color,box-shadow] focus:border-bead/70 focus:shadow-[0_0_0_4px_rgba(77,216,255,0.12)]"
         />
       </label>
@@ -115,7 +116,7 @@ export function ReviewForm({ token, businessName, firstName }: { token: string; 
         disabled={!rating || state === "sending"}
         className="btn-sheen h-14 w-full rounded-[18px] bg-bead font-bold text-bead-ink shadow-[0_10px_30px_rgba(77,216,255,0.35)] transition-opacity disabled:opacity-40 disabled:shadow-none"
       >
-        {state === "sending" ? "Sending…" : "Send review"}
+        {state === "sending" ? t("rs_sending") : t("rv_send")}
       </button>
     </div>
   );
