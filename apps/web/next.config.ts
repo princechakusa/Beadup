@@ -41,6 +41,8 @@ const nextConfig: NextConfig = {
       // Exactly the paths src/proxy.ts does not match.
       { source: "/_next/:path*", headers: staticCsp },
       { source: "/api/:path*", headers: staticCsp },
+      { source: "/.well-known/:path*", headers: staticCsp },
+      { source: "/indexnow/:path*", headers: staticCsp },
       { source: "/:path*/:file([^/]+\\.[a-zA-Z0-9]+)", headers: staticCsp },
       { source: "/:file([^/]+\\.[a-zA-Z0-9]+)", headers: staticCsp },
     ];

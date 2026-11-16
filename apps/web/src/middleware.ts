@@ -86,5 +86,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // Every page. Skips Next's static files, the image optimizer, API routes
   // and anything with a file extension (favicon, images, robots.txt).
-  matcher: ["/((?!_next/static|_next/image|api/|.*\\.[a-zA-Z0-9]+$).*)"],
+  matcher: ["/((?!_next/static|_next/image|api/|\\.well-known/|.*\\.[a-zA-Z0-9]+$).*)"],
 };
