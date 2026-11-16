@@ -181,3 +181,10 @@ UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod
 - Emails: client language saved on the booking, emails written in it. Migration `20261116000100_client_language.sql` must be deployed (Supabase GitHub integration) before the language is used; until then emails default to English.
 - Store text drafts in `docs/STORE_LISTINGS_I18N.md`.
 - Still open: native review, Arabic (RTL), marketing pages, screenshots, then ONE iOS OTA (queue: cold-start fix, dropdowns, trade switch, payment method picker, translations). Android has no build yet.
+
+## 2026-11-16 (night), Claude Code: fixes from the owner's test notes + next real build checklist
+- Fixed: greeting now follows the phone clock (was the business timezone, so a profile saved as another timezone said "Morning" in the afternoon); AI scan card now follows the saved profile trade (only car detailing accounts see it; it also needs the AI consent and the server to report `available`).
+- Added: Settings > Language (Automatic or English/Español/Français/Português, kept on the device, app restarts), archive finished jobs (Money button, job screen button; they stay in earnings and client history; migration `20261116000200_archive_jobs.sql`, written so an app that arrives before the migration just shows no archive).
+- Test the app now with Expo Go (no publishing): `cd apps/mobile && npx expo start`, scan the QR. Preview in a browser: see the Expo web command above.
+- NEXT REAL BUILD (new store binary, bump `version` in app.json, only after testing): add `CFBundleLocalizations` (en, es, fr, pt) so iOS lists the languages and offers per-app language in Settings; `supportedLocales` for Android; Arabic RTL (`I18nManager`) only if Arabic is added; any other native change found while testing.
+- Store screenshots with translated captions: optional (listings fall back to the default language); make them last, after the UI is final.
