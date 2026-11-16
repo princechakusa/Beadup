@@ -29,7 +29,7 @@ PROMPTS = {
     "window-cleaners": "squeegee cleaning a large glass window of a modern house, streak-free reflections of a blue sky at dusk",
     "house-cleaners": "bright tidy modern living room just cleaned, folded throw on sofa, soft evening light through a window, no people",
     "pet-groomers": "friendly golden retriever being groomed on a grooming table, groomer's hands with a brush, warm clean studio, soft rim light",
-    "hair-salon": "stylist blow-drying long wavy hair in a modern salon, mirror and soft studio lights, back view of the client",
+    "hair-salons": "stylist blow-drying long wavy hair in a modern salon, mirror and soft studio lights, back view of the client",
     "barber": "barber trimming a beard with clippers in a dark barbershop, leather chair, warm lamp and cyan rim light, close side view",
     "nail-technicians": "close-up of a manicurist painting a glossy deep blue nail, hands only, soft studio light",
     "makeup-artists": "makeup artist applying eyeshadow with a brush, close-up of hands and brush with a makeup palette, soft glam lighting, no face visible",

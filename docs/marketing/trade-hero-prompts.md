@@ -18,7 +18,7 @@ For Stitch, wrap the scene like this (it creates the photo as its own image scre
 | window-cleaners | a window cleaner with a squeegee cleaning a large glass window of a modern house at dusk, streak-free reflections |
 | house-cleaners | a cleaner tidying a bright modern living room, folded throw on the sofa, soft evening light through the window, no people |
 | pet-groomers | a groomer brushing a friendly golden retriever on a grooming table in a clean warm studio |
-| hair-salon | a stylist blow-drying a client's long wavy hair in a modern salon with a large mirror and soft studio lights, client seen from behind |
+| hair-salons | a stylist blow-drying a client's long wavy hair in a modern salon with a large mirror and soft studio lights, client seen from behind |
 | barbers | a barber trimming a client's beard in a dark barbershop with a leather chair and warm lamp light |
 | nail-technicians | a manicurist painting a glossy deep blue nail, close-up of hands only, soft studio light |
 | makeup-artists | a makeup artist applying eyeshadow with a brush, close-up of hands and brush beside a palette, soft glamour lighting, no face visible |
