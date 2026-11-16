@@ -5,6 +5,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
 import { colors, radius, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 export type DropdownOption<T extends string> = {
   value: T;
@@ -55,10 +56,10 @@ export function Dropdown<T extends string>({ label, value, options, onChange, ti
         }}
         style={({ pressed }) => [styles.field, pressed && { opacity: 0.75 }]}
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${selected?.label ?? 'none'}. Change`}>
+        accessibilityLabel={`${label}: ${selected?.label ?? ''}`}>
         <View style={{ flex: 1 }}>
           <Text variant="bodyStrong" numberOfLines={1}>
-            {selected?.label ?? 'Choose'}
+            {selected?.label ?? t('dd_choose')}
           </Text>
           {selected?.hint ? (
             <Text variant="caption" style={{ fontSize: 12 }} numberOfLines={1}>
@@ -77,14 +78,14 @@ export function Dropdown<T extends string>({ label, value, options, onChange, ti
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={close} statusBarTranslucent>
-        <Pressable style={styles.scrim} onPress={close} accessibilityLabel="Close" />
+        <Pressable style={styles.scrim} onPress={close} accessibilityLabel={t('dd_close')} />
         <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.grab} />
           <View style={styles.head}>
             <Text variant="title" style={{ flex: 1, fontSize: 20 }}>
               {title ?? label}
             </Text>
-            <Pressable onPress={close} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
+            <Pressable onPress={close} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('dd_close')}>
               <Icon name="close" size={20} color={colors.steel} />
             </Pressable>
           </View>
@@ -94,11 +95,11 @@ export function Dropdown<T extends string>({ label, value, options, onChange, ti
               <TextInput
                 value={q}
                 onChangeText={setQ}
-                placeholder="Search"
+                placeholder={t('dd_search')}
                 placeholderTextColor={colors.steel}
                 style={styles.input}
                 autoCorrect={false}
-                accessibilityLabel="Search options"
+                accessibilityLabel={t('dd_search_a11y')}
               />
             </View>
           ) : null}
@@ -108,7 +109,7 @@ export function Dropdown<T extends string>({ label, value, options, onChange, ti
             keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
               <Text variant="caption" style={{ padding: space.lg }}>
-                Nothing matches.
+                {t('dd_none')}
               </Text>
             }
             renderItem={({ item: o, index }) => {

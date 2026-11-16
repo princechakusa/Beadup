@@ -17,6 +17,7 @@ import { shareLink } from '@/lib/share';
 import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 const SUPPORT_EMAIL = 'support@beadup.app';
 
@@ -42,7 +43,7 @@ export default function Settings() {
       ? pd.link.replace(/^https:\/\//, '').slice(0, 28)
       : pd.note
         ? pd.note.slice(0, 28)
-        : 'Not set · add how clients pay you';
+        : t('se_not_set');
   useFocusEffect(
     useCallback(() => {
       aiConsentStatus()
@@ -91,10 +92,10 @@ export default function Settings() {
   const u = usage.data;
   const plan =
     u?.plan === 'pro' || a?.plan === 'pro'
-      ? `Pro${a?.planRenewsAt ? ` · renews ${new Date(a.planRenewsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}`
+      ? (a?.planRenewsAt ? t('se_pro_renews', { date: new Date(a.planRenewsAt).toLocaleDateString(dateLocale(), { month: 'short', day: 'numeric' }) }) : t('se_pro'))
       : u
-        ? `Free plan · ${u.used} of ${u.limit} bookings this month`
-        : 'Free plan';
+        ? t('se_free_usage', { used: u.used, limit: u.limit })
+        : t('se_free');
   const payouts = !a
     ? ' '
     : a.chargesEnabled
@@ -118,8 +119,8 @@ export default function Settings() {
   };
 
   return (
-    <Screen title="Settings" tabs={false} right={<BackButton />}>
-      <Pressable style={styles.profile} onPress={() => router.push('/settings/profile')} accessibilityRole="button" accessibilityLabel={`Edit business profile: ${p?.businessName ?? ''}`}>
+    <Screen title={t('se_title')} tabs={false} right={<BackButton />}>
+      <Pressable style={styles.profile} onPress={() => router.push('/settings/profile')} accessibilityRole="button" accessibilityLabel={t('se_edit_a11y', { name: p?.businessName ?? '' })}>
         <View style={styles.monogram}>
           <Text variant="heading" tone="beadInk">
             {p ? initials(p.businessName) : ''}
@@ -130,7 +131,7 @@ export default function Settings() {
             {p?.businessName ?? ' '}
           </Text>
           <Text variant="caption" tone="steel" style={{ fontSize: 13 }}>
-            Edit name, tagline and service area
+            {t('se_edit_sub')}
           </Text>
         </View>
         <Icon name="chevronRight" size={18} color="#5B6371" />
@@ -138,7 +139,7 @@ export default function Settings() {
 
       <View style={styles.linkCard}>
         <Text variant="caption" style={{ fontSize: 13 }}>
-          Your booking link
+          {t('se_link')}
         </Text>
         <View style={styles.linkRow}>
           <Text variant="bodyStrong" tone="bead" style={{ flex: 1, fontSize: 16 }} numberOfLines={1}>
@@ -146,7 +147,7 @@ export default function Settings() {
           </Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Copy link"
+            accessibilityLabel={t('se_copy')}
             onPress={async () => {
               await Clipboard.setStringAsync(fullUrl);
               haptic.success();
@@ -161,33 +162,33 @@ export default function Settings() {
           accessibilityRole="button"
           onPress={() => {
             haptic.tap();
-            shareLink(`Book your next detail with ${p?.businessName ?? 'me'}:`, fullUrl);
+            shareLink(t('se_share_msg', { name: p?.businessName ?? t('se_share_me') }), fullUrl);
           }}
           style={styles.shareBtn}>
           <Icon name="share" size={18} color={colors.beadInk} strokeWidth={2.2} />
           <Text variant="bodyStrong" tone="beadInk" style={{ fontSize: 15 }}>
-            Share link
+            {t('se_share')}
           </Text>
         </Pressable>
       </View>
 
       <ListCard>
-        <Row icon="sparkle" label="Plan" detail={plan} onPress={() => router.push('/pro')} />
-        <Row icon="clients" label="Invite & earn" detail="Free months of Pro" onPress={() => router.push('/settings/invite')} />
+        <Row icon="sparkle" label={t('se_plan')} detail={plan} onPress={() => router.push('/pro')} />
+        <Row icon="clients" label={t('se_invite')} detail={t('se_invite_d')} onPress={() => router.push('/settings/invite')} />
       </ListCard>
 
       <ListCard>
-        <Row icon="camera" label="Photo and your work" detail="Shown on your booking page" onPress={() => router.push('/settings/media')} />
-        <Row icon="search" label="Get found on Google" detail="Add your link to Search and Maps" onPress={() => router.push('/settings/google')} />
-        <Row icon="car" label="Services and prices" onPress={() => router.push('/settings/services')} />
-        <Row icon="calendar" label="Availability" onPress={() => router.push('/settings/availability')} />
-        <Row icon="clients" label="Team" detail="People who take bookings" onPress={() => router.push('/settings/team')} />
+        <Row icon="camera" label={t('se_media')} detail={t('se_media_d')} onPress={() => router.push('/settings/media')} />
+        <Row icon="search" label={t('se_google')} detail={t('se_google_d')} onPress={() => router.push('/settings/google')} />
+        <Row icon="car" label={t('se_services')} onPress={() => router.push('/settings/services')} />
+        <Row icon="calendar" label={t('se_avail')} onPress={() => router.push('/settings/availability')} />
+        <Row icon="clients" label={t('se_team')} detail={t('se_team_d')} onPress={() => router.push('/settings/team')} />
         {paymentsMode === 'external' ? (
           <>
-            <Row icon="money" label="Deposit" detail="30% · paid to you directly" />
+            <Row icon="money" label={t('se_deposit')} detail={t('se_deposit_d')} />
             <Row
               icon="link"
-              label="Payment link"
+              label={t('se_payment')}
               detail={paymentSummary}
               onPress={() => router.push('/settings/payment')}
               warn={!!pd && !pd.link && !pd.note}
@@ -206,18 +207,18 @@ export default function Settings() {
           <Icon name="bell" size={20} color={colors.steel} />
           <View style={{ flex: 1, gap: 1 }}>
             <Text variant="bodyStrong" style={{ fontSize: 15 }}>
-              Booking alerts
+              {t('se_alerts')}
             </Text>
             <Text variant="caption" style={{ fontSize: 12 }}>
               {pushBusy === true
-                ? 'Turning on…'
+                ? t('se_alerts_on')
                 : pushFailed
-                  ? 'Couldn’t turn on alerts. Check your connection and try again.'
+                  ? t('se_alerts_fail')
                   : push === 'denied'
-                    ? 'Turned off in your phone settings'
+                    ? t('se_alerts_denied')
                     : push === 'unavailable'
-                      ? 'Available in the App Store and Play Store builds'
-                      : 'Optional. The app works without them'}
+                      ? t('se_alerts_unavail')
+                      : t('se_alerts_opt')}
             </Text>
           </View>
           <Switch
@@ -225,17 +226,17 @@ export default function Settings() {
             disabled={push === null || push === 'unavailable' || pushBusy !== null}
             onValueChange={togglePush}
             trackColor={{ true: colors.bead, false: '#262B35' }}
-            accessibilityLabel="Booking alerts"
+            accessibilityLabel={t('se_alerts')}
           />
         </View>
         <View style={styles.row}>
           <Icon name="sparkle" size={20} color={colors.steel} />
           <View style={{ flex: 1, gap: 1 }}>
             <Text variant="bodyStrong" style={{ fontSize: 15 }}>
-              AI photo quotes
+              {t('se_ai')}
             </Text>
             <Text variant="caption" style={{ fontSize: 12 }}>
-              Photos are sent to our AI provider, {AI_PROVIDER_LABEL[aiProvider].name}
+              {t('se_ai_d', { name: AI_PROVIDER_LABEL[aiProvider].name })}
             </Text>
           </View>
           <Switch
@@ -253,19 +254,19 @@ export default function Settings() {
               }
             }}
             trackColor={{ true: colors.bead, false: '#262B35' }}
-            accessibilityLabel="AI photo quotes"
+            accessibilityLabel={t('se_ai')}
           />
         </View>
       </ListCard>
 
       <ListCard>
-        <Row icon="link" label="Privacy policy and terms" onPress={() => WebBrowser.openBrowserAsync(`${apiBaseUrl}/privacy`)} />
-        <Row icon="message" label="Help and support" detail={SUPPORT_EMAIL} onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
+        <Row icon="link" label={t('se_privacy')} onPress={() => WebBrowser.openBrowserAsync(`${apiBaseUrl}/privacy`)} />
+        <Row icon="message" label={t('se_help')} detail={SUPPORT_EMAIL} onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
       </ListCard>
 
       <ListCard>
-        <Row icon="logout" label="Sign out" onPress={() => signOut()} />
-        <Row icon="trash" label="Delete account" danger onPress={() => router.push('/settings/delete-account')} />
+        <Row icon="logout" label={t('se_signout')} onPress={() => signOut()} />
+        <Row icon="trash" label={t('se_delete')} danger onPress={() => router.push('/settings/delete-account')} />
       </ListCard>
     </Screen>
   );

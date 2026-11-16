@@ -1,4 +1,5 @@
 import type { Country } from './format';
+import { t } from './i18n';
 
 /**
  * Ways a business can take its deposit without Beadup touching the money.
@@ -41,12 +42,12 @@ const note = (id: string, label: string, hint: string, detailLabel: string, plac
 
 const PAY_ON_DAY: PaymentMethod = {
   id: 'day',
-  label: 'Pay on the day',
-  hint: 'No online deposit. The client pays you when you meet.',
+  label: t('pm_day'),
+  hint: t('pm_day_d'),
   kind: 'fixed',
   fixed: 'No deposit needed online. Pay on the day by cash, card or transfer.',
 };
-const CUSTOM: PaymentMethod = { id: 'custom', label: 'Something else', hint: 'Type your own link or instructions.', kind: 'fixed' };
+const CUSTOM: PaymentMethod = { id: 'custom', label: t('pm_custom'), hint: t('pm_custom_d'), kind: 'fixed' };
 const PAYPAL = link('paypal', 'PayPal', 'A paypal.me link', 'paypal.me/yourname');
 
 const BY_COUNTRY: Record<Country, PaymentMethod[]> = {

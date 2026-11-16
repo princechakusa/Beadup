@@ -5,19 +5,20 @@ import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchPaymentDetails, useQuery } from '@/lib/data';
+import { t } from '@/lib/i18n';
 
 /** Settings: the detailer's own deposit link / instructions. */
 export default function PaymentSettings() {
   const details = useQuery(fetchPaymentDetails, [], 'payment-details');
   return (
-    <Screen title="Payment link" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('pm_title')} tabs={false} right={<BackButton variant="back" />}>
       <Text variant="body" tone="steel">
-        How clients pay your deposit after booking.
+        {t('pm_sub')}
       </Text>
       {details.data ? (
         <PaymentDetailsForm initial={details.data} onSaved={() => router.back()} />
       ) : (
-        <Text variant="caption">{details.error ? 'Could not load. Pull down to retry.' : 'Loading…'}</Text>
+        <Text variant="caption">{details.error ? t('bp_load_fail') : t('bp_loading')}</Text>
       )}
     </Screen>
   );

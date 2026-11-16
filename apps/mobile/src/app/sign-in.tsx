@@ -13,6 +13,7 @@ import { AuthError, enterDemo, sendMagicLink, signInWithApple, signInWithPasswor
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, radius, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 const RESEND_SECONDS = 30;
 
@@ -45,7 +46,7 @@ export default function SignIn() {
       await fn();
     } catch (e) {
       haptic.error();
-      setError(e instanceof AuthError ? e.message : 'Something went wrong. Try again.');
+      setError(e instanceof AuthError ? e.message : t('si_wrong'));
     } finally {
       setBusy(null);
     }
@@ -70,21 +71,21 @@ export default function SignIn() {
             <View style={styles.hero}>
               <LiquidBead size={112} />
               <Text variant="title" style={{ marginTop: space.xl, textAlign: 'center' }}>
-                {sentTo ? 'Check your email' : 'Welcome to Beadup'}
+                {sentTo ? t('si_check') : t('si_welcome')}
               </Text>
               <Text variant="body" tone="steel" style={{ marginTop: space.sm, textAlign: 'center' }}>
                 {sentTo
-                  ? `We sent a sign-in link to ${sentTo}. Enter the code from the email, or tap the link on this phone.`
-                  : 'Quotes, bookings and payments for your detailing business.'}
+                  ? t('si_sent', { email: sentTo })
+                  : t('si_tag')}
               </Text>
             </View>
 
             {offline && (
               <View style={{ gap: space.md }}>
                 <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
-                  Preview build: sign-in isn&apos;t connected. Restart Expo with the project&apos;s .env.local to use real accounts.
+                  {t('si_preview')}
                 </Text>
-                {__DEV__ && <Button label="Open the demo" variant="glass" onPress={enterDemo} />}
+                {__DEV__ && <Button label={t('si_demo')} variant="glass" onPress={enterDemo} />}
               </View>
             )}
 
@@ -101,13 +102,13 @@ export default function SignIn() {
                     />
                     <View style={styles.divider}>
                       <View style={styles.rule} />
-                      <Text variant="caption">or</Text>
+                      <Text variant="caption">{t('si_or')}</Text>
                       <View style={styles.rule} />
                     </View>
                   </>
                 )}
                 <Field
-                  label="Email"
+                  label={t('si_email')}
                   value={email}
                   onChangeText={setEmail}
                   placeholder="you@yourbusiness.com"
@@ -122,7 +123,7 @@ export default function SignIn() {
                 {usePassword ? (
                   <>
                     <Field
-                      label="Password"
+                      label={t('si_password')}
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry
@@ -134,17 +135,17 @@ export default function SignIn() {
                       error={error}
                     />
                     <Button
-                      label="Sign in"
+                      label={t('si_signin')}
                       onPress={() => run('password', () => signInWithPassword(email, password))}
                       loading={busy === 'password'}
                       disabled={offline || !password}
                     />
                   </>
                 ) : (
-                  <Button label="Email me a sign-in link" onPress={() => send(email)} loading={busy === 'email'} disabled={offline} />
+                  <Button label={t('si_send_link')} onPress={() => send(email)} loading={busy === 'email'} disabled={offline} />
                 )}
                 <Button
-                  label={usePassword ? 'Email me a link instead' : 'Sign in with a password'}
+                  label={usePassword ? t('si_link_instead') : t('si_use_password')}
                   variant="ghost"
                   onPress={() => {
                     setUsePassword((v) => !v);
@@ -156,9 +157,9 @@ export default function SignIn() {
             ) : (
               <View style={{ gap: space.lg }}>
                 <Field
-                  label="Code from the email"
+                  label={t('si_code')}
                   value={code}
-                  onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 10))}
+                  onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 10))}
                   placeholder="12345678"
                   keyboardType="number-pad"
                   textContentType="oneTimeCode"
@@ -167,15 +168,15 @@ export default function SignIn() {
                   style={styles.code}
                   error={error}
                 />
-                <Button label="Sign in" onPress={() => run('code', () => verifyEmailCode(sentTo, code))} loading={busy === 'code'} disabled={code.length < 6} />
+                <Button label={t('si_signin')} onPress={() => run('code', () => verifyEmailCode(sentTo, code))} loading={busy === 'code'} disabled={code.length < 6} />
                 <Button
-                  label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}
+                  label={cooldown > 0 ? t('si_resend_in', { n: cooldown }) : t('si_resend')}
                   variant="glass"
                   onPress={() => send(sentTo)}
                   disabled={cooldown > 0 || busy !== null}
                 />
                 <Button
-                  label="Use a different email"
+                  label={t('si_other')}
                   variant="ghost"
                   onPress={() => {
                     setSentTo(null);
@@ -187,13 +188,13 @@ export default function SignIn() {
             )}
 
             <Text variant="caption" style={styles.legal}>
-              By continuing you agree to the{' '}
+              {t('si_agree')}{' '}
               <Text variant="caption" tone="bead" onPress={() => openLegal('terms')} accessibilityRole="link">
-                Terms
+                {t('si_terms')}
               </Text>{' '}
-              and{' '}
+              {t('si_and')}{' '}
               <Text variant="caption" tone="bead" onPress={() => openLegal('privacy')} accessibilityRole="link">
-                Privacy Policy
+                {t('si_privacy')}
               </Text>
               .
             </Text>

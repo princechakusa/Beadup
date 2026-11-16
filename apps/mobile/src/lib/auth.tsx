@@ -9,6 +9,7 @@ import { clearCache } from './cache';
 import { disablePush } from './push';
 import { resetPurchases } from './purchases';
 import { supabase } from './supabase';
+import { t } from './i18n';
 
 type AuthState = {
   session: Session | null;
@@ -92,7 +93,7 @@ export const useAuth = () => use(AuthContext);
 export class AuthError extends Error {}
 
 function client() {
-  if (!supabase) throw new AuthError('Sign-in is not available in preview mode.');
+  if (!supabase) throw new AuthError(t('ae_preview'));
   return supabase;
 }
 
@@ -103,19 +104,19 @@ export const authRedirectUrl = () => Linking.createURL('auth/callback');
 
 export async function sendMagicLink(address: string): Promise<void> {
   const parsed = email.safeParse(address.trim().toLowerCase());
-  if (!parsed.success) throw new AuthError('Enter a valid email address.');
+  if (!parsed.success) throw new AuthError(t('ae_email'));
   const { error } = await client().auth.signInWithOtp({
     email: parsed.data,
     options: { emailRedirectTo: authRedirectUrl(), shouldCreateUser: true },
   });
-  if (error) throw new AuthError(error.status === 429 ? 'Too many requests. Wait a minute and try again.' : 'Could not send the email. Try again.');
+  if (error) throw new AuthError(error.status === 429 ? t('ae_429') : t('ae_send'));
 }
 
 /** The code from the same email (6 to 10 digits, set in Supabase Auth), for when the link opens elsewhere. */
 export async function verifyEmailCode(address: string, code: string): Promise<void> {
-  if (!/^\d{6,10}$/.test(code)) throw new AuthError('Enter the code from the email.');
+  if (!/^\d{6,10}$/.test(code)) throw new AuthError(t('ae_code'));
   const { error } = await client().auth.verifyOtp({ email: address.trim().toLowerCase(), token: code, type: 'email' });
-  if (error) throw new AuthError('That code is wrong or expired. Request a new email.');
+  if (error) throw new AuthError(t('ae_code_bad'));
 }
 
 /**
@@ -126,15 +127,15 @@ export async function verifyEmailCode(address: string, code: string): Promise<vo
 export async function signInWithPassword(address: string, password: string): Promise<void> {
   const parsed = email.safeParse(address.trim().toLowerCase());
   if (!parsed.success) throw new AuthError('Enter a valid email address.');
-  if (password.length < 8 || password.length > 128) throw new AuthError('Enter your password.');
+  if (password.length < 8 || password.length > 128) throw new AuthError(t('ae_pw'));
   const { error } = await client().auth.signInWithPassword({ email: parsed.data, password });
-  if (error) throw new AuthError(error.status === 429 ? 'Too many attempts. Wait a minute and try again.' : 'Email or password is wrong.');
+  if (error) throw new AuthError(error.status === 429 ? t('ae_429b') : t('ae_pw_bad'));
 }
 
 /** Completes a magic link: exchanges the PKCE code from beadup://auth/callback?code=... */
 export async function completeMagicLink(code: string): Promise<void> {
   const { error } = await client().auth.exchangeCodeForSession(code);
-  if (error) throw new AuthError('This sign-in link has expired or was already used. Request a new one.');
+  if (error) throw new AuthError(t('ae_expired'));
 }
 
 /**
@@ -150,7 +151,7 @@ export async function signInWithApple(): Promise<boolean> {
       requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
       nonce: hashedNonce,
     });
-    if (!credential.identityToken) throw new AuthError('Apple did not return a sign-in token. Try again.');
+    if (!credential.identityToken) throw new AuthError(t('ae_apple'));
     const { error } = await client().auth.signInWithIdToken({
       provider: 'apple',
       token: credential.identityToken,

@@ -10,6 +10,7 @@ import { moneyCountry } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { detailFromNote, guessMethod, methodsFor } from '@/lib/payment-methods';
 import { space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /**
  * Where clients pay this detailer's deposit (launch mode: Beadup never touches
@@ -17,7 +18,7 @@ import { space } from '@/theme/tokens';
  */
 export function PaymentDetailsForm({
   initial,
-  saveLabel = 'Save',
+  saveLabel,
   onSaved,
 }: {
   initial: PaymentDetails;
@@ -48,13 +49,13 @@ export function PaymentDetailsForm({
       const parsed = normalizePaymentLink(detail);
       if (!parsed.ok || !parsed.link) {
         haptic.error();
-        return setError(parsed.ok ? `Add your ${method.label} link.` : parsed.error);
+        return setError(parsed.ok ? t('pm_add_link', { method: method.label }) : parsed.error);
       }
       out = { link: parsed.link, note: null };
     } else if (method.kind === 'note') {
       if (!detail.trim()) {
         haptic.error();
-        return setError(`Add your ${method.detailLabel?.toLowerCase()}.`);
+        return setError(t('pm_add_detail', { what: method.detailLabel?.toLowerCase() ?? '' }));
       }
       out = { link: null, note: method.note!(detail.trim()) };
     } else {
@@ -68,7 +69,7 @@ export function PaymentDetailsForm({
       onSaved?.();
     } catch {
       haptic.error();
-      setError('Could not save. Check your connection and try again.');
+      setError(t('bp_save_fail'));
     } finally {
       setBusy(false);
     }
@@ -77,8 +78,8 @@ export function PaymentDetailsForm({
   return (
     <View style={{ gap: space.lg }}>
       <Dropdown
-        label="How do clients pay you?"
-        title="How clients pay your deposit"
+        label={t('pm_how')}
+        title={t('pm_sheet')}
         value={methodId}
         options={methods.map((m) => ({ value: m.id, label: m.label, hint: m.hint }))}
         onChange={(id) => {
@@ -90,7 +91,7 @@ export function PaymentDetailsForm({
       {method.id === 'custom' ? (
         <>
           <Field
-            label="Payment link"
+            label={t('pm_link')}
             value={link}
             onChangeText={(t) => {
               setLink(t);
@@ -105,7 +106,7 @@ export function PaymentDetailsForm({
             error={error}
           />
           <Field
-            label="Or how to pay you (optional)"
+            label={t('pm_note')}
             value={note}
             onChangeText={setNote}
             placeholder="e.g. Zelle: (512) 555-0101"
@@ -116,11 +117,11 @@ export function PaymentDetailsForm({
         </>
       ) : method.kind === 'fixed' ? (
         <Text variant="body" tone="steel">
-          Clients will see: “{method.fixed}”
+          {t('pm_clients_see', { text: method.fixed ?? '' })}
         </Text>
       ) : (
         <Field
-          label={method.detailLabel ?? 'Details'}
+          label={method.detailLabel ?? t('pm_details')}
           value={detail}
           onChangeText={(t) => {
             setDetail(t);
@@ -136,9 +137,9 @@ export function PaymentDetailsForm({
       )}
       {method.id !== 'custom' && method.kind === 'fixed' && error ? <Text variant="caption" style={{ color: '#FF8A8A' }}>{error}</Text> : null}
       <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
-        Clients see this right after they book, with the 30% deposit amount. Money goes straight to you; Beadup never touches it.
+        {t('pm_footer')}
       </Text>
-      <Button label={saveLabel} onPress={save} loading={busy} />
+      <Button label={saveLabel ?? t('save')} onPress={save} loading={busy} />
     </View>
   );
 }

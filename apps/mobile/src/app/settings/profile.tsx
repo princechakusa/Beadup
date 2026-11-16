@@ -17,16 +17,18 @@ import { TRADES, type TradeId } from '@/lib/trades';
 import { TradePicker, VisitPicker } from '@/components/TradePicker';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { t } from '@/lib/i18n';
 
 /** Settings: business name, tagline, service area, client phone and country (what clients see on the booking page). */
 export default function BusinessProfileScreen() {
   const profile = useQuery(fetchBusinessProfile, [], 'business-profile');
   return (
-    <Screen title="Business profile" tabs={false} right={<BackButton variant="back" />}>
+    <Screen title={t('bp_title')} tabs={false} right={<BackButton variant="back" />}>
       {profile.data ? (
         <ProfileForm initial={profile.data} />
       ) : (
-        <Text variant="caption">{profile.error ? 'Could not load. Pull down to retry.' : 'Loading…'}</Text>
+        <Text variant="caption">{profile.error ? t('bp_load_fail') : t('bp_loading')}</Text>
       )}
     </Screen>
   );
@@ -51,12 +53,12 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   const save = async () => {
     if (!name.trim()) {
       haptic.error();
-      return setError('Add your business name.');
+      return setError(t('bp_add_name'));
     }
     const contactPhone = phone.trim() ? toE164(phone, country) : null;
     if (phone.trim() && !contactPhone) {
       haptic.error();
-      return setPhoneError(`Enter a ${COUNTRIES[country].name} number, or start with + and the country code.`);
+      return setPhoneError(t('bp_phone_bad', { country: COUNTRIES[country].name }));
     }
     setPhoneError(null);
     setBusy(true);
@@ -69,7 +71,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       else router.back();
     } catch {
       haptic.error();
-      setError('Could not save. Check your connection and try again.');
+      setError(t('bp_save_fail'));
     } finally {
       setBusy(false);
     }
@@ -83,7 +85,7 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       router.back();
     } catch {
       haptic.error();
-      setError('Could not switch your services. Try again from Services.');
+      setError(t('bp_switch_fail'));
     } finally {
       setBusy(false);
     }
@@ -92,35 +94,34 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   if (offer) {
     return (
       <View style={{ gap: space.lg }}>
-        <Text variant="title">Switch your services too?</Text>
+        <Text variant="title">{t('bp_switch_title')}</Text>
         <Text variant="body" tone="steel">
-          Your current services and add-ons were made for {TRADES[initial.trade].name.toLowerCase()}. Switching hides them (past bookings keep their names) and adds
-          starter services for {TRADES[trade].name.toLowerCase()}. You can edit everything in Services.
+          {t('bp_switch_body', { old: phrase(TRADES[initial.trade].name).toLowerCase(), new: phrase(TRADES[trade].name).toLowerCase() })}
         </Text>
         {error ? <Text variant="caption" style={{ color: colors.danger }}>{error}</Text> : null}
-        <Button label={`Use ${TRADES[trade].name.toLowerCase()} starters`} onPress={useStarters} loading={busy} />
-        <Button label="Keep my current services" variant="ghost" onPress={() => router.back()} />
+        <Button label={t('bp_use_starters', { trade: phrase(TRADES[trade].name).toLowerCase() })} onPress={useStarters} loading={busy} />
+        <Button label={t('bp_keep')} variant="ghost" onPress={() => router.back()} />
       </View>
     );
   }
 
   return (
     <View style={{ gap: space.lg }}>
-      <Field label="Business name" value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" error={error} />
+      <Field label={t('bp_name')} value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" error={error} />
       <TradePicker value={trade} onChange={setTrade} />
       <VisitPicker value={visitMode} onChange={setVisitMode} />
       <View style={styles.listedRow}>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="bodyStrong">Show me in the Beadup directory</Text>
-          <Text variant="caption" style={{ fontSize: 13 }}>New clients can find you at beadup.app/find by trade and area.</Text>
+          <Text variant="bodyStrong">{t('bp_directory')}</Text>
+          <Text variant="caption" style={{ fontSize: 13 }}>{t('bp_directory_d')}</Text>
         </View>
-        <Switch value={listed} onValueChange={setListed} trackColor={{ true: colors.bead, false: '#262B35' }} accessibilityLabel="Show me in the Beadup directory" />
+        <Switch value={listed} onValueChange={setListed} trackColor={{ true: colors.bead, false: '#262B35' }} accessibilityLabel={t('bp_directory')} />
       </View>
-      <Field label="Tagline (optional)" value={tagline} onChangeText={setTagline} maxLength={120} placeholder="e.g. Mobile detailing · we come to you" />
-      <Field label="Service area (optional)" value={area} onChangeText={setArea} maxLength={80} placeholder="e.g. Austin, TX · 25 mi" />
+      <Field label={t('bp_tagline')} value={tagline} onChangeText={setTagline} maxLength={120} placeholder={t('bp_tagline_ph')} />
+      <Field label={t('bp_area')} value={area} onChangeText={setArea} maxLength={80} placeholder={t('bp_area_ph')} />
       <View style={{ gap: space.xs }}>
         <Field
-          label="Phone for clients (optional)"
+          label={t('bp_phone')}
           value={phone}
           onChangeText={setPhone}
           maxLength={30}
@@ -130,26 +131,25 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
           error={phoneError}
         />
         <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
-          Shown on your booking page and confirmation, so clients can text or call you about their booking.
+          {t('bp_phone_d')}
         </Text>
       </View>
       <View style={{ gap: space.sm }}>
         <Dropdown
-          label="Country"
+          label={t('bp_country')}
           value={country}
           options={(Object.keys(COUNTRIES) as Country[]).map((c) => ({ value: c, label: COUNTRIES[c].name, meta: COUNTRIES[c].currency }))}
           onChange={setCountry}
           searchable
         />
         <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
-          Sets the currency your prices are shown in and how clients&apos; phone numbers are read. It doesn&apos;t convert your prices.
+          {t('bp_country_d')}
         </Text>
       </View>
       <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
-        Clients see these on your booking page. Your link stays {apiBaseUrl.replace(/^https?:\/\//, '')}/{initial.handle}, so links you
-        already shared keep working.
+        {t('bp_footer', { url: `${apiBaseUrl.replace(/^https?:\/\//, '')}/${initial.handle}` })}
       </Text>
-      <Button label="Save" onPress={save} loading={busy} />
+      <Button label={t('save')} onPress={save} loading={busy} />
     </View>
   );
 }

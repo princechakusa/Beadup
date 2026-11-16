@@ -12,6 +12,8 @@
  * Small/Medium/Large dog...). Single-price trades store the same price in all
  * three and never show a size step.
  */
+import { phrase } from './i18n/phrases';
+
 export const TRADE_IDS = [
   'detailing',
   'boat_rv',
@@ -92,7 +94,7 @@ export const currentTrade = (): Trade => TRADES[current];
 export const currentTradeId = (): TradeId => current;
 
 /** The size label for a booking of the signed-in business ('SUV', 'Large dog'), or ''. */
-export const sizeLabel = (tier: Tier): string => tierLabel(current, tier);
+export const sizeLabel = (tier: Tier): string => phrase(tierLabel(current, tier));
 
 export type Starter = { name: string; description: string; durationMin: number; sedan: string; suv: string; truck: string; on: boolean };
 export type StarterAddOn = { name: string; price: string; on: boolean };

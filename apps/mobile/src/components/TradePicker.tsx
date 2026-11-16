@@ -5,26 +5,28 @@ import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
 import { TRADE_IDS, TRADES, type TradeId } from '@/lib/trades';
 import { colors, space } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { t as tr } from '@/lib/i18n';
 
 /** Which trade the business is in. Sets the words, pricing and booking steps clients see. */
 export function TradePicker({ value, onChange }: { value: TradeId; onChange: (t: TradeId) => void }) {
   const options = TRADE_IDS.map((t) => ({
     value: t,
-    label: TRADES[t].name,
-    hint: TRADES[t].pricing === 'tiers' ? `Prices by ${TRADES[t].tierTitle.toLowerCase().replace(/^your /, '')}` : 'One price per service',
+    label: phrase(TRADES[t].name),
+    hint: TRADES[t].pricing === 'tiers' ? tr('tp_prices_by', { what: phrase(TRADES[t].tierTitle).toLowerCase().replace(/^(your|tu|votre|seu|sua) /, '') }) : tr('tp_one_price'),
   }));
-  return <Dropdown label="What do you do?" title="Your kind of business" value={value} options={options} onChange={onChange} searchable />;
+  return <Dropdown label={tr('tp_label')} title={tr('tp_title')} value={value} options={options} onChange={onChange} searchable />;
 }
 
 /** Whether the business goes to the client (needs their address) or the client comes to the business. */
 export function VisitPicker({ value, onChange }: { value: 'mobile' | 'studio'; onChange: (v: 'mobile' | 'studio') => void }) {
   const options = [
-    { id: 'mobile' as const, label: 'I go to my clients' },
-    { id: 'studio' as const, label: 'Clients come to me' },
+    { id: 'mobile' as const, label: tr('vp_mobile') },
+    { id: 'studio' as const, label: tr('vp_studio') },
   ];
   return (
     <View style={{ gap: space.sm }}>
-      <Text variant="caption">Where do appointments happen?</Text>
+      <Text variant="caption">{tr('vp_label')}</Text>
       <View style={styles.row} accessibilityRole="radiogroup">
         {options.map((o) => {
           const on = o.id === value;
@@ -46,7 +48,7 @@ export function VisitPicker({ value, onChange }: { value: 'mobile' | 'studio'; o
         })}
       </View>
       <Text variant="caption" style={{ fontSize: 12 }}>
-        {value === 'studio' ? 'Clients won’t be asked for an address. Put your area or address in your service area.' : 'Clients give the address where you’ll do the job.'}
+        {value === 'studio' ? tr('vp_studio_d') : tr('vp_mobile_d')}
       </Text>
     </View>
   );
