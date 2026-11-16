@@ -636,7 +636,7 @@ export const fr: Partial<Record<MessageKey, string>> = {
   lang_label: 'Langue',
   lang_auto: 'Automatique (langue du téléphone)',
   lang_title: 'Langue de l’appli',
-  lang_note: 'Automatique suit la langue de votre téléphone. L’appli redémarre pour appliquer le changement.',
+  lang_note: 'Automatique suit la langue de votre téléphone. Le changement s’applique immédiatement.',
   // Archive finished jobs
   ach_job: 'Archiver cette mission',
   ach_restore: 'Remettre dans mes listes',

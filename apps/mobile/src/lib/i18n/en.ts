@@ -639,7 +639,7 @@ export const en = {
   lang_label: 'Language',
   lang_auto: 'Automatic (phone language)',
   lang_title: 'App language',
-  lang_note: 'Automatic follows your phone. The app restarts to apply a change.',
+  lang_note: 'Automatic follows your phone. A change applies at once.',
   // Archive finished jobs
   ach_job: 'Archive this job',
   ach_restore: 'Restore to my lists',

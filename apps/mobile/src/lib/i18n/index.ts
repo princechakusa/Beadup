@@ -55,15 +55,25 @@ export function saveLanguagePreference(pref: LanguagePreference): void {
   } catch {
     // keep going: the choice then lasts until the app closes
   }
-  current = pref === 'auto' ? deviceLocale() : pref;
+  setLocale(pref === 'auto' ? deviceLocale() : pref);
 }
 
 let current: Locale = (() => {
   const pref = getLanguagePreference();
   return pref === 'auto' ? deviceLocale() : pref;
 })();
+const listeners = new Set<() => void>();
 export const setLocale = (l: Locale) => {
+  if (l === current) return;
   current = l;
+  listeners.forEach((fn) => fn());
+};
+/** For useSyncExternalStore: re-render when the language changes. */
+export const subscribeLocale = (fn: () => void) => {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
 };
 export const getLocale = (): Locale => current;
 /** Language tag for dates and numbers. */

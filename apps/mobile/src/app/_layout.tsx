@@ -14,6 +14,7 @@ import { listenForNotificationTaps } from '@/lib/push';
 import { reportError } from '@/lib/report-error';
 import { colors } from '@/theme/tokens';
 import { t } from '@/lib/i18n';
+import { useLocale } from '@/lib/i18n/useLocale';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -137,12 +138,14 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
 }
 
 export default function RootLayout() {
+  // Changing the language in Settings re-renders every screen at once (no restart needed).
+  const locale = useLocale();
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.midnight }}>
       <ThemeProvider value={theme}>
         <StatusBar style="light" />
         <AuthProvider>
-          <RootNavigator />
+          <RootNavigator key={locale} />
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

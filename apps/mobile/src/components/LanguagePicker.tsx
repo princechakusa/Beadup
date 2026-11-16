@@ -1,4 +1,3 @@
-import * as Updates from 'expo-updates';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -11,7 +10,7 @@ const NAMES = { en: 'English', es: 'Español', fr: 'Français', pt: 'Português'
 /**
  * Settings > Language. "Automatic" follows the phone (the default, and what
  * Apple and Google expect); the other choices override it for this app only.
- * The app restarts so every screen reads the new language.
+ * Applies at once: the whole app re-renders in the new language.
  */
 export function LanguagePicker() {
   const [value, setValue] = useState<LanguagePreference>(getLanguagePreference());
@@ -26,14 +25,9 @@ export function LanguagePicker() {
         title={t('lang_title')}
         value={value}
         options={options}
-        onChange={async (v) => {
+        onChange={(v) => {
           setValue(v);
-          saveLanguagePreference(v);
-          try {
-            await Updates.reloadAsync();
-          } catch {
-            // Development builds can't reload this way: the choice applies the next time the app opens.
-          }
+          saveLanguagePreference(v); // every screen re-renders in the new language at once
         }}
       />
       <Text variant="caption" style={{ fontSize: 12 }}>

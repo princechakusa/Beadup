@@ -41,14 +41,15 @@ const note = (id: string, label: string, hint: string, detailLabel: string, plac
   note: text,
 });
 
-const PAY_ON_DAY: PaymentMethod = {
+// Functions, not constants: their labels follow the language, which can change while the app is open.
+const payOnDay = (): PaymentMethod => ({
   id: 'day',
   label: t('pm_day'),
   hint: t('pm_day_d'),
   kind: 'fixed',
   fixed: 'No deposit needed online. Pay on the day by cash, card or transfer.',
-};
-const CUSTOM: PaymentMethod = { id: 'custom', label: t('pm_custom'), hint: t('pm_custom_d'), kind: 'fixed' };
+});
+const custom = (): PaymentMethod => ({ id: 'custom', label: t('pm_custom'), hint: t('pm_custom_d'), kind: 'fixed' });
 const PAYPAL = link('paypal', 'PayPal', 'A paypal.me link', 'paypal.me/yourname');
 
 const BY_COUNTRY: Record<Country, PaymentMethod[]> = {
@@ -105,17 +106,17 @@ const localized = (m: PaymentMethod): PaymentMethod => ({
   hint: phrase(m.hint),
   detailLabel: m.detailLabel?.endsWith(' link') && m.kind === 'link' ? phrase('{m} link').replace('{m}', m.label) : m.detailLabel && phrase(m.detailLabel),
 });
-export const methodsFor = (country: Country): PaymentMethod[] => [...(BY_COUNTRY[country] ?? []).map(localized), PAY_ON_DAY, CUSTOM];
+export const methodsFor = (country: Country): PaymentMethod[] => [...(BY_COUNTRY[country] ?? []).map(localized), payOnDay(), custom()];
 
 /** Which method a saved link/note most likely came from, so the form opens on it. */
 export function guessMethod(country: Country, linkValue: string | null, noteValue: string | null): PaymentMethod {
   const all = methodsFor(country);
   if (!linkValue && !noteValue) return all[0];
-  if (noteValue === PAY_ON_DAY.fixed) return PAY_ON_DAY;
+  if (noteValue === payOnDay().fixed) return payOnDay();
   for (const m of all) {
     if (m.kind === 'note' && noteValue && m.note && noteValue.startsWith(m.note('').trim().replace(/:?\s*$/, ''))) return m;
   }
-  return CUSTOM;
+  return custom();
 }
 
 /** The detail typed for a note method, recovered from the saved note. */
