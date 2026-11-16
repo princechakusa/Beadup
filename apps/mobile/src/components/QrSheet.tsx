@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { colors } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /** One SVG path for every dark module: fast to draw and crisp at any size. */
 function qrPath(data: string) {
@@ -41,8 +42,8 @@ export function QrSheet({ visible, onClose, url, businessName }: { visible: bool
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Text variant="eyebrow">Booking QR code</Text>
-          <Pressable onPress={onClose} style={styles.close} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
+          <Text variant="eyebrow">{t('qr_title')}</Text>
+          <Pressable onPress={onClose} style={styles.close} accessibilityRole="button" accessibilityLabel={t('dd_close')} hitSlop={8}>
             <Icon name="close" size={18} />
           </Pressable>
         </View>
@@ -68,14 +69,13 @@ export function QrSheet({ visible, onClose, url, businessName }: { visible: bool
               {url.replace(/^https?:\/\//, '')}
             </Text>
             <Text variant="caption" style={{ textAlign: 'center', marginTop: 8, maxWidth: 300 }}>
-              Clients point their camera here and book in the browser. Screenshot it for your van, business cards or a
-              flyer.
+              {t('qr_hint')}
             </Text>
           </Animated.View>
-          <Pressable onPress={share} style={styles.share} accessibilityRole="button" accessibilityLabel="Share booking link">
+          <Pressable onPress={share} style={styles.share} accessibilityRole="button" accessibilityLabel={t('link_share_a11y')}>
             <Icon name="share" size={18} color={colors.beadInk} />
             <Text variant="bodyStrong" style={{ color: colors.beadInk }}>
-              Share link
+              {t('qr_share')}
             </Text>
           </Pressable>
         </ScrollView>

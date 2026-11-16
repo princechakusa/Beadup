@@ -8,9 +8,10 @@ import { dayLabel, money, timeOf } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { sendMessage, type Channel } from '@/lib/messaging';
 import { colors, space } from '@/theme/tokens';
+import { dateLocale, t, type MessageKey } from '@/lib/i18n';
 
 type Template = 'confirm' | 'reminder' | 'onway';
-const LABEL: Record<Template, string> = { confirm: 'Confirm', reminder: 'Reminder', onway: 'On my way' };
+const LABEL: Record<Template, MessageKey> = { confirm: 'mc_confirm', reminder: 'mc_reminder', onway: 'mc_onway' };
 
 /**
  * Ready-written messages for an upcoming job, sent from the detailer's own
@@ -19,21 +20,21 @@ const LABEL: Record<Template, string> = { confirm: 'Confirm', reminder: 'Reminde
  * Beadup booking better than a chat thread: the details never get lost.
  */
 export function MessageClient({ b, tz, businessName }: { b: Booking; tz: string; businessName: string }) {
-  const [t, setT] = useState<Template>('confirm');
+  const [tpl, setTpl] = useState<Template>('confirm');
   const [busy, setBusy] = useState<Channel | null>(null);
-  const first = b.client.name.split(' ')[0] || 'there';
-  const longDate = new Date(b.startsAt).toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' });
-  const when = `${longDate} at ${timeOf(b.startsAt, tz)}`;
+  const first = b.client.name.split(' ')[0] || t('mc_there');
+  const longDate = new Date(b.startsAt).toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' });
+  const when = t('mc_at', { date: longDate, time: timeOf(b.startsAt, tz) });
 
   const text = async (): Promise<string> => {
-    if (t === 'onway') return `Hi ${first}, it's ${businessName}. I'm on my way for your ${b.serviceName}. See you soon!`;
-    if (t === 'reminder') {
-      const day = dayLabel(b.startsAt, tz) === 'Tomorrow' ? 'tomorrow' : `on ${longDate}`;
-      return `Hi ${first}, a reminder from ${businessName}: your ${b.serviceName} is ${day} at ${timeOf(b.startsAt, tz)}, at ${b.address}. Reply here if anything changes.`;
+    if (tpl === 'onway') return t('mc_msg_onway', { name: first, business: businessName, service: b.serviceName });
+    if (tpl === 'reminder') {
+      const day = dayLabel(b.startsAt, tz) === t('day_tomorrow') ? t('mc_tomorrow') : t('mc_on', { date: longDate });
+      return t('mc_msg_reminder', { name: first, business: businessName, service: b.serviceName, day, time: timeOf(b.startsAt, tz), address: b.address });
     }
     const link = await fetchClientLink(b.id).catch(() => null);
-    const deposit = b.depositCents > 0 && !b.depositReceived ? ` Deposit: ${money(b.depositCents)}.` : '';
-    return `Hi ${first}, it's ${businessName}. You're booked for ${b.serviceName} on ${when}.${deposit}${link ? ` Your booking (pay, add to calendar, changes): ${link}` : ''}`;
+    const deposit = b.depositCents > 0 && !b.depositReceived ? t('mc_deposit', { amount: money(b.depositCents) }) : '';
+    return t('mc_msg_confirm', { name: first, business: businessName, service: b.serviceName, when, deposit, link: link ? t('mc_link', { link }) : '' });
   };
 
   const send = async (channel: Channel) => {
@@ -48,34 +49,34 @@ export function MessageClient({ b, tz, businessName }: { b: Booking; tz: string;
 
   return (
     <View style={styles.card}>
-      <Text variant="eyebrow">Message {first}</Text>
+      <Text variant="eyebrow">{t('mc_title', { name: first })}</Text>
       <View style={styles.tabs} accessibilityRole="tablist">
         {(Object.keys(LABEL) as Template[]).map((k) => (
           <Pressable
             key={k}
             onPress={() => {
               haptic.select();
-              setT(k);
+              setTpl(k);
             }}
-            style={[styles.tab, t === k && styles.tabOn]}
+            style={[styles.tab, tpl === k && styles.tabOn]}
             accessibilityRole="tab"
-            accessibilityState={{ selected: t === k }}>
-            <Text variant="caption" style={{ color: t === k ? colors.beadInk : colors.paint }}>
-              {LABEL[k]}
+            accessibilityState={{ selected: tpl === k }}>
+            <Text variant="caption" style={{ color: tpl === k ? colors.beadInk : colors.paint }}>
+              {t(LABEL[k])}
             </Text>
           </Pressable>
         ))}
       </View>
       <View style={{ flexDirection: 'row', gap: space.sm }}>
         <View style={{ flex: 1 }}>
-          <Button label="WhatsApp" loading={busy === 'whatsapp'} onPress={() => send('whatsapp')} />
+          <Button label={t('whatsapp')} loading={busy === 'whatsapp'} onPress={() => send('whatsapp')} />
         </View>
         <View style={{ flex: 1 }}>
-          <Button label="Messages" variant="glass" loading={busy === 'sms'} onPress={() => send('sms')} />
+          <Button label={t('mc_messages')} variant="glass" loading={busy === 'sms'} onPress={() => send('sms')} />
         </View>
       </View>
       <Text variant="caption" style={{ fontSize: 12 }}>
-        Opens with the message written in. You can edit it before sending.
+        {t('mc_hint')}
       </Text>
     </View>
   );

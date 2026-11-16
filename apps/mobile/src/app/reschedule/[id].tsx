@@ -11,6 +11,7 @@ import { addDaysKey, dateKey, dayLabel, localTime, startOfDay, timeOf } from '@/
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { colors, fonts, space } from '@/theme/tokens';
+import { dateLocale, t, type MessageKey } from '@/lib/i18n';
 
 // Any half hour from 6:00 AM to 9:00 PM: the detailer can move a job outside
 // their public start times (the server still refuses overlaps and the past).
@@ -22,11 +23,11 @@ const to12h = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 };
-const ERRORS: Record<RescheduleError, string> = {
-  overlap: 'That time overlaps another job or its travel time. Pick another.',
-  time: 'That time has passed. Pick a later one.',
-  status: 'Only upcoming bookings can be moved.',
-  not_found: 'This booking could not be found.',
+const ERRORS: Record<RescheduleError, MessageKey> = {
+  overlap: 'rs_overlap',
+  time: 'rs_passed',
+  status: 'rs_status',
+  not_found: 'rs_nf',
 };
 
 /** Move a booking to another day or time, then tell the client. */
@@ -54,7 +55,7 @@ export default function Reschedule() {
 
   if (!b) {
     return (
-      <Screen title={booking.loading ? 'Loading…' : 'Booking not found'} tabs={false} right={<BackButton variant="back" />}>
+      <Screen title={booking.loading ? t('loading') : t('bd_notfound')} tabs={false} right={<BackButton variant="back" />}>
         <View />
       </Screen>
     );
@@ -87,21 +88,21 @@ export default function Reschedule() {
         setMoved(chosen);
       } else {
         haptic.error();
-        setError(ERRORS[r.error]);
+        setError(t(ERRORS[r.error]));
         dayJobs.refresh();
       }
     } catch {
       haptic.error();
-      setError('That didn’t go through. Check your connection and try again.');
+      setError(t('bd_fail'));
     } finally {
       setBusy(false);
     }
   };
 
   if (moved) {
-    const when = `${dayLabel(moved.toISOString(), tz)} at ${timeOf(moved.toISOString(), tz)}`;
-    const longDate = moved.toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' });
-    const message = `Hi ${first}, your ${b.serviceName} is now ${longDate} at ${timeOf(moved.toISOString(), tz)}. Reply if that doesn't work for you. ${profile.data?.businessName ?? ''}`.trim();
+    const when = t('rs_when', { day: dayLabel(moved.toISOString(), tz), time: timeOf(moved.toISOString(), tz) });
+    const longDate = moved.toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' });
+    const message = t('rs_msg', { name: first, service: b.serviceName, date: longDate, time: timeOf(moved.toISOString(), tz), business: profile.data?.businessName ?? '' }).trim();
     const tell = async () => {
       haptic.select();
       const sms = `sms:${b.client.phone}&body=${encodeURIComponent(message)}`;
@@ -113,21 +114,20 @@ export default function Reschedule() {
       await Share.share({ message }).catch(() => undefined);
     };
     return (
-      <Screen eyebrow="Moved" title={when} tabs={false} right={<BackButton variant="back" />}>
+      <Screen eyebrow={t('rs_moved')} title={when} tabs={false} right={<BackButton variant="back" />}>
         <Text variant="body">
-          {first} isn’t told automatically. Send them the new time from your Messages app.
+          {t('rs_not_told', { name: first })}
         </Text>
-        <Button label={`Text ${first} the new time`} onPress={tell} />
-        <Button label="Done" variant="ghost" onPress={() => router.back()} />
+        <Button label={t('rs_text', { name: first })} onPress={tell} />
+        <Button label={t('done')} variant="ghost" onPress={() => router.back()} />
       </Screen>
     );
   }
 
   return (
-    <Screen eyebrow={`Now ${dayLabel(b.startsAt, tz)} · ${timeOf(b.startsAt, tz)}`} title="Reschedule" tabs={false} right={<BackButton variant="back" />}>
+    <Screen eyebrow={t('rs_now', { when: `${dayLabel(b.startsAt, tz)} · ${timeOf(b.startsAt, tz)}` })} title={t('rs_title')} tabs={false} right={<BackButton variant="back" />}>
       <Text variant="caption">
-        {b.serviceName} with {b.client.name}, {Math.round((b.durationMin / 60) * 10) / 10} h. Times that clash with another job
-        {gap ? ` or your ${gap} min travel time` : ''} are greyed out.
+        {t('rs_info', { service: b.serviceName, client: b.client.name, hours: Math.round((b.durationMin / 60) * 10) / 10, travel: gap ? t('rs_travel', { n: gap }) : '' })}
       </Text>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -146,9 +146,9 @@ export default function Reschedule() {
               style={[styles.day, on && styles.dayOn]}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
-              accessibilityLabel={d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}>
+              accessibilityLabel={d.toLocaleDateString(dateLocale(), { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}>
               <Text variant="caption" style={{ fontSize: 11, color: on ? colors.beadInk : colors.steel }}>
-                {d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })}
+                {d.toLocaleDateString(dateLocale(), { weekday: 'short', timeZone: 'UTC' })}
               </Text>
               <Text variant="bodyStrong" style={{ color: on ? colors.beadInk : colors.paint }}>
                 {d.getUTCDate()}
@@ -159,24 +159,24 @@ export default function Reschedule() {
       </ScrollView>
 
       <View style={styles.grid}>
-        {TIMES.map((t) => {
-          const off = dayJobs.loading || blocked(t);
-          const on = t === time;
+        {TIMES.map((slotTime) => {
+          const off = dayJobs.loading || blocked(slotTime);
+          const on = slotTime === time;
           return (
             <Pressable
-              key={t}
+              key={slotTime}
               disabled={off}
               onPress={() => {
                 haptic.select();
-                setTime(t);
+                setTime(slotTime);
                 setError(null);
               }}
               style={[styles.time, on && styles.timeOn, off && { opacity: 0.3 }]}
               accessibilityRole="button"
               accessibilityState={{ selected: on, disabled: off }}
-              accessibilityLabel={`${to12h(t)}${off ? ', not available' : ''}`}>
+              accessibilityLabel={`${to12h(slotTime)}${off ? t('rs_unavail') : ''}`}>
               <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontFamily: on ? fonts.bodySemi : undefined }}>
-                {to12h(t)}
+                {to12h(slotTime)}
               </Text>
             </Pressable>
           );
@@ -190,7 +190,7 @@ export default function Reschedule() {
       )}
       <View style={{ gap: space.md }}>
         <Button
-          label={chosen ? `Move to ${dayLabel(chosen.toISOString(), tz)} · ${timeOf(chosen.toISOString(), tz)}` : 'Pick a new time'}
+          label={chosen ? t('rs_move_to', { when: `${dayLabel(chosen.toISOString(), tz)} · ${timeOf(chosen.toISOString(), tz)}` }) : t('rs_pick')}
           onPress={save}
           loading={busy}
           disabled={!chosen}

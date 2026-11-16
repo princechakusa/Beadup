@@ -17,6 +17,7 @@ import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { maybeAskForRating } from '@/lib/rating';
 import { colors, space } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 
 /** Counts up to `target` cents over ~0.9s (instant under Reduce Motion). */
@@ -64,7 +65,7 @@ export default function Paid() {
 
   const todayTotal = (today.data ?? []).filter((p) => p.status === 'succeeded').reduce((n, p) => n + p.amountCents, 0);
   const nextJob = (next.data ?? []).find((x) => x.id !== id);
-  const arrival = balance.data?.nextPayout ? dayLabel(balance.data.nextPayout.arrivalDate, tz) : 'Next payout';
+  const arrival = balance.data?.nextPayout ? dayLabel(balance.data.nextPayout.arrivalDate, tz) : t('pd_next_payout');
   const name = b ? `${b.client.name.split(' ')[0]}${b.client.name.split(' ')[1] ? ` ${b.client.name.split(' ')[1][0]}.` : ''}` : '';
 
   return (
@@ -78,14 +79,14 @@ export default function Paid() {
         <LiquidBead size={104} />
         <Animated.View entering={FadeInDown.delay(250).springify()} style={{ alignItems: 'center', gap: 4 }}>
           <Text variant="body" tone="steel" style={{ marginTop: space.lg }}>
-            {b ? (external ? `Job done for ${name}` : `${name} paid you`) : ' '}
+            {b ? (external ? t('pd_job_done', { name }) : t('pd_paid_you', { name })) : ' '}
           </Text>
-          <Text style={styles.amount} accessibilityLabel={b ? `${money(shown)} ${external ? 'job total' : 'paid'}` : undefined}>
+          <Text style={styles.amount} accessibilityLabel={b ? t('pd_a11y', { amount: money(shown), what: external ? t('pd_job_total') : t('pd_paid') }) : undefined}>
             {money(amount, { cents: true })}
           </Text>
           {b && (
             <Text variant="caption" style={{ textAlign: 'center' }}>
-              {[b.serviceName, sizeLabel(b.vehicleSize).toLowerCase(), `incl. ${money(b.depositCents)} deposit`].filter(Boolean).join(' · ')}
+              {[b.serviceName, sizeLabel(b.vehicleSize).toLowerCase(), t('pd_incl', { amount: money(b.depositCents) })].filter(Boolean).join(' · ')}
             </Text>
           )}
         </Animated.View>
@@ -96,13 +97,13 @@ export default function Paid() {
         <GlassCard>
           <View style={styles.rowBetween}>
             <Text variant="body" tone="steel">
-              Deposit
+              {t('pd_deposit')}
             </Text>
             <Text variant="bodyStrong">{money(b.depositCents)}</Text>
           </View>
           <View style={[styles.rowBetween, { marginTop: space.md }]}>
             <Text variant="body" tone="steel">
-              Balance to collect
+              {t('pd_balance')}
             </Text>
             <Text variant="bodyStrong" tone="gold">
               {money(b.subtotalCents - b.depositCents)}
@@ -113,13 +114,13 @@ export default function Paid() {
         <GlassCard>
           <View style={styles.rowBetween}>
             <Text variant="body" tone="steel">
-              Arrives in your bank
+              {t('pd_arrives')}
             </Text>
             <Text variant="bodyStrong">{arrival}</Text>
           </View>
           <View style={[styles.rowBetween, { marginTop: space.md }]}>
             <Text variant="body" tone="steel">
-              Today&apos;s total
+              {t('pd_today')}
             </Text>
             <Text variant="bodyStrong" tone="gold">
               {money(todayTotal, { cents: false })}
@@ -129,15 +130,15 @@ export default function Paid() {
         )}
 
         {b && (
-          <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? 'us'} />
+          <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? t('bd_us')} />
         )}
         {nextJob && (
           <Button
-            label={`Next job · ${dateKey(new Date(nextJob.startsAt), tz) === dateKey(new Date(), tz) ? timeOf(nextJob.startsAt, tz) : dayLabel(nextJob.startsAt, tz)}`}
+            label={t('pd_next_job', { when: dateKey(new Date(nextJob.startsAt), tz) === dateKey(new Date(), tz) ? timeOf(nextJob.startsAt, tz) : dayLabel(nextJob.startsAt, tz) })}
             onPress={() => router.replace(`/booking/${nextJob.id}`)}
           />
         )}
-        <Button label="Done" variant="glass" onPress={() => router.replace('/')} />
+        <Button label={t('done')} variant="glass" onPress={() => router.replace('/')} />
       </Animated.View>
     </View>
   );

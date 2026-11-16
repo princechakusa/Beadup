@@ -10,12 +10,13 @@ import { fetchProfile, fetchReviews, useQuery } from '@/lib/data';
 import { dayLabel } from '@/lib/format';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 const STAR = 'M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z';
 
 function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 2 }} accessibilityLabel={`${value} out of 5 stars`}>
+    <View style={{ flexDirection: 'row', gap: 2 }} accessibilityLabel={t('rv_stars', { n: value })}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Svg key={i} width={size} height={size} viewBox="0 0 24 24">
           <Path d={STAR} fill={i <= Math.round(value) ? colors.gold : 'rgba(255,255,255,0.12)'} />
@@ -37,20 +38,19 @@ export default function Reviews() {
   const avg = list.length ? list.reduce((n, r) => n + r.rating, 0) / list.length : null;
 
   return (
-    <Screen title="Reviews" tabs={false} right={<BackButton variant="back" />} offline={reviews.stale} onRefresh={reviews.refresh} refreshing={reviews.loading && !!reviews.data}>
+    <Screen title={t('rv_title')} tabs={false} right={<BackButton variant="back" />} offline={reviews.stale} onRefresh={reviews.refresh} refreshing={reviews.loading && !!reviews.data}>
       <GlassCard>
         <View style={styles.summary}>
           <Text style={styles.avg}>{avg !== null ? avg.toFixed(1) : '–'}</Text>
           <View style={{ gap: 6, flex: 1 }}>
             <Stars value={avg ?? 0} size={18} />
             <Text variant="caption">
-              {list.length === 0 ? 'No reviews yet' : `${list.length} review${list.length === 1 ? '' : 's'}`}
+              {list.length === 0 ? t('rv_none') : t(list.length === 1 ? 'rv_one' : 'rv_many', { n: list.length })}
             </Text>
           </View>
         </View>
         <Text variant="caption" style={{ marginTop: space.md, lineHeight: 19 }}>
-          Clients see your average and count at the top of {apiBaseUrl.replace(/^https?:\/\//, '')}/{profile.data?.handle ?? 'you'}. After a job,
-          open it and tap &quot;Ask for a review&quot; to text your client their private review link.
+          {t('rv_how', { url: `${apiBaseUrl.replace(/^https?:\/\//, '')}/${profile.data?.handle ?? t('rv_you')}` })}
         </Text>
       </GlassCard>
 
@@ -73,7 +73,7 @@ export default function Reviews() {
         </Animated.View>
       ))}
 
-      {reviews.error && !reviews.data && <Text variant="caption">Could not load reviews. Pull down to retry.</Text>}
+      {reviews.error && !reviews.data && <Text variant="caption">{t('rv_load_fail')}</Text>}
     </Screen>
   );
 }
