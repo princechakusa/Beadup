@@ -14,12 +14,13 @@ import { aiAvailable, hasAiConsent, MAX_PHOTOS, pickPhotos, suggestFromPhotos, t
 import { ApiError } from '@/lib/data';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
+import { t, type MessageKey } from '@/lib/i18n';
 
-const ERRORS: Record<string, string> = {
-  not_a_vehicle: 'Those photos don’t look like a vehicle. Try photos of the car itself.',
-  ai_declined: 'The AI couldn’t help with these photos. Build the quote by hand below.',
-  rate_limited: 'You’ve used a lot of AI scans this hour. Try again later or build the quote by hand.',
-  consent_required: 'Turn on AI photo quotes first.',
+const ERRORS: Record<string, MessageKey> = {
+  not_a_vehicle: 'ai_not_vehicle',
+  ai_declined: 'ai_declined',
+  rate_limited: 'ai_rate',
+  consent_required: 'ai_consent_req',
 };
 
 /** "AI scan": photos in, suggested service and add-ons out (an estimate the detailer reviews). */
@@ -58,7 +59,7 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
     } catch (e) {
       haptic.error();
       const code = e instanceof ApiError ? (e.body as { error?: string } | null)?.error : undefined;
-      setError((code && ERRORS[code]) ?? 'The AI scan didn’t go through. Check your connection or build the quote by hand.');
+      setError(t((code && ERRORS[code]) || 'ai_scan_fail'));
     } finally {
       setBusy(false);
     }
@@ -72,10 +73,10 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
         <View style={{ gap: space.md }}>
           <View style={styles.row}>
             <Icon name="sparkle" size={20} color={colors.bead} />
-            <Text variant="bodyStrong">Quote from photos</Text>
+            <Text variant="bodyStrong">{t('ai_from_photos')}</Text>
           </View>
-          <Text variant="caption">Snap the car and get a suggested quote from your own prices. You review it before it’s sent.</Text>
-          <Button label="Turn on AI photo quotes" variant="glass" onPress={() => router.push('/ai-consent')} />
+          <Text variant="caption">{t('ai_snap')}</Text>
+          <Button label={t('ai_turn_on')} variant="glass" onPress={() => router.push('/ai-consent')} />
         </View>
       </GlassCard>
     );
@@ -88,10 +89,10 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <View style={styles.row}>
             <Icon name="sparkle" size={20} color={colors.bead} />
-            <Text variant="bodyStrong">AI scan</Text>
+            <Text variant="bodyStrong">{t('ai_scan')}</Text>
           </View>
           <Text variant="caption">
-            {uris.length}/{MAX_PHOTOS} photos
+            {t('ai_photos', { n: uris.length, max: MAX_PHOTOS })}
           </Text>
         </View>
 
@@ -102,7 +103,7 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
               <Pressable
                 onPress={() => setUris((xs) => xs.filter((x) => x !== u))}
                 accessibilityRole="button"
-                accessibilityLabel={`Remove photo ${i + 1}`}
+                accessibilityLabel={t('ai_remove_photo', { n: i + 1 })}
                 hitSlop={6}
                 style={styles.remove}>
                 <Icon name="close" size={12} strokeWidth={2.6} />
@@ -124,10 +125,10 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
         {busy ? (
           <View style={styles.scanning} accessibilityLiveRegion="polite">
             <LiquidBead size={56} interactive={false} dropIn={false} />
-            <Text variant="caption">Looking at the photos…</Text>
+            <Text variant="caption">{t('ai_looking')}</Text>
           </View>
         ) : (
-          uris.length > 0 && !result && <Button label="Suggest a quote" onPress={scan} />
+          uris.length > 0 && !result && <Button label={t('ai_suggest')} onPress={scan} />
         )}
 
         {error && (
@@ -139,8 +140,8 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
         {result && (
           <Animated.View entering={FadeInDown.springify()} style={{ gap: space.sm }}>
             <View style={[styles.row, { flexWrap: 'wrap', gap: 6 }]}>
-              <Badge label={result.mock ? 'Sample estimate' : 'AI estimate'} tone="bead" />
-              <Badge label={`${result.confidence} confidence`} tone={result.confidence === 'high' ? 'success' : 'steel'} />
+              <Badge label={result.mock ? t('ai_sample') : t('ai_estimate')} tone="bead" />
+              <Badge label={t('ai_conf', { level: result.confidence })} tone={result.confidence === 'high' ? 'success' : 'steel'} />
             </View>
             <Text variant="bodyStrong">{result.vehicleDescription}</Text>
             <View style={[styles.row, { flexWrap: 'wrap', gap: 6 }]}>
@@ -154,7 +155,7 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
             </View>
             {!!result.note && <Text variant="caption">{result.note}</Text>}
             <Text variant="caption" tone="bead">
-              Filled in below from your prices. Check everything before you send it.
+              {t('ai_filled')}
             </Text>
           </Animated.View>
         )}

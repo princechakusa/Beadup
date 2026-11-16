@@ -17,6 +17,8 @@ import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { t } from '@/lib/i18n';
 
 type Size = 'sedan' | 'suv' | 'truck';
 // Size choices follow the trade (Sedan/SUV/Truck, Small/Medium/Large dog...).
@@ -49,7 +51,7 @@ export default function NewQuote() {
   const service = services.find((s) => s.id === serviceId) ?? services[0];
 
   const items: QuoteItem[] = [
-    ...(service ? [{ label: tiers ? `${service.name}, ${trade.tiers[size].toLowerCase()}` : service.name, cents: service.priceCents[size] }] : []),
+    ...(service ? [{ label: tiers ? `${service.name}, ${phrase(trade.tiers[size]).toLowerCase()}` : service.name, cents: service.priceCents[size] }] : []),
     ...addOns.filter((a) => addOnIds.includes(a.id)).map((a) => ({ label: a.name, cents: a.priceCents })),
     ...extras,
   ];
@@ -72,21 +74,21 @@ export default function NewQuote() {
       await saveQuote({ quoteId, vehicleSize: size, vehicleDesc: vehicle.trim(), items, notes: '', status: 'sent' });
       haptic.success();
       const lines = items.map((i) => `${i.label}: ${money(i.cents)}`).join('\n');
-      const text = `Quote from ${profile.data?.businessName ?? 'your detailer'}${vehicle ? ` for your ${vehicle.trim()}` : ''}\n\n${lines}\nTotal: ${money(total)} (30% deposit ${money(depositOf(total))})`;
+      const text = t('qt_text', { business: profile.data?.businessName ?? t('qt_your_pro'), for: vehicle ? t('qt_for', { what: vehicle.trim() }) : '', lines, total: money(total), deposit: money(depositOf(total)) });
       // With a booking link, share it as a link so the client sees the detailer's preview card.
-      if (profile.data) await shareLink(`${text}\n\nBook here:`, `${apiBaseUrl}/${profile.data.handle}`);
+      if (profile.data) await shareLink(`${text}\n\n${t('qt_book')}`, `${apiBaseUrl}/${profile.data.handle}`);
       else await Share.share({ message: text });
       router.back();
     } catch {
       haptic.error();
-      setError('Could not save the quote. Try again.');
+      setError(t('qt_fail'));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <Screen title="New quote" tabs={false} right={<BackButton />}>
+    <Screen title={t('qt_title')} tabs={false} right={<BackButton />}>
       {/* The AI photo scan recognises vehicles only. */}
       {currentTradeId() === 'detailing' && (
       <AiScan
@@ -101,7 +103,7 @@ export default function NewQuote() {
       )}
       {tiers && (
       <View style={styles.segment}>
-        {SIZE_IDS.map((id) => ({ id, label: trade.tiers[id] })).map((s) => {
+        {SIZE_IDS.map((id) => ({ id, label: phrase(trade.tiers[id]) })).map((s) => {
           const on = s.id === size;
           return (
             <Pressable
@@ -123,14 +125,14 @@ export default function NewQuote() {
       )}
 
       <Field
-        label={currentTradeId() === 'detailing' || currentTradeId() === 'boat_rv' ? 'Vehicle (optional)' : 'Details (optional)'}
+        label={currentTradeId() === 'detailing' || currentTradeId() === 'boat_rv' ? t('qt_vehicle') : t('qt_details')}
         value={vehicle}
         onChangeText={setVehicle}
-        placeholder={currentTradeId() === 'detailing' ? 'e.g. Tesla Model Y' : 'e.g. what the client asked for'}
+        placeholder={currentTradeId() === 'detailing' ? t('qt_vehicle_ph') : t('qt_details_ph')}
         maxLength={120}
       />
 
-      <Text variant="eyebrow">Service</Text>
+      <Text variant="eyebrow">{t('qt_service')}</Text>
       <View style={{ gap: 8 }}>
         {services.map((s) => {
           const on = s.id === service?.id;
@@ -158,7 +160,7 @@ export default function NewQuote() {
 
       {addOns.length > 0 && (
         <>
-          <Text variant="eyebrow">Add-ons</Text>
+          <Text variant="eyebrow">{t('sv_addons')}</Text>
           <View style={styles.chips}>
             {addOns.map((a) => {
               const on = addOnIds.includes(a.id);
@@ -182,14 +184,14 @@ export default function NewQuote() {
         </>
       )}
 
-      <Text variant="eyebrow">Custom line</Text>
+      <Text variant="eyebrow">{t('qt_custom')}</Text>
       <View style={styles.extraRow}>
         <TextInput
           value={extraLabel}
           onChangeText={setExtraLabel}
-          placeholder="e.g. One-step polish, hood"
+          placeholder={t('qt_custom_ph')}
           placeholderTextColor="rgba(154,163,178,0.6)"
-          accessibilityLabel="Custom line description"
+          accessibilityLabel={t('qt_custom_a11y')}
           style={[styles.input, { flex: 1 }]}
         />
         <TextInput
@@ -198,10 +200,10 @@ export default function NewQuote() {
           placeholder={currencySymbol()}
           keyboardType="decimal-pad"
           placeholderTextColor="rgba(154,163,178,0.6)"
-          accessibilityLabel="Custom line price"
+          accessibilityLabel={t('qt_price_a11y')}
           style={[styles.input, { width: 90 }]}
         />
-        <Pressable accessibilityRole="button" accessibilityLabel="Add line" onPress={addExtra} style={styles.addBtn}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('qt_add_line')} onPress={addExtra} style={styles.addBtn}>
           <Icon name="plus" size={20} color={colors.beadInk} strokeWidth={2.4} />
         </Pressable>
       </View>
@@ -217,8 +219,8 @@ export default function NewQuote() {
         ))}
         <View style={styles.totalRow}>
           <View style={{ flex: 1 }}>
-            <Text variant="bodyStrong">Total</Text>
-            <Text variant="caption">30% deposit {money(depositOf(total))}</Text>
+            <Text variant="bodyStrong">{t('qt_total')}</Text>
+            <Text variant="caption">{t('qt_deposit', { amount: money(depositOf(total)) })}</Text>
           </View>
           <Text variant="money" style={{ fontSize: 28 }}>
             {money(total)}
@@ -231,7 +233,7 @@ export default function NewQuote() {
           {error}
         </Text>
       )}
-      <Button label="Send quote" onPress={send} loading={busy} disabled={!items.length} />
+      <Button label={t('qt_send')} onPress={send} loading={busy} disabled={!items.length} />
     </Screen>
   );
 }

@@ -15,6 +15,7 @@ import { haptic } from '@/lib/haptics';
 import { buyPro, ensurePurchases, loadProOffer, managementUrl, purchasesAvailable, restorePro, type ProOffer } from '@/lib/purchases';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 // Paywall (Apple 3.1.2): price and period from the store, what's included,
 // renewal and how to cancel, Restore Purchases, Terms and Privacy. No web
@@ -55,11 +56,11 @@ export default function Pro() {
     setBusy(null);
     if (outcome === 'purchased') {
       haptic.success();
-      setMessage('You’re on Pro. Thank you!');
+      setMessage(t('pro_thanks'));
       setTimeout(() => usage.refresh(), 2500); // the server confirms via the store webhook
     } else if (outcome === 'failed') {
       haptic.error();
-      setMessage('The purchase didn’t go through. You haven’t been charged.');
+      setMessage(t('pro_failed'));
     }
   };
 
@@ -68,7 +69,7 @@ export default function Pro() {
     setMessage(null);
     const ok = await restorePro().catch(() => false);
     setBusy(null);
-    setMessage(ok ? 'Pro restored on this device.' : 'No Pro subscription found for this Apple or Google account.');
+    setMessage(ok ? t('pro_restored') : t('pro_none'));
     if (ok) usage.refresh();
   };
 
@@ -78,25 +79,25 @@ export default function Pro() {
     Linking.openURL(url);
   };
 
-  const store = Platform.OS === 'ios' ? 'Apple ID' : 'Google Play';
+  const store = Platform.OS === 'ios' ? t('pro_apple') : t('pro_google');
 
   return (
-      <Screen title="Beadup Pro" tabs={false} right={<BackButton />}>
+      <Screen title={t('pro_title')} tabs={false} right={<BackButton />}>
         <View style={{ alignItems: 'center', marginBottom: space.sm }}>
           <LiquidBead size={96} />
         </View>
 
         {usage.data && !isPro && (
           <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
-            You’ve used {usage.data.used} of {usage.data.limit} free bookings this month.
+            {t('pro_used', { used: usage.data.used, limit: usage.data.limit })}
           </Text>
         )}
 
         <GlassCard glowing>
           <View style={{ gap: space.md }}>
             {[
-              'Unlimited bookings every month',
-              'Everything in Free: booking link, deposits, AI photo quotes, calendar and booking alerts',
+              t('pro_f1'),
+              t('pro_f2'),
             ].map((f) => (
               <View key={f} style={styles.feature}>
                 <Icon name="check" size={18} color={colors.bead} strokeWidth={2.6} />
@@ -111,9 +112,9 @@ export default function Pro() {
         {isPro ? (
           <>
             <Text variant="heading" style={{ textAlign: 'center' }}>
-              You’re on Pro
+              {t('pro_on')}
             </Text>
-            <Button label="Manage subscription" variant="glass" onPress={manage} />
+            <Button label={t('pro_manage')} variant="glass" onPress={manage} />
           </>
         ) : state === 'ready' && offer ? (
           <>
@@ -126,11 +127,11 @@ export default function Pro() {
                 </Text>
               </Text>
             </View>
-            <Button label={`Subscribe for ${offer.price} / ${offer.period}`} onPress={buy} loading={busy === 'buy'} />
+            <Button label={t('pro_subscribe', { price: offer.price, period: offer.period })} onPress={buy} loading={busy === 'buy'} />
           </>
         ) : (
           <Text variant="caption" style={{ textAlign: 'center' }}>
-            {state === 'loading' ? 'Loading…' : 'Subscriptions aren’t available in this version of the app yet.'}
+            {state === 'loading' ? t('loading') : t('pro_unavail')}
           </Text>
         )}
 
@@ -141,17 +142,15 @@ export default function Pro() {
         )}
 
         <Text variant="caption" style={{ textAlign: 'center', lineHeight: 18 }}>
-          Payment is charged to your {store} account. The subscription renews automatically each {offer?.period ?? 'period'} at the
-          same price unless you cancel at least 24 hours before the end of the current period. Cancel any time in your {store} subscription
-          settings.
+          {t('pro_terms_text', { store, period: offer?.period ?? t('pro_period') })}
         </Text>
-        <Button label="Restore purchases" variant="ghost" onPress={restore} loading={busy === 'restore'} disabled={state === 'unavailable'} />
+        <Button label={t('pro_restore')} variant="ghost" onPress={restore} loading={busy === 'restore'} disabled={state === 'unavailable'} />
         <View style={styles.links}>
           <Text variant="caption" tone="bead" accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(`${apiBaseUrl}/terms`)}>
-            Terms of service
+            {t('pro_terms')}
           </Text>
           <Text variant="caption" tone="bead" accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(`${apiBaseUrl}/privacy`)}>
-            Privacy policy
+            {t('pro_privacy')}
           </Text>
         </View>
       </Screen>

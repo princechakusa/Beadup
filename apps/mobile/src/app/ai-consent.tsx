@@ -13,6 +13,7 @@ import { AI_PROVIDER_LABEL, aiConsentStatus, giveAiConsent, type AiProviderId } 
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 // Third-party AI disclosure and explicit consent (Apple 5.1.2(i), rules.md
 // section 3). Shown before the first photo is ever sent; can be withdrawn in
@@ -35,23 +36,23 @@ export default function AiConsent() {
       router.back();
     } catch {
       haptic.error();
-      setError('Could not save your choice. Check your connection and try again.');
+      setError(t('ai_fail'));
     } finally {
       setBusy(false);
     }
   };
 
   const points: [string, string][] = [
-    ['camera', `Beadup sends the photos you choose, plus your services and add-ons, to ${label?.long ?? 'our AI provider'}.`],
-    ['sparkle', 'The AI suggests a service and add-ons from your own price list. Prices always come from your price list, and you review every quote before it goes to a client.'],
-    ['link', 'Photos are stored privately in your Beadup account. Only you can see them.'],
-    ['settings', 'You can turn AI photo quotes off any time in Settings. Quotes still work without it.'],
+    ['camera', t('ai_p1', { provider: label?.long ?? t('ai_provider_fallback') })],
+    ['sparkle', t('ai_p2')],
+    ['link', t('ai_p3')],
+    ['settings', t('ai_p4')],
   ];
 
   return (
-    <Screen title="AI photo quotes" tabs={false} right={<BackButton />}>
+    <Screen title={t('ai_title')} tabs={false} right={<BackButton />}>
       <Text variant="body" tone="steel">
-        Before you use it, here is exactly what happens with your photos.
+        {t('ai_intro')}
       </Text>
       <GlassCard>
         <View style={{ gap: space.lg }}>
@@ -70,15 +71,15 @@ export default function AiConsent() {
         tone="bead"
         accessibilityRole="link"
         onPress={() => WebBrowser.openBrowserAsync(`${apiBaseUrl}/privacy`)}>
-        Read our privacy policy
+        {t('ai_privacy')}
       </Text>
       {error && (
         <Text variant="caption" tone="danger">
           {error}
         </Text>
       )}
-      <Button label="I agree, send my photos to the AI" onPress={accept} loading={busy} disabled={!provider} />
-      <Button label="Not now" variant="ghost" onPress={() => router.back()} />
+      <Button label={t('ai_agree')} onPress={accept} loading={busy} disabled={!provider} />
+      <Button label={t('ai_not_now')} variant="ghost" onPress={() => router.back()} />
     </Screen>
   );
 }
