@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
+import { Icon } from '@/components/ui/Icon';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -104,6 +105,7 @@ export default function Services() {
     refreshBookingPage();
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const toggle = async (table: 'services' | 'add_ons', id: string, active: boolean) => {
     haptic.select();
     setPending((p) => ({ ...p, [id]: active }));
@@ -117,6 +119,22 @@ export default function Services() {
       refreshBookingPage();
     }
     setPending(({ [id]: _, ...rest }) => rest);
+  };
+
+  // Remove a service or add-on for good. Past bookings keep their own copy of the name and price.
+  const remove = async (table: 'services' | 'add_ons', id: string) => {
+    haptic.warning();
+    if (!supabase) return;
+    const { error: e } = await supabase.from(table).delete().eq('id', id);
+    if (e) {
+      haptic.error();
+      setError(t('sv_update_fail'));
+      return;
+    }
+    setConfirmDelete(null);
+    setDraft(null);
+    catalog.refresh();
+    refreshBookingPage();
   };
 
   const addAddOn = async () => {
@@ -208,6 +226,18 @@ export default function Services() {
             )}
             <Button label={t('save')} onPress={save} loading={busy} />
             <Button label={t('cancel')} variant="ghost" onPress={() => setDraft(null)} />
+            {draft.id ? (
+              confirmDelete === draft.id ? (
+                <View style={{ gap: space.sm }}>
+                  <Text variant="caption" tone="danger">
+                    {t('sv_del_confirm', { name: draft.name })}
+                  </Text>
+                  <Button label={t('sv_del_yes')} variant="danger" onPress={() => remove('services', draft.id!)} />
+                </View>
+              ) : (
+                <Button label={t('sv_del_service')} variant="ghost" onPress={() => setConfirmDelete(draft.id!)} />
+              )
+            ) : null}
           </View>
         </GlassCard>
       ) : (
@@ -226,6 +256,9 @@ export default function Services() {
               </Text>
               <Text variant="caption">{money(a.priceCents)}</Text>
             </View>
+            <Pressable onPress={() => remove('add_ons', a.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('sv_del_a11y', { name: a.name })}>
+              <Icon name="trash" size={18} color={colors.danger} />
+            </Pressable>
             <Switch
               value={pending[a.id] ?? a.active}
               onValueChange={(v) => toggle('add_ons', a.id, v)}

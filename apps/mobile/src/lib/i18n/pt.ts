@@ -646,4 +646,9 @@ export const pt: Partial<Record<MessageKey, string>> = {
   ach_yes: 'Sim, arquivar',
   ach_fail: 'Não foi possível arquivar. Verifique a conexão e tente novamente.',
   ach_note: 'Serviços arquivados continuam contando nos seus ganhos.',
+  // Delete services and add-ons
+  sv_del_a11y: 'Excluir {name}',
+  sv_del_service: 'Excluir este serviço',
+  sv_del_confirm: 'Excluir “{name}”? Reservas passadas mantêm o nome. Isso não pode ser desfeito.',
+  sv_del_yes: 'Sim, excluir',
 };

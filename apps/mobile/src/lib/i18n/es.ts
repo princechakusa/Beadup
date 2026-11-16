@@ -646,4 +646,9 @@ export const es: Partial<Record<MessageKey, string>> = {
   ach_yes: 'Sí, archivar',
   ach_fail: 'No se pudo archivar. Revisa tu conexión e inténtalo de nuevo.',
   ach_note: 'Los trabajos archivados siguen contando en tus ganancias.',
+  // Delete services and add-ons
+  sv_del_a11y: 'Eliminar {name}',
+  sv_del_service: 'Eliminar este servicio',
+  sv_del_confirm: '¿Eliminar “{name}”? Las reservas pasadas conservan su nombre. No se puede deshacer.',
+  sv_del_yes: 'Sí, eliminar',
 };

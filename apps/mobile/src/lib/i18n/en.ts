@@ -649,6 +649,11 @@ export const en = {
   ach_yes: 'Yes, archive',
   ach_fail: 'Could not archive. Check your connection and try again.',
   ach_note: 'Archived jobs still count in your earnings.',
+  // Delete services and add-ons
+  sv_del_a11y: 'Delete {name}',
+  sv_del_service: 'Delete this service',
+  sv_del_confirm: 'Delete “{name}”? Past bookings keep its name. This can’t be undone.',
+  sv_del_yes: 'Yes, delete',
 } as const;
 
 export type MessageKey = keyof typeof en;

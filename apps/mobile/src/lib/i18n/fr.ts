@@ -646,4 +646,9 @@ export const fr: Partial<Record<MessageKey, string>> = {
   ach_yes: 'Oui, archiver',
   ach_fail: 'Archivage impossible. Vérifiez votre connexion et réessayez.',
   ach_note: 'Les missions archivées comptent toujours dans vos gains.',
+  // Delete services and add-ons
+  sv_del_a11y: 'Supprimer {name}',
+  sv_del_service: 'Supprimer ce service',
+  sv_del_confirm: 'Supprimer « {name} » ? Les réservations passées gardent son nom. Cette action est irréversible.',
+  sv_del_yes: 'Oui, supprimer',
 };
