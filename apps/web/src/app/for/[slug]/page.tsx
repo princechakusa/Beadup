@@ -5,7 +5,9 @@ import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/App
 import { IconArrowRight, IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
+import { TradeHero } from "@/components/site/TradeHero";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
+import { tradeHeroSrc } from "@/content/trade-heroes";
 import { TRADE_PAGES, tradePage } from "@/content/trade-pages";
 import { appStoreMetadata } from "@/lib/seo";
 import { getPublicConfig } from "@/lib/site";
@@ -26,8 +28,8 @@ export async function generateMetadata({ params }: PageProps<"/for/[slug]">): Pr
     title: p.title,
     description: p.description,
     alternates: { canonical: url },
-    openGraph: { title: `${p.title} · Beadup`, description: p.description, url },
-    twitter: { title: `${p.title} · Beadup`, description: p.description },
+    openGraph: { title: `${p.title} · Beadup`, description: p.description, url, ...(tradeHeroSrc(p.slug) ? { images: [{ url: tradeHeroSrc(p.slug)!, width: 1280, height: 731 }] } : {}) },
+    twitter: { title: `${p.title} · Beadup`, description: p.description, ...(tradeHeroSrc(p.slug) ? { card: "summary_large_image" as const, images: [tradeHeroSrc(p.slug)!] } : {}) },
     ...appStoreMetadata(),
   };
 }
@@ -74,7 +76,8 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
           </Link>{" "}
           <span aria-hidden="true">/</span> {trade.name}
         </nav>
-        <h1 className="text-gradient mt-5 text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{p.h1}</h1>
+        <TradeHero slug={p.slug} trade={trade.name} />
+        <h1 className="text-gradient mt-8 text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{p.h1}</h1>
         <p className="mt-6 max-w-2xl text-xl leading-relaxed text-mist">{p.answer}</p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <AppStoreButton />
