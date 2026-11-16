@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppStoreButton } from "./AppStoreButton";
-import { Phone } from "./Phone";
 import {
   IconArrowRight,
   IconBell,
@@ -25,22 +24,10 @@ function Beads() {
       {/* the all-trades mosaic, darkened on the left so the headline reads */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/hero/all-trades.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[60%_center] lg:w-[78%]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/80 to-midnight/10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/75 to-midnight/0" />
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-midnight/80 to-transparent" />
       {/* fade into the page below */}
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-midnight" />
-    </div>
-  );
-}
-
-/** The real app: the Today screen screenshot in our device frame, with side buttons. */
-function HeroPhone() {
-  return (
-    <div className="relative mx-auto w-[270px] rotate-[8deg] sm:w-[320px]">
-      <span aria-hidden="true" className="absolute -left-[5px] top-[18%] h-[6%] w-[5px] rounded-l-md bg-[#2c333f]" />
-      <span aria-hidden="true" className="absolute -left-[5px] top-[27%] h-[10%] w-[5px] rounded-l-md bg-[#2c333f]" />
-      <span aria-hidden="true" className="absolute -right-[5px] top-[24%] h-[14%] w-[5px] rounded-r-md bg-[#2c333f]" />
-      <Phone screen="today" priority sizes="(min-width: 640px) 320px, 270px" />
     </div>
   );
 }
@@ -54,7 +41,7 @@ export function HeroLanding() {
   return (
     <section aria-labelledby="hero-title" className="relative -mt-24 overflow-hidden pt-24">
       <Beads />
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-14 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:pt-16">
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-14 px-5 pb-28 pt-10 sm:px-8 lg:min-h-[640px] lg:pt-16">
         <div className="flex flex-col items-start gap-7">
           <h1 id="hero-title" className="enter font-display text-[56px] font-extrabold leading-[0.95] tracking-[-0.05em] text-paint sm:text-[84px]">
             Quote it.
@@ -88,9 +75,6 @@ export function HeroLanding() {
               </li>
             ))}
           </ul>
-        </div>
-        <div className="enter d-2 pb-6 pt-10 lg:pt-0">
-          <HeroPhone />
         </div>
       </div>
     </section>
