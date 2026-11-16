@@ -64,6 +64,7 @@ You can delete your account and data in the app at any time.
 | Trader status | OWNER does this (legal declaration). Skip |
 
 ## Data safety form
+- Account creation methods (checked in `apps/mobile/src/lib/auth.tsx`): tick **Username, password, and other authentication** and **OAuth** (Sign in with Apple, email one-time code or link, and a password option). No others.
 - Does the app collect or share required user data types: **Yes**.
 - Is all user data encrypted in transit: **Yes**.
 - Can users request that data be deleted: **Yes** (in-app path and the web link above).
