@@ -136,9 +136,9 @@ export function formatClock(hhmm: string, country: Country = "US"): string {
 }
 
 /** An instant as "Tue, Nov 18 · 2:30 PM" in a time zone, written the local way. */
-export function formatWhen(iso: string, timeZone: string, country: Country = "US"): string {
+export function formatWhen(iso: string, timeZone: string, country: Country = "US", locale?: string): string {
   const d = new Date(iso);
-  const date = d.toLocaleDateString(COUNTRIES[country].locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
+  const date = d.toLocaleDateString(locale ?? COUNTRIES[country].locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map((p) => [p.type, p.value]),
   );

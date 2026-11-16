@@ -1,7 +1,7 @@
 -- Client emails: queued once per event, only with an address, server only.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(15);
 update public.plan_config set value = '"external"' where key = 'payments_mode';
 
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, created_at, updated_at) values
@@ -38,6 +38,10 @@ select is((select count(*)::int from public.client_emails where booking_id = (se
 
 set local role service_role;
 select ok((public.email_context((select id from public.client_emails where kind = 'confirmation')) ->> 'to') = 'ann@example.com', 'context has the address');
+select is(public.email_context((select id from public.client_emails where kind = 'confirmation')) ->> 'lang', 'en', 'language defaults to English');
+update public.bookings set client_lang = 'fr' where id = (select id::uuid from bk);
+select is(public.email_context((select id from public.client_emails where kind = 'confirmation')) ->> 'lang', 'fr', 'context carries the client language');
+select throws_ok($$ update public.bookings set client_lang = 'xx' where id = (select id::uuid from bk) $$, '23514', null, 'unsupported language refused');
 select is((select count(*)::int from public.queued_emails(10)), 3, 'three queued');
 reset role;
 

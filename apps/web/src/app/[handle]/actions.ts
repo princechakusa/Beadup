@@ -11,6 +11,7 @@ import { VEHICLE_SIZES } from "@/lib/booking-types";
 import { smsConsentText } from "@/lib/consent";
 import { bookingFeeCents, depositCents } from "@/lib/pricing";
 import { deliverEmails } from "@/lib/email";
+import { getLocale } from "@/lib/i18n/server";
 import { notifyPayment } from "@/lib/push";
 import { getPublicConfig } from "@/lib/site";
 import { CHECKOUT_TTL_SECONDS, siteUrl, stripe } from "@/lib/stripe";
@@ -243,7 +244,10 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     after(() => notifyPayment(result.bookingId, "booked"));
     if (input.email) {
       const email = input.email;
+      const lang = await getLocale();
       after(async () => {
+        // The client's language first, so the confirmation is written in it.
+        await db.from("bookings").update({ client_lang: lang }).eq("id", result.bookingId);
         await db.rpc("set_client_email", { p_booking_id: result.bookingId, p_email: email });
         await deliverEmails();
       });

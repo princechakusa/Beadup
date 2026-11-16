@@ -3,6 +3,8 @@ import { z } from "zod";
 import { formatMoney, formatPhone, formatWhen, whatsappUrl, type Country } from "./countries";
 import { SITE_URL } from "./seo";
 import { supabaseAdmin } from "./supabase-admin";
+import { DATE_LOCALE, isLocale, phrasesFor, type Locale } from "./i18n";
+import { emailT } from "./i18n/email";
 import { tierLabel } from "./trades";
 
 /**
@@ -39,6 +41,7 @@ const ctxSchema = z.object({
   clientToken: z.string(),
   reviewToken: z.string(),
   ref: z.string(),
+  lang: z.string().default("en"),
 });
 type Ctx = z.infer<typeof ctxSchema>;
 
@@ -46,52 +49,67 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 /** Subject, plain text and HTML for one email. Exported for tests. */
 export function composeEmail(c: Ctx): { subject: string; text: string; html: string } {
+  const lang: Locale = isLocale(c.lang) ? c.lang : "en";
+  const t = emailT(lang);
+  const phrases = phrasesFor(lang);
   const money = (n: number) => formatMoney(n, c.country as Country);
-  const when = formatWhen(c.startsAt, c.timezone, c.country as Country);
+  const when = formatWhen(c.startsAt, c.timezone, c.country as Country, DATE_LOCALE[lang]);
   const page = `${SITE_URL}/b/${c.clientToken}`;
-  const size = tierLabel(c.trade, c.vehicleSize);
+  const sizeEn = tierLabel(c.trade, c.vehicleSize);
+  const size = sizeEn ? (phrases[sizeEn] ?? sizeEn) : "";
   const what = [c.serviceName, size].filter(Boolean).join(" · ");
   const where = c.visitMode === "studio" ? [c.businessName, c.serviceArea].filter(Boolean).join(", ") : c.address;
   const depositDue = c.payments === "external" && c.depositCents > 0 && !c.depositReceived;
+  const vars = { business: c.businessName, name: c.firstName, service: c.serviceName };
 
   const top: Record<Ctx["kind"], [string, string]> = {
-    confirmation: [`You're booked with ${c.businessName}`, `Hi ${c.firstName}, your booking is confirmed.`],
-    reminder: [`Reminder: ${c.serviceName} tomorrow`, `Hi ${c.firstName}, see you tomorrow.`],
-    rescheduled: [`New time for your ${c.serviceName}`, `Hi ${c.firstName}, ${c.businessName} moved your booking.`],
-    cancelled: [`Your booking with ${c.businessName} is cancelled`, `Hi ${c.firstName}, this booking has been cancelled. If you paid a deposit, ${c.businessName} will sort it out with you directly.`],
-    receipt: [`Your receipt from ${c.businessName}`, `Hi ${c.firstName}, thanks for choosing ${c.businessName}. Your receipt is ready, with a 30-second rating if you'd like to leave one.`],
+    confirmation: [t("subject_confirmation", vars), t("intro_confirmation", vars)],
+    reminder: [t("subject_reminder", vars), t("intro_reminder", vars)],
+    rescheduled: [t("subject_rescheduled", vars), t("intro_rescheduled", vars)],
+    cancelled: [t("subject_cancelled", vars), t("intro_cancelled", vars)],
+    receipt: [t("subject_receipt", vars), t("intro_receipt", vars)],
   };
   const [subject, intro] = top[c.kind];
-  const rows: [string, string][] =
+  // Row ids stay stable (used for styling); labels are translated.
+  type Row = [id: "total" | "deposit" | "other", label: string, value: string];
+  const rows: Row[] =
     c.kind === "receipt"
-      ? [["Service", what], ["Total", money(c.subtotalCents)], ["Ref", c.ref]]
-      : [["When", when], ["Service", what], ...(c.staffName ? ([["With", c.staffName]] as [string, string][]) : []), ["Where", where], ["Total", money(c.subtotalCents)], ["Ref", c.ref]];
-  if (depositDue && c.kind !== "cancelled" && c.kind !== "receipt") rows.splice(4, 0, ["Deposit due", money(c.depositCents)]);
+      ? [["other", t("row_service"), what], ["total", t("row_total"), money(c.subtotalCents)], ["other", t("row_ref"), c.ref]]
+      : [
+          ["other", t("row_when"), when],
+          ["other", t("row_service"), what],
+          ...(c.staffName ? ([["other", t("row_with"), c.staffName]] as Row[]) : []),
+          ["other", t("row_where"), where],
+          ["total", t("row_total"), money(c.subtotalCents)],
+          ["other", t("row_ref"), c.ref],
+        ];
+  if (depositDue && c.kind !== "cancelled" && c.kind !== "receipt") rows.splice(4, 0, ["deposit", t("row_deposit"), money(c.depositCents)]);
   const cta: [string, string] | null =
-    c.kind === "receipt" ? ["See receipt and rate", `${SITE_URL}/r/${c.reviewToken}`] : c.kind === "cancelled" ? [`Book ${c.businessName} again`, `${SITE_URL}/${c.handle}`] : ["Your booking page", page];
+    c.kind === "receipt" ? [t("cta_receipt"), `${SITE_URL}/r/${c.reviewToken}`] : c.kind === "cancelled" ? [t("cta_again", vars), `${SITE_URL}/${c.handle}`] : [t("cta_page"), page];
   const contact = c.contactPhone
-    ? `Questions? ${c.businessName}: ${formatPhone(c.contactPhone, c.country as Country)}`
-    : `Questions? Reply on your booking page.`;
-  const payLine = depositDue && c.kind === "confirmation" ? `Pay your ${money(c.depositCents)} deposit to ${c.businessName}${c.paymentNote ? `: ${c.paymentNote}` : ""}${c.paymentLink ? ` ${c.paymentLink}` : ""}` : "";
+    ? t("contact_phone", { business: c.businessName, phone: formatPhone(c.contactPhone, c.country as Country) })
+    : t("contact_none");
+  const payLine = depositDue && c.kind === "confirmation" ? t("pay_line", { amount: money(c.depositCents), business: c.businessName, note: c.paymentNote ? `: ${c.paymentNote}` : "", link: c.paymentLink ? ` ${c.paymentLink}` : "" }) : "";
+  const footer = t("footer", vars);
 
-  const text = [intro, "", ...rows.map(([k, v]) => `${k}: ${v}`), payLine && `\n${payLine}`, cta && `\n${cta[0]}: ${cta[1]}`, `\n${contact}`, "\nSent by Beadup for " + c.businessName + ". You get this email because you booked with them."]
+  const text = [intro, "", ...rows.map(([, k, v]) => `${k}: ${v}`), payLine && `\n${payLine}`, cta && `\n${cta[0]}: ${cta[1]}`, `\n${contact}`, `\n${footer}`]
     .filter((x) => x !== "")
     .join("\n");
 
-  const html = `<!doctype html><html><body style="margin:0;background:#0A0C10;font-family:Inter,Arial,sans-serif;color:#F4F6FA">
+  const html = `<!doctype html><html lang="${lang}"><body style="margin:0;background:#0A0C10;font-family:Inter,Arial,sans-serif;color:#F4F6FA">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0A0C10;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#161A21;border:1px solid #262B35;border-radius:24px;padding:28px">
 <tr><td style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#4DD8FF;padding-bottom:8px">${esc(c.businessName)}</td></tr>
 <tr><td style="font-size:24px;font-weight:800;line-height:1.2;padding-bottom:12px">${esc(subject)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;color:#C9D0DC;padding-bottom:18px">${esc(intro)}</td></tr>
 <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #262B35">
-${rows.map(([k, v]) => `<tr><td style="padding:10px 0;color:#9AA3B2;font-size:14px">${esc(k)}</td><td align="right" style="padding:10px 0;font-size:14px;font-weight:600;${k === "Total" || k === "Deposit due" ? "color:#FFB547" : ""}">${esc(v)}</td></tr>`).join("")}
+${rows.map(([id, k, v]) => `<tr><td style="padding:10px 0;color:#9AA3B2;font-size:14px">${esc(k)}</td><td align="right" style="padding:10px 0;font-size:14px;font-weight:600;${id === "total" || id === "deposit" ? "color:#FFB547" : ""}">${esc(v)}</td></tr>`).join("")}
 </table></td></tr>
 ${payLine ? `<tr><td style="padding-top:14px;font-size:14px;line-height:1.6;color:#F4F6FA">${esc(payLine)}</td></tr>` : ""}
 ${cta ? `<tr><td style="padding-top:22px"><a href="${esc(cta[1])}" style="display:inline-block;background:#4DD8FF;color:#04121A;font-weight:700;text-decoration:none;border-radius:16px;padding:14px 22px">${esc(cta[0])}</a></td></tr>` : ""}
-${c.contactPhone ? `<tr><td style="padding-top:18px;font-size:14px;color:#9AA3B2">${esc(contact)} · <a href="${esc(whatsappUrl(c.contactPhone, `Hi ${c.businessName}, it's ${c.firstName} (ref ${c.ref}).`))}" style="color:#7ff0a8">WhatsApp</a></td></tr>` : ""}
+${c.contactPhone ? `<tr><td style="padding-top:18px;font-size:14px;color:#9AA3B2">${esc(contact)} · <a href="${esc(whatsappUrl(c.contactPhone, t("wa_msg", { business: c.businessName, name: c.firstName, ref: c.ref })))}" style="color:#7ff0a8">WhatsApp</a></td></tr>` : ""}
 </table>
-<p style="max-width:520px;font-size:12px;color:#6b7383;line-height:1.5;margin:16px auto 0">Sent by Beadup for ${esc(c.businessName)}. You get this email because you booked with them.</p>
+<p style="max-width:520px;font-size:12px;color:#6b7383;line-height:1.5;margin:16px auto 0">${esc(footer)}</p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
 }
@@ -104,7 +122,7 @@ async function send(c: Ctx): Promise<{ ok: true } | { ok: false; error: string; 
     method: "POST",
     headers: { "api-key": key, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
-      sender: { name: `${c.businessName.slice(0, 60)} via Beadup`, email: process.env.EMAIL_FROM ?? "support@beadup.app" },
+      sender: { name: emailT(isLocale(c.lang) ? c.lang : "en")("sender", { business: c.businessName.slice(0, 60) }), email: process.env.EMAIL_FROM ?? "support@beadup.app" },
       to: [{ email: c.to }],
       subject: m.subject,
       textContent: m.text,
