@@ -23,6 +23,7 @@ import {
 import { addDaysKey, dateKey, greeting, mondayOf, startOfDay, timeOf, money, moneyParts, weekdayIndex } from '@/lib/format';
 import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
+import { dateLocale, t } from '@/lib/i18n';
 import { useNow } from '@/lib/time';
 import { colors, space } from '@/theme/tokens';
 
@@ -81,7 +82,7 @@ export default function Today() {
 
   return (
     <Screen
-      eyebrow={new Date().toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'short' })}
+      eyebrow={new Date().toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'long', day: 'numeric', month: 'short' })}
       title={`${greeting(tz)}${firstName ? `, ${firstName}` : ''}`}
       offline={week.stale || next.stale}
       refreshing={refreshing && !!week.data}
@@ -92,7 +93,7 @@ export default function Today() {
         attention.refresh();
       }}
       right={
-        <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={styles.round}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('settings')} onPress={() => router.push('/settings')} style={styles.round}>
           <Icon name="settings" size={20} />
         </Pressable>
       }>
@@ -100,7 +101,7 @@ export default function Today() {
       <View style={styles.earnCard} onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}>
         <View style={[styles.rowBetween, styles.earnHead]}>
           <Text variant="caption" style={{ fontSize: 13 }}>
-            Earned this week
+            {t('earned_week')}
           </Text>
           {change !== null && (
             <View style={[styles.trend, change < 0 && { backgroundColor: 'rgba(255,138,138,0.12)' }]}>
@@ -111,13 +112,13 @@ export default function Today() {
             </View>
           )}
         </View>
-        <Text style={styles.bigMoney} accessibilityLabel={`Earned this week ${money(earned)}`}>
+        <Text style={styles.bigMoney} accessibilityLabel={t('earned_week_a11y', { amount: money(earned) })}>
           {whole}
           <Text style={styles.bigFraction}>{fraction}</Text>
         </Text>
         {chartWidth > 0 && <Sparkline values={cumulative} todayIndex={todayIdx} width={chartWidth} />}
         <View style={styles.days}>
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+          {t('week_letters').split(',').map((d, i) => (
             <Text key={i} variant="caption" style={[styles.dayLetter, i === todayIdx && { color: colors.bead }]}>
               {d}
             </Text>
@@ -126,9 +127,9 @@ export default function Today() {
       </View>
 
       <View style={styles.stats}>
-        <Stat value={String(jobs.length)} label="Jobs this week" />
-        <Stat value={money(avgTicket, { cents: false })} label="Avg ticket" />
-        <Stat value={rating.data?.rating?.toFixed(1) ?? 'New'} label="Rating" gold onPress={() => router.push('/reviews')} />
+        <Stat value={String(jobs.length)} label={t('jobs_week')} />
+        <Stat value={money(avgTicket, { cents: false })} label={t('avg_ticket')} />
+        <Stat value={rating.data?.rating?.toFixed(1) ?? t('rating_new')} label={t('rating')} gold onPress={() => router.push('/reviews')} />
       </View>
 
       <NeedsAttention data={attention.data} tz={tz} />
@@ -137,11 +138,11 @@ export default function Today() {
 
       <View style={styles.rowBetween}>
         <Text variant="heading" style={{ fontSize: 18 }}>
-          Next up
+          {t('next_up')}
         </Text>
         <Pressable onPress={() => router.navigate('/calendar')} hitSlop={8}>
           <Text variant="body" tone="bead" style={{ fontSize: 14 }}>
-            See all
+            {t('see_all')}
           </Text>
         </Pressable>
       </View>
@@ -151,8 +152,8 @@ export default function Today() {
       ) : (
         <ListCard>
           <EmptyState
-            title={next.loading ? 'Loading your schedule…' : 'No jobs booked yet'}
-            body={next.loading ? '' : 'Share your booking link above. When clients book, their jobs show up here.'}
+            title={next.loading ? t('loading_schedule') : t('no_jobs')}
+            body={next.loading ? '' : t('no_jobs_body')}
           />
         </ListCard>
       )}
@@ -170,7 +171,7 @@ export default function Today() {
                   {timeOf(b.startsAt, tz)} · {b.client.name}
                 </Text>
               </View>
-              <Badge label="Booked" tone="success" />
+              <Badge label={t('booked')} tone="success" />
             </Pressable>
           ))}
         </ListCard>
@@ -186,7 +187,7 @@ function Stat({ value, label, gold, onPress }: { value: string; label: string; g
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={onPress ? `${label} ${value}. Opens reviews` : undefined}
+      accessibilityLabel={onPress ? t('opens_reviews', { label, value }) : undefined}
     >
       <Text variant="heading" tone={gold ? 'gold' : 'paint'}>
         {value}
@@ -213,7 +214,7 @@ function NextUpCard({ booking: b, tz, now }: { booking: Booking; tz: string; now
   };
 
   return (
-    <Pressable onPress={() => router.push(`/booking/${b.id}`)} style={styles.nextCard} accessibilityRole="button" accessibilityLabel={`Next job, ${b.serviceName} for ${b.client.name}`}>
+    <Pressable onPress={() => router.push(`/booking/${b.id}`)} style={styles.nextCard} accessibilityRole="button" accessibilityLabel={t('next_job_a11y', { service: b.serviceName, client: b.client.name })}>
       <View style={styles.nextHead}>
         <View style={styles.carIcon}>
           <Icon name="car" size={24} color={colors.bead} />
@@ -224,7 +225,7 @@ function NextUpCard({ booking: b, tz, now }: { booking: Booking; tz: string; now
           </Text>
           <Text variant="caption" style={{ fontSize: 13 }}>
             {b.client.name}
-            {addOn ? ` · ${addOn} add-on` : ''}
+            {addOn ? ` · ${t('addon_suffix', { name: addOn })}` : ''}
           </Text>
         </View>
         <Text variant="heading" tone="gold" style={{ fontSize: 18 }}>
@@ -233,34 +234,34 @@ function NextUpCard({ booking: b, tz, now }: { booking: Booking; tz: string; now
       </View>
       <View style={styles.timeRow}>
         <Text variant="bodyStrong" style={{ fontSize: 13 }}>
-          {dateKey(new Date(b.startsAt), tz) === dateKey(new Date(), tz) ? timeOf(b.startsAt, tz) : new Date(b.startsAt).toLocaleDateString('en-US', { timeZone: tz, weekday: 'short' }) + ' ' + timeOf(b.startsAt, tz)}
+          {dateKey(new Date(b.startsAt), tz) === dateKey(new Date(), tz) ? timeOf(b.startsAt, tz) : new Date(b.startsAt).toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'short' }) + ' ' + timeOf(b.startsAt, tz)}
         </Text>
         <View style={styles.track}>
           <View style={[styles.trackFill, { width: `${Math.max(progress, inProgress ? 0.04 : 0) * 100}%` }]} />
         </View>
         <Text variant="caption" style={{ fontSize: 13, color: '#C9D0DC' }}>
-          {inProgress ? 'In progress' : `${Math.round(b.durationMin / 60 * 10) / 10} h`}
+          {inProgress ? t('in_progress') : t('hours_short', { n: Math.round(b.durationMin / 60 * 10) / 10 })}
         </Text>
       </View>
       <View style={{ flexDirection: 'row', gap: space.sm }}>
-        <Pressable onPress={openMaps} style={styles.routeBtn} accessibilityRole="button" accessibilityLabel="Start route">
+        <Pressable onPress={openMaps} style={styles.routeBtn} accessibilityRole="button" accessibilityLabel={t('start_route')}>
           <Icon name="route" size={18} color={colors.beadInk} strokeWidth={2.2} />
           <Text variant="bodyStrong" tone="beadInk" style={{ fontSize: 15 }}>
-            Start route
+            {t('start_route')}
           </Text>
         </Pressable>
         <Pressable
           onPress={() => Linking.openURL(`sms:${b.client.phone}`)}
           style={styles.squareBtn}
           accessibilityRole="button"
-          accessibilityLabel={`Text ${b.client.name}`}>
+          accessibilityLabel={t('text_client', { name: b.client.name })}>
           <Icon name="message" size={20} />
         </Pressable>
         <Pressable
           onPress={() => Linking.openURL(`tel:${b.client.phone}`)}
           style={styles.squareBtn}
           accessibilityRole="button"
-          accessibilityLabel={`Call ${b.client.name}`}>
+          accessibilityLabel={t('call_client', { name: b.client.name })}>
           <Icon name="phone" size={20} />
         </Pressable>
       </View>

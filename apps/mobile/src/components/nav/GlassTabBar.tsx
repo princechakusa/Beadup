@@ -9,13 +9,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
+import { t, type MessageKey } from '@/lib/i18n';
 import { colors, springs } from '@/theme/tokens';
 
-const TABS: Record<string, { label: string; icon: IconName }> = {
-  index: { label: 'Today', icon: 'today' },
-  calendar: { label: 'Calendar', icon: 'calendar' },
-  clients: { label: 'Clients', icon: 'clients' },
-  money: { label: 'Money', icon: 'money' },
+const TABS: Record<string, { label: MessageKey; icon: IconName }> = {
+  index: { label: 'tab_today', icon: 'today' },
+  calendar: { label: 'tab_calendar', icon: 'calendar' },
+  clients: { label: 'tab_clients', icon: 'clients' },
+  money: { label: 'tab_money', icon: 'money' },
 };
 
 export const TAB_BAR_SPACE = 120; // scroll padding so content clears the floating bar
@@ -37,7 +38,7 @@ export function GlassTabBar({ state, navigateToTab }: BottomTabBarProps) {
       <Animated.View key={route.key} layout={LinearTransition.springify().damping(18).stiffness(220)}>
         <Pressable
           accessibilityRole="tab"
-          accessibilityLabel={meta.label}
+          accessibilityLabel={t(meta.label)}
           accessibilityState={{ selected: focused }}
           onPress={() => {
             if (focused) return;
@@ -48,7 +49,7 @@ export function GlassTabBar({ state, navigateToTab }: BottomTabBarProps) {
           <Icon name={meta.icon} size={20} color={focused ? colors.bead : colors.steel} strokeWidth={focused ? 2 : 1.8} />
           {focused && (
             <Text variant="caption" tone="bead" style={styles.tabLabel}>
-              {meta.label}
+              {t(meta.label)}
             </Text>
           )}
         </Pressable>

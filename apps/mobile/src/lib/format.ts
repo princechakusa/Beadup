@@ -1,3 +1,4 @@
+import { dateLocale, t } from './i18n';
 // Formatting helpers. Money is integer cents; times are shown in the
 // detailer's own timezone (their business), not the phone's.
 
@@ -125,10 +126,10 @@ export function dayLabel(iso: string, timeZone: string): string {
   const today = new Date();
   const tomorrow = new Date(Date.now() + 86_400_000);
   const yesterday = new Date(Date.now() - 86_400_000);
-  if (key(d) === key(today)) return 'Today';
-  if (key(d) === key(tomorrow)) return 'Tomorrow';
-  if (key(d) === key(yesterday)) return 'Yesterday';
-  return d.toLocaleDateString('en-US', { timeZone, weekday: 'short', month: 'short', day: 'numeric' });
+  if (key(d) === key(today)) return t('day_today');
+  if (key(d) === key(tomorrow)) return t('day_tomorrow');
+  if (key(d) === key(yesterday)) return t('day_yesterday');
+  return d.toLocaleDateString(dateLocale(), { timeZone, weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 /** YYYY-MM-DD of an instant in a timezone. */
@@ -159,7 +160,7 @@ export function initials(name: string): string {
 
 export function greeting(timeZone: string): string {
   const h = Number(new Date().toLocaleString('en-US', { timeZone, hour: 'numeric', hourCycle: 'h23' }));
-  return h < 12 ? 'Morning' : h < 18 ? 'Afternoon' : 'Evening';
+  return t(h < 12 ? 'greet_morning' : h < 18 ? 'greet_afternoon' : 'greet_evening');
 }
 
 /** Offset of a timezone from UTC at an instant, in minutes (e.g. -360 for CST). */
