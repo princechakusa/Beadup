@@ -188,3 +188,8 @@ UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod
 - Test the app now with Expo Go (no publishing): `cd apps/mobile && npx expo start`, scan the QR. Preview in a browser: see the Expo web command above.
 - NEXT REAL BUILD (new store binary, bump `version` in app.json, only after testing): add `CFBundleLocalizations` (en, es, fr, pt) so iOS lists the languages and offers per-app language in Settings; `supportedLocales` for Android; Arabic RTL (`I18nManager`) only if Arabic is added; any other native change found while testing.
 - Store screenshots with translated captions: optional (listings fall back to the default language); make them last, after the UI is final.
+
+## 2026-11-17, Claude Code: OTA published, Play Console, Paddle removed
+- iOS OTA published to `production` (runtime 1.0.1): group `0a982f01-65ec-4e4e-9935-1c9ec3e4c324`. Rollback target (previous update): group `5f570067-15d4-4e56-81a6-b65c64f4d53f` (`eas update:rollback` or republish it).
+- Paddle removed from refund policy and terms (Pro only in the app via Apple/Google). Home hero = all-trades mosaic.
+- Google Play (app id 4972929583593981942): answers in `docs/PLAY_CONSOLE_BRIEF.md`; saved by helper agents: target audience (18+), advertising ID (no), government, financial, health, privacy policy URL; listing and data safety in progress (see agent reports). Owner still must: accept IARC terms for the content rating, declare trader status (Yes, trader), provide App access demo credentials, and an Android build must exist before any release.
