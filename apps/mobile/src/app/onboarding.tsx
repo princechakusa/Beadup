@@ -14,36 +14,13 @@ import { Icon } from '@/components/ui/Icon';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { claimReferral, startPayoutsSetup, usePaymentsMode } from '@/lib/data';
 import { COUNTRIES, currencySymbol, deviceCountry, setMoneyCountry, type Country } from '@/lib/format';
-import { setCurrentTrade, STARTERS, TRADES, type TradeId } from '@/lib/trades';
+import { startersFor } from '@/lib/starters';
+import { setCurrentTrade, TRADES, type TradeId } from '@/lib/trades';
 import { TradePicker, VisitPicker } from '@/components/TradePicker';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
-
-/**
- * Starter prices (lib/trades.ts STARTERS) are written in US dollars; this
- * scales them to what the service typically costs locally, rounded, so a South
- * African starts at R900, not R60. Only starting values: the business sets
- * its own prices.
- */
-const PRICE_SCALE: Record<Country, { factor: number; round: number }> = {
-  US: { factor: 1, round: 5 },
-  CA: { factor: 1.3, round: 5 },
-  AU: { factor: 1.4, round: 5 },
-  NZ: { factor: 1.4, round: 5 },
-  SG: { factor: 1.2, round: 5 },
-  GB: { factor: 0.8, round: 5 },
-  AE: { factor: 3.5, round: 10 },
-  ZA: { factor: 15, round: 50 },
-};
-const scalePrice = (usd: string, c: Country) => {
-  const { factor, round } = PRICE_SCALE[c];
-  return String(Math.max(round, Math.round((Number(usd) * factor) / round) * round));
-};
-const startersFor = (t: TradeId, c: Country) => ({
-  services: STARTERS[t].services.map((x) => ({ ...x, sedan: scalePrice(x.sedan, c), suv: scalePrice(x.suv, c), truck: scalePrice(x.truck, c) })),
-  addOns: STARTERS[t].addOns.map((a) => ({ ...a, price: scalePrice(a.price, c) })),
-});
 
 const DAYS = [
   { wd: 1, label: 'Mon' },
@@ -262,27 +239,13 @@ export default function Onboarding() {
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
-                <View style={{ gap: space.sm }}>
-                  <Text variant="caption">Country (sets your currency)</Text>
-                  <View style={styles.countries} accessibilityRole="radiogroup">
-                    {(Object.keys(COUNTRIES) as Country[]).map((c) => {
-                      const on = c === country;
-                      return (
-                        <Pressable
-                          key={c}
-                          onPress={() => pickCountry(c)}
-                          style={[styles.countryChip, on && styles.countryChipOn]}
-                          accessibilityRole="radio"
-                          accessibilityState={{ checked: on }}
-                          accessibilityLabel={`${COUNTRIES[c].name}, ${COUNTRIES[c].currency}`}>
-                          <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontWeight: on ? '700' : '500' }}>
-                            {c} · {COUNTRIES[c].currency}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
+                <Dropdown
+                  label="Country (sets your currency)"
+                  value={country}
+                  options={(Object.keys(COUNTRIES) as Country[]).map((c) => ({ value: c, label: COUNTRIES[c].name, meta: COUNTRIES[c].currency }))}
+                  onChange={pickCountry}
+                  searchable
+                />
                 <Text variant="caption">Times are in your timezone: {timezone.replace(/_/g, ' ')}</Text>
                 <Button label="Continue" onPress={() => go(1)} disabled={!name.trim() || !handleValid} />
               </>

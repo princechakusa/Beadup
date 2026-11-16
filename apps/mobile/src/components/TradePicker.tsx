@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Dropdown } from '@/components/ui/Dropdown';
 import { Text } from '@/components/ui/Text';
 import { haptic } from '@/lib/haptics';
 import { TRADE_IDS, TRADES, type TradeId } from '@/lib/trades';
@@ -7,32 +8,12 @@ import { colors, space } from '@/theme/tokens';
 
 /** Which trade the business is in. Sets the words, pricing and booking steps clients see. */
 export function TradePicker({ value, onChange }: { value: TradeId; onChange: (t: TradeId) => void }) {
-  return (
-    <View style={{ gap: space.sm }}>
-      <Text variant="caption">What do you do?</Text>
-      <View style={styles.wrap} accessibilityRole="radiogroup">
-        {TRADE_IDS.map((t) => {
-          const on = t === value;
-          return (
-            <Pressable
-              key={t}
-              onPress={() => {
-                haptic.select();
-                onChange(t);
-              }}
-              style={[styles.chip, on && styles.chipOn]}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              accessibilityLabel={TRADES[t].name}>
-              <Text variant="caption" style={{ color: on ? colors.beadInk : colors.paint, fontWeight: on ? '700' : '500' }}>
-                {TRADES[t].name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
+  const options = TRADE_IDS.map((t) => ({
+    value: t,
+    label: TRADES[t].name,
+    hint: TRADES[t].pricing === 'tiers' ? `Prices by ${TRADES[t].tierTitle.toLowerCase().replace(/^your /, '')}` : 'One price per service',
+  }));
+  return <Dropdown label="What do you do?" title="Your kind of business" value={value} options={options} onChange={onChange} searchable />;
 }
 
 /** Whether the business goes to the client (needs their address) or the client comes to the business. */

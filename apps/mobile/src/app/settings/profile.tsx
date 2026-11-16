@@ -1,19 +1,19 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/lib/auth';
-import { fetchBusinessProfile, saveBusinessProfile, useQuery, type BusinessProfile } from '@/lib/data';
+import { fetchBusinessProfile, saveBusinessProfile, switchToStarters, useQuery, type BusinessProfile } from '@/lib/data';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { COUNTRIES, type Country } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { formatPhone, toE164 } from '@/lib/phone';
-import type { TradeId } from '@/lib/trades';
+import { TRADES, type TradeId } from '@/lib/trades';
 import { TradePicker, VisitPicker } from '@/components/TradePicker';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
@@ -45,6 +45,8 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // After a trade change: offer the new trade's starter services.
+  const [offer, setOffer] = useState(false);
 
   const save = async () => {
     if (!name.trim()) {
@@ -63,7 +65,8 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       await saveBusinessProfile({ businessName: name, tagline, serviceArea: area, country, contactPhone, trade, visitMode, listed });
       haptic.success();
       await refreshProfile();
-      router.back();
+      if (trade !== initial.trade) setOffer(true);
+      else router.back();
     } catch {
       haptic.error();
       setError('Could not save. Check your connection and try again.');
@@ -71,6 +74,35 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
       setBusy(false);
     }
   };
+
+  const useStarters = async () => {
+    setBusy(true);
+    try {
+      await switchToStarters(trade, country);
+      haptic.success();
+      router.back();
+    } catch {
+      haptic.error();
+      setError('Could not switch your services. Try again from Services.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (offer) {
+    return (
+      <View style={{ gap: space.lg }}>
+        <Text variant="title">Switch your services too?</Text>
+        <Text variant="body" tone="steel">
+          Your current services and add-ons were made for {TRADES[initial.trade].name.toLowerCase()}. Switching hides them (past bookings keep their names) and adds
+          starter services for {TRADES[trade].name.toLowerCase()}. You can edit everything in Services.
+        </Text>
+        {error ? <Text variant="caption" style={{ color: colors.danger }}>{error}</Text> : null}
+        <Button label={`Use ${TRADES[trade].name.toLowerCase()} starters`} onPress={useStarters} loading={busy} />
+        <Button label="Keep my current services" variant="ghost" onPress={() => router.back()} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ gap: space.lg }}>
@@ -102,39 +134,13 @@ function ProfileForm({ initial }: { initial: BusinessProfile }) {
         </Text>
       </View>
       <View style={{ gap: space.sm }}>
-        <Text variant="eyebrow">Country</Text>
-        {/* One glass list, one row per country: code tile, name, currency, check. */}
-        <View style={styles.list} accessibilityRole="radiogroup">
-          {(Object.keys(COUNTRIES) as Country[]).map((c, i) => {
-            const on = c === country;
-            return (
-              <Pressable
-                key={c}
-                onPress={() => {
-                  haptic.select();
-                  setCountry(c);
-                }}
-                style={({ pressed }) => [styles.row, i > 0 && styles.divider, on && styles.rowOn, pressed && { opacity: 0.7 }]}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={`${COUNTRIES[c].name}, ${COUNTRIES[c].currency}`}
-              >
-                <View style={[styles.code, on && styles.codeOn]}>
-                  <Text variant="bodyStrong" style={{ fontSize: 12, letterSpacing: 0.6, color: on ? colors.beadInk : colors.steel }}>
-                    {c}
-                  </Text>
-                </View>
-                <Text variant="bodyStrong" style={{ flex: 1, fontSize: 15 }} numberOfLines={1}>
-                  {COUNTRIES[c].name}
-                </Text>
-                <Text variant="caption" style={{ fontSize: 13, color: on ? colors.bead : colors.steel }}>
-                  {COUNTRIES[c].currency}
-                </Text>
-                <View style={[styles.radio, on && styles.radioOn]}>{on && <Icon name="check" size={13} strokeWidth={2.8} color={colors.beadInk} />}</View>
-              </Pressable>
-            );
-          })}
-        </View>
+        <Dropdown
+          label="Country"
+          value={country}
+          options={(Object.keys(COUNTRIES) as Country[]).map((c) => ({ value: c, label: COUNTRIES[c].name, meta: COUNTRIES[c].currency }))}
+          onChange={setCountry}
+          searchable
+        />
         <Text variant="caption" style={{ fontSize: 13, lineHeight: 19 }}>
           Sets the currency your prices are shown in and how clients&apos; phone numbers are read. It doesn&apos;t convert your prices.
         </Text>

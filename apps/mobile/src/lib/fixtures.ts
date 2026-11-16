@@ -1,3 +1,4 @@
+import { currentTradeId, STARTERS, tradeOf } from './trades';
 import type { Balance, Booking, CatalogAddOn, CatalogService, ClientSummary, Payment, Profile } from './data';
 
 // Sample data for development builds with no backend configured
@@ -40,11 +41,50 @@ const catalog: { services: CatalogService[]; addOns: CatalogAddOn[] } = {
   ],
 };
 
+/** Sample catalog that follows the trade picked in the preview (no backend), so a salon never shows car services. */
+function catalogFor(): { services: CatalogService[]; addOns: CatalogAddOn[] } {
+  const id = currentTradeId();
+  if (id === 'detailing') return catalog;
+  const st = STARTERS[id];
+  return {
+    services: st.services.map((x, i) => ({
+      id: `s${i + 1}`,
+      name: x.name,
+      description: x.description,
+      durationMin: x.durationMin,
+      priceCents: { sedan: Number(x.sedan) * 100, suv: Number(x.suv) * 100, truck: Number(x.truck) * 100 },
+      active: true,
+      sortOrder: i + 1,
+      photoPath: null,
+    })) as CatalogService[],
+    addOns: st.addOns.map((a, i) => ({ id: `a${i + 1}`, name: a.name, priceCents: Number(a.price) * 100, active: true, sortOrder: i + 1 })),
+  };
+}
+
+/** Sample bookings relabelled with the previewed trade's own services and add-ons. */
+function forTrade(list: Booking[]): Booking[] {
+  const id = currentTradeId();
+  if (id === 'detailing') return list;
+  const names = STARTERS[id].services.map((x) => x.name);
+  const extras = STARTERS[id].addOns.map((a) => a.name);
+  const visit = tradeOf(id).visit;
+  return list.map((b, i) => ({
+    ...b,
+    serviceName: names[i % names.length],
+    addOns: b.addOns.length && extras.length ? [{ name: extras[i % extras.length] }] : [],
+    ...(visit === 'studio' ? { address: 'At your studio' } : {}),
+  }));
+}
+
 export const fixtures = {
-  catalog,
-  profile: { id: 'preview', handle: 'marcus', businessName: 'Marcus Shine Co.', timezone: 'America/Chicago', country: 'US', trade: 'detailing', visitMode: 'mobile' } satisfies Profile,
+  get catalog() {
+    return catalogFor();
+  },
+  get profile() {
+    return { id: 'preview', handle: 'marcus', businessName: 'Marcus Shine Co.', timezone: 'America/Chicago', country: 'US', trade: currentTradeId(), visitMode: tradeOf(currentTradeId()).visit } satisfies Profile;
+  },
   bookings: (from: Date, to: Date) =>
-    allBookings.filter((b) => Date.parse(b.startsAt) >= from.getTime() && Date.parse(b.startsAt) < to.getTime()),
+    forTrade(allBookings).filter((b) => Date.parse(b.startsAt) >= from.getTime() && Date.parse(b.startsAt) < to.getTime()),
   payments: [
     { id: 'p1', bookingId: 'b5', kind: 'balance', status: 'succeeded', amountCents: 16800, createdAt: at(0, 12, 41), clientName: 'Jenna Rivera' },
     { id: 'p2', bookingId: 'b3', kind: 'deposit', status: 'succeeded', amountCents: 22500, createdAt: at(-1, 15), clientName: 'Ana Martinez' },

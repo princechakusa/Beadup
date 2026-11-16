@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { clearCache, readCache, writeCache } from './cache';
 import { fixtures } from './fixtures';
 import { addDaysKey, dateKey, isCountry, setMoneyCountry, startOfDay, type Country } from './format';
+import { startersFor } from './starters';
 import { currentTrade, isTradeId, setCurrentTrade, type TradeId } from './trades';
 import { apiBaseUrl, supabase } from './supabase';
 
@@ -961,5 +962,43 @@ export async function removeStaff(id: string): Promise<void> {
   if (!supabase) return;
   const { error } = await db().from('staff_members').delete().eq('id', id);
   if (error) throw error;
+  await refreshBookingPage();
+}
+
+/**
+ * A business changed trade: stop showing the old trade's services and add-ons
+ * (kept, hidden, so past bookings still read) and add the new trade's starters.
+ */
+export async function switchToStarters(trade: TradeId, country: Country): Promise<void> {
+  if (!supabase) return;
+  const { data: user } = await supabase.auth.getUser();
+  const id = user.user?.id;
+  if (!id) throw new Error('signed out');
+  const st = startersFor(trade, country);
+  const cents = (v: string) => Math.round(Number(v) * 100);
+  const a = await db().from('services').update({ active: false }).eq('detailer_id', id);
+  const b = await db().from('add_ons').update({ active: false }).eq('detailer_id', id);
+  if (a.error || b.error) throw a.error ?? b.error;
+  const on = st.services.filter((x) => x.on);
+  if (on.length) {
+    const { error } = await db().from('services').insert(
+      on.map((x, i) => ({
+        detailer_id: id,
+        name: x.name,
+        description: x.description,
+        duration_min: x.durationMin,
+        price_sedan_cents: cents(x.sedan),
+        price_suv_cents: cents(x.suv),
+        price_truck_cents: cents(x.truck),
+        sort_order: i + 1,
+      })),
+    );
+    if (error) throw error;
+  }
+  const extras = st.addOns.filter((x) => x.on);
+  if (extras.length) {
+    const { error } = await db().from('add_ons').insert(extras.map((x, i) => ({ detailer_id: id, name: x.name, price_cents: cents(x.price), sort_order: i + 1 })));
+    if (error) throw error;
+  }
   await refreshBookingPage();
 }
