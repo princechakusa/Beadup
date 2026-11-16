@@ -12,16 +12,18 @@ import { haptic } from '@/lib/haptics';
 import { currentTrade } from '@/lib/trades';
 import { useNow } from '@/lib/time';
 import { colors, space } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { dateLocale, t } from '@/lib/i18n';
 
 const TIMES = Array.from({ length: 31 }, (_, i) => {
   const m = 6 * 60 + i * 30;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 });
 const REPEAT = [
-  { weeks: 0, label: 'Once' },
-  { weeks: 1, label: 'Every week' },
-  { weeks: 2, label: 'Every 2 weeks' },
-  { weeks: 4, label: 'Every 4 weeks' },
+  { weeks: 0, label: 'ba_once' as const },
+  { weeks: 1, label: 'ba_w1' as const },
+  { weeks: 2, label: 'ba_w2' as const },
+  { weeks: 4, label: 'ba_w4' as const },
 ] as const;
 const COUNTS = [4, 8, 12];
 type Size = 'sedan' | 'suv' | 'truck';
@@ -90,15 +92,15 @@ export default function BookAgain() {
       });
       if (!r.ok) {
         haptic.error();
-        setResult('That didn’t book. Check the time and try again.');
+        setResult(t('ba_fail'));
         return;
       }
       haptic.success();
-      const skipped = r.skipped.length ? ` ${r.skipped.length} clashed with other jobs and were skipped.` : '';
-      setResult(`Booked ${r.made} visit${r.made === 1 ? '' : 's'}.${skipped}`);
+      const skipped = r.skipped.length ? t('ba_skipped', { n: r.skipped.length }) : '';
+      setResult(`${t(r.made === 1 ? 'ba_made' : 'ba_made_many', { n: r.made })}${skipped}`);
     } catch {
       haptic.error();
-      setResult('That didn’t go through. Check your connection and try again.');
+      setResult(t('bd_fail'));
     } finally {
       setBusy(false);
     }
@@ -106,17 +108,17 @@ export default function BookAgain() {
 
   if (result) {
     return (
-      <Screen title="Book again" tabs={false} right={<BackButton variant="back" />}>
+      <Screen title={t('ba_title')} tabs={false} right={<BackButton variant="back" />}>
         <Text variant="body">{result}</Text>
-        <Text variant="caption">Send {client?.name.split(' ')[0] ?? 'them'} the date from their client page (WhatsApp or Messages).</Text>
-        <Button label="Done" onPress={() => router.back()} />
+        <Text variant="caption">{t('ba_send', { name: client?.name.split(' ')[0] ?? t('ba_them') })}</Text>
+        <Button label={t('done')} onPress={() => router.back()} />
       </Screen>
     );
   }
 
   return (
-    <Screen eyebrow={client?.name ?? ' '} title="Book again" tabs={false} right={<BackButton variant="back" />}>
-      <Text variant="eyebrow">Service</Text>
+    <Screen eyebrow={client?.name ?? ' '} title={t('ba_title')} tabs={false} right={<BackButton variant="back" />}>
+      <Text variant="eyebrow">{t('ba_service')}</Text>
       <View style={styles.wrap}>
         {services.map((s) => {
           const on = s.id === svc?.id;
@@ -127,10 +129,10 @@ export default function BookAgain() {
       </View>
       {tiers && (
         <>
-          <Text variant="eyebrow">{trade.tierTitle}</Text>
+          <Text variant="eyebrow">{phrase(trade.tierTitle)}</Text>
           <View style={styles.wrap}>
             {(['sedan', 'suv', 'truck'] as const).map((k) => (
-              <Chip key={k} on={k === tier} onPress={() => setSize(k)} label={trade.tiers[k]} />
+              <Chip key={k} on={k === tier} onPress={() => setSize(k)} label={phrase(trade.tiers[k])} />
             ))}
           </View>
         </>
@@ -138,7 +140,7 @@ export default function BookAgain() {
 
       {people.length > 0 && (
         <>
-          <Text variant="eyebrow">With</Text>
+          <Text variant="eyebrow">{t('ba_with')}</Text>
           <View style={styles.wrap}>
             {people.map((m) => (
               <Chip key={m.id} on={m.id === staffId} onPress={() => setStaffId(m.id === staffId ? null : m.id)} label={m.name} />
@@ -147,7 +149,7 @@ export default function BookAgain() {
         </>
       )}
 
-      <Text variant="eyebrow">First visit</Text>
+      <Text variant="eyebrow">{t('ba_first')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {Array.from({ length: 42 }, (_, i) => addDaysKey(todayKey, i)).map((k) => {
           const on = k === day;
@@ -164,7 +166,7 @@ export default function BookAgain() {
               accessibilityRole="button"
               accessibilityState={{ selected: on }}>
               <Text variant="caption" style={{ fontSize: 11, color: on ? colors.beadInk : colors.steel }}>
-                {d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })}
+                {d.toLocaleDateString(dateLocale(), { weekday: 'short', timeZone: 'UTC' })}
               </Text>
               <Text variant="bodyStrong" style={{ color: on ? colors.beadInk : colors.paint }}>
                 {d.getUTCDate()}
@@ -174,37 +176,37 @@ export default function BookAgain() {
         })}
       </ScrollView>
       <View style={styles.wrap}>
-        {TIMES.map((t) => {
-          const off = dayJobs.loading || blocked(t);
+        {TIMES.map((slot) => {
+          const off = dayJobs.loading || blocked(slot);
           return (
             <Chip
-              key={t}
-              on={t === time}
+              key={slot}
+              on={slot === time}
               disabled={off}
-              onPress={() => setTime(t)}
-              label={timeOf(localTime(day, t, tz).toISOString(), tz)}
+              onPress={() => setTime(slot)}
+              label={timeOf(localTime(day, slot, tz).toISOString(), tz)}
             />
           );
         })}
       </View>
 
-      <Text variant="eyebrow">Repeat</Text>
+      <Text variant="eyebrow">{t('ba_repeat')}</Text>
       <View style={styles.wrap}>
         {REPEAT.map((r) => (
-          <Chip key={r.weeks} on={r.weeks === weeks} onPress={() => setWeeks(r.weeks)} label={r.label} />
+          <Chip key={r.weeks} on={r.weeks === weeks} onPress={() => setWeeks(r.weeks)} label={t(r.label)} />
         ))}
       </View>
       {weeks > 0 && (
         <View style={styles.wrap}>
           {COUNTS.map((n) => (
-            <Chip key={n} on={n === count} onPress={() => setCount(n)} label={`${n} visits`} />
+            <Chip key={n} on={n === count} onPress={() => setCount(n)} label={t('ba_visits', { n })} />
           ))}
         </View>
       )}
 
       <View style={{ gap: space.md }}>
         <Button
-          label={chosen ? `Book ${weeks ? `${count} visits from ` : ''}${dayLabel(chosen.toISOString(), tz)} · ${timeOf(chosen.toISOString(), tz)}` : 'Pick a time'}
+          label={chosen ? (weeks ? t('ba_book_series', { n: count, when: `${dayLabel(chosen.toISOString(), tz)} · ${timeOf(chosen.toISOString(), tz)}` }) : t('ba_book', { when: `${dayLabel(chosen.toISOString(), tz)} · ${timeOf(chosen.toISOString(), tz)}` })) : t('ba_pick')}
           onPress={save}
           loading={busy}
           disabled={!chosen || !svc}

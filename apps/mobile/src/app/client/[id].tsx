@@ -11,13 +11,14 @@ import { haptic } from '@/lib/haptics';
 import { fetchClientBookings, fetchClients, fetchProfile, useQuery } from '@/lib/data';
 import { dayLabel, timeOf, money } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 const STATUS = {
-  confirmed: { label: 'Booked', tone: 'bead' as const },
-  completed: { label: 'Done', tone: 'success' as const },
-  cancelled: { label: 'Cancelled', tone: 'steel' as const },
-  no_show: { label: 'No-show', tone: 'danger' as const },
-  pending_payment: { label: 'Unpaid', tone: 'gold' as const },
+  confirmed: { label: 'cd_booked' as const, tone: 'bead' as const },
+  completed: { label: 'done' as const, tone: 'success' as const },
+  cancelled: { label: 'bd_cancelled' as const, tone: 'steel' as const },
+  no_show: { label: 'st_no_show' as const, tone: 'danger' as const },
+  pending_payment: { label: 'cd_unpaid' as const, tone: 'gold' as const },
 };
 
 export default function ClientDetail() {
@@ -31,13 +32,13 @@ export default function ClientDetail() {
   const pretty = (e164: string) => e164.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3');
 
   return (
-    <Screen eyebrow={c ? pretty(c.phone) : ' '} title={c?.name ?? (clients.loading ? 'Loading…' : 'Client')} tabs={false} right={<BackButton variant="back" />}>
+    <Screen eyebrow={c ? pretty(c.phone) : ' '} title={c?.name ?? (clients.loading ? t('loading') : t('cd_client'))} tabs={false} right={<BackButton variant="back" />}>
       {c && (
         <>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={styles.tile}>
               <Text variant="caption" style={{ fontSize: 12 }}>
-                Visits
+                {t('cd_visits')}
               </Text>
               <Text variant="heading" style={{ fontSize: 22 }}>
                 {c.visits}
@@ -45,7 +46,7 @@ export default function ClientDetail() {
             </View>
             <View style={styles.tile}>
               <Text variant="caption" style={{ fontSize: 12 }}>
-                Spent with you
+                {t('cd_spent')}
               </Text>
               <Text variant="heading" tone="gold" style={{ fontSize: 22 }}>
                 {money(c.spentCents, { cents: false })}
@@ -54,22 +55,22 @@ export default function ClientDetail() {
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <Button label="WhatsApp" variant="glass" onPress={() => Linking.openURL(whatsappUrl(c.phone, `Hi ${c.name.split(' ')[0]}, `))} />
+              <Button label={t('whatsapp')} variant="glass" onPress={() => Linking.openURL(whatsappUrl(c.phone, `${c.name.split(' ')[0]}, `))} />
             </View>
             <View style={{ flex: 1 }}>
-              <Button label="Text" variant="glass" onPress={() => Linking.openURL(`sms:${c.phone}`)} />
+              <Button label={t('text')} variant="glass" onPress={() => Linking.openURL(`sms:${c.phone}`)} />
             </View>
             <View style={{ flex: 1 }}>
-              <Button label="Call" variant="glass" onPress={() => Linking.openURL(`tel:${c.phone}`)} />
+              <Button label={t('call')} variant="glass" onPress={() => Linking.openURL(`tel:${c.phone}`)} />
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <Button label="Book again" onPress={() => router.push(`/book/${c.id}`)} />
+              <Button label={t('cd_book_again')} onPress={() => router.push(`/book/${c.id}`)} />
             </View>
             <View style={{ flex: 1 }}>
               <Button
-                label="Invite back"
+                label={t('cd_invite')}
                 variant="glass"
                 onPress={() => {
                   if (!profile.data) return;
@@ -77,7 +78,7 @@ export default function ClientDetail() {
                   sendMessage(
                     'whatsapp',
                     c.phone,
-                    `Hi ${c.name.split(' ')[0]}, it's ${profile.data.businessName}. It's been a while! Book your next visit here: ${apiBaseUrl}/${profile.data.handle}`,
+                    t('cd_invite_msg', { name: c.name.split(' ')[0], business: profile.data.businessName, url: `${apiBaseUrl}/${profile.data.handle}` }),
                   );
                 }}
               />
@@ -92,7 +93,7 @@ export default function ClientDetail() {
       )}
 
       <Text variant="heading" style={{ fontSize: 18 }}>
-        History
+        {t('cd_history')}
       </Text>
       {history.data?.length ? (
         <ListCard>
@@ -112,7 +113,7 @@ export default function ClientDetail() {
                   <Text variant="bodyStrong" style={{ fontFamily: fonts.display, fontSize: 15, color: colors.gold }}>
                     {money(b.subtotalCents)}
                   </Text>
-                  <Badge label={s.label} tone={s.tone} />
+                  <Badge label={t(s.label)} tone={s.tone} />
                 </View>
               </Pressable>
             );
@@ -120,7 +121,7 @@ export default function ClientDetail() {
         </ListCard>
       ) : (
         <ListCard>
-          <EmptyState title={history.loading ? 'Loading…' : 'No bookings yet'} body="" />
+          <EmptyState title={history.loading ? t('loading') : t('cd_none')} body="" />
         </ListCard>
       )}
     </Screen>

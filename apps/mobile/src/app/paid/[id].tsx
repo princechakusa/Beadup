@@ -17,7 +17,7 @@ import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { maybeAskForRating } from '@/lib/rating';
 import { colors, space } from '@/theme/tokens';
-import { dateLocale, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 
 
 /** Counts up to `target` cents over ~0.9s (instant under Reduce Motion). */
