@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Refund policy",
   description: "How refunds work for Beadup Pro (bought in the app through Apple or Google) and for appointment deposits paid to businesses.",
   alternates: { canonical: "/refund-policy" },
+  openGraph: { images: OG_IMAGES, title: "Beadup refund policy", description: "How refunds work for Beadup Pro and for appointment deposits paid to businesses.", url: "/refund-policy" },
+  twitter: { ...TWITTER_CARD, title: "Beadup refund policy", description: "How refunds work for Beadup Pro and for appointment deposits paid to businesses." },
 };
 
 // Pro is sold only in the app, through Apple and Google (owner decision, no web

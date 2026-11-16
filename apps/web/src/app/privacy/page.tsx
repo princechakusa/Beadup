@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { getPublicConfig, LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
   description: "What information Beadup collects, why, who we share it with and the choices you have.",
   alternates: { canonical: "/privacy" },
+  openGraph: { images: OG_IMAGES, title: "Beadup privacy policy", description: "What information Beadup collects, why, who we share it with and the choices you have.", url: "/privacy" },
+  twitter: { ...TWITTER_CARD, title: "Beadup privacy policy", description: "What information Beadup collects, why, who we share it with and the choices you have." },
 };
 
 // Written to match what the code actually does (see docs/store-submission.md

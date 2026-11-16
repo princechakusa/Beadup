@@ -4,7 +4,7 @@ import { IconArrowRight } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES } from "@/content/trade-pages";
-import { appStoreMetadata } from "@/lib/seo";
+import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 import { TRADES } from "@/lib/trades";
 
 const TITLE = "Booking links for appointment businesses";
@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/for" },
-  openGraph: { title: `${TITLE} · Beadup`, description: DESCRIPTION, url: "/for" },
+  openGraph: { images: OG_IMAGES, title: `${TITLE} · Beadup`, description: DESCRIPTION, url: "/for" },
+  twitter: { ...TWITTER_CARD, title: `${TITLE} · Beadup`, description: DESCRIPTION },
   ...appStoreMetadata(),
 };
 

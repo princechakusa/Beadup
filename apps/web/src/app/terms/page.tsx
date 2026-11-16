@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { getPublicConfig, LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Terms of service",
   description: "The agreement between you and Beadup for using the Beadup app and website.",
   alternates: { canonical: "/terms" },
+  openGraph: { images: OG_IMAGES, title: "Beadup terms of service", description: "The agreement between you and Beadup for using the Beadup app and website.", url: "/terms" },
+  twitter: { ...TWITTER_CARD, title: "Beadup terms of service", description: "The agreement between you and Beadup for using the Beadup app and website." },
 };
 
 // Mirrors how the product works (cancellation policy = cancel_booking() in

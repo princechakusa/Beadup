@@ -5,6 +5,7 @@ import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES, tradePage } from "@/content/trade-pages";
 import { directoryQuery, getDirectory } from "@/lib/directory";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 import { TRADES } from "@/lib/trades";
 
 /** Only the trades with pages: anything else is a real 404 (the middleware also checks). */
@@ -25,7 +26,8 @@ export async function generateMetadata({ params }: PageProps<"/find/[slug]">): P
     title: `${heading(name)}: book online`,
     description,
     alternates: { canonical: `/find/${p.slug}` },
-    openGraph: { title: `${heading(name)} · Beadup`, description, url: `/find/${p.slug}` },
+    openGraph: { images: OG_IMAGES, title: `${heading(name)} · Beadup`, description, url: `/find/${p.slug}` },
+    twitter: { ...TWITTER_CARD, title: `${heading(name)} · Beadup`, description },
   };
 }
 

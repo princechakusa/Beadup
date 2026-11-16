@@ -4,7 +4,7 @@ import { IconArrowRight } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
 import { GUIDES } from "@/content/guides";
-import { appStoreMetadata } from "@/lib/seo";
+import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 const TITLE = "Guides for appointment businesses";
 const DESCRIPTION = "Plain, practical guides for detailers, salons, barbers, cleaners and mechanics: pricing, deposits, no-shows and getting booked.";
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/blog" },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: "/blog" },
-  twitter: { title: TITLE, description: DESCRIPTION },
+  openGraph: { images: OG_IMAGES, title: TITLE, description: DESCRIPTION, url: "/blog" },
+  twitter: { ...TWITTER_CARD, title: TITLE, description: DESCRIPTION },
   ...appStoreMetadata(),
 };
 

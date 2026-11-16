@@ -5,7 +5,7 @@ import { AppStoreButton } from "@/components/site/AppStoreButton";
 import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { FaqMicrodata } from "@/components/site/Structured";
 import { GUIDES, getGuide } from "@/content/guides";
-import { appStoreMetadata } from "@/lib/seo";
+import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
     title: g.title,
     description: g.description,
     alternates: { canonical: url },
-    openGraph: { type: "article", title: g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated },
-    twitter: { title: g.title, description: g.description },
+    openGraph: { images: OG_IMAGES, type: "article", title: g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated },
+    twitter: { ...TWITTER_CARD, title: g.title, description: g.description },
     ...appStoreMetadata(),
   };
 }

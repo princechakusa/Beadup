@@ -9,7 +9,7 @@ import { TradeHero } from "@/components/site/TradeHero";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { tradeHeroSrc } from "@/content/trade-heroes";
 import { TRADE_PAGES, tradePage } from "@/content/trade-pages";
-import { appStoreMetadata } from "@/lib/seo";
+import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 import { getPublicConfig } from "@/lib/site";
 import { TRADES } from "@/lib/trades";
 
@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: PageProps<"/for/[slug]">): Pr
     title: p.title,
     description: p.description,
     alternates: { canonical: url },
-    openGraph: { title: `${p.title} · Beadup`, description: p.description, url, ...(tradeHeroSrc(p.slug) ? { images: [{ url: tradeHeroSrc(p.slug)!, width: 1280, height: 731 }] } : {}) },
-    twitter: { title: `${p.title} · Beadup`, description: p.description, ...(tradeHeroSrc(p.slug) ? { card: "summary_large_image" as const, images: [tradeHeroSrc(p.slug)!] } : {}) },
+    openGraph: { title: `${p.title} · Beadup`, description: p.description, url, ...(tradeHeroSrc(p.slug) ? { images: [{ url: tradeHeroSrc(p.slug)!, width: 1280, height: 731 }] } : { images: OG_IMAGES }) },
+    twitter: { title: `${p.title} · Beadup`, description: p.description, ...(tradeHeroSrc(p.slug) ? { card: "summary_large_image" as const, images: [tradeHeroSrc(p.slug)!] } : TWITTER_CARD) },
     ...appStoreMetadata(),
   };
 }
@@ -144,6 +144,16 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
         <h2 id="more" className="font-display text-xl font-bold">
           Beadup for other businesses
         </h2>
+        <p className="mt-3 text-[15px] text-steel">
+          More: <Link href="/booking-link-with-deposits" className="text-bead hover:underline">booking link with 30% deposits and WhatsApp reminders</Link>
+          {p.trade === "detailing" && (
+            <>
+              , <Link href="/car-detailing-booking-app" className="text-bead hover:underline">best booking app for mobile car detailers</Link> and{" "}
+              <Link href="/ai-detailing-quote-calculator" className="text-bead hover:underline">AI photo quotes for auto detailers</Link>
+            </>
+          )}
+          .
+        </p>
         <ul className="mt-4 flex flex-wrap gap-2">
           {others.map((o) => (
             <li key={o.slug}>

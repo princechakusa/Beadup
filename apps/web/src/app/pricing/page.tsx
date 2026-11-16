@@ -6,6 +6,7 @@ import { IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
 import { getPublicConfig, proPriceFor, visitorCountry } from "@/lib/site";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 const DESCRIPTION = "Start free with every feature. Upgrade to Beadup Pro in the app when you're booking more.";
 
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
   title: "Pricing",
   description: DESCRIPTION,
   alternates: { canonical: "/pricing" },
-  openGraph: { title: "Beadup pricing", description: DESCRIPTION, url: "/pricing" },
-  twitter: { title: "Beadup pricing", description: DESCRIPTION },
+  openGraph: { images: OG_IMAGES, title: "Beadup pricing", description: DESCRIPTION, url: "/pricing" },
+  twitter: { ...TWITTER_CARD, title: "Beadup pricing", description: DESCRIPTION },
 };
 
 function Check({ children }: { children: ReactNode }) {

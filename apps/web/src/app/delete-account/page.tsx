@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { DocPage, H2 } from "@/components/site/SiteChrome";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { DeletionForm } from "./DeletionForm";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Delete your account",
   description: "How to delete your Beadup account and data.",
   alternates: { canonical: "/delete-account" },
+  openGraph: { images: OG_IMAGES, title: "Delete your Beadup account", description: "How to delete your Beadup account and data.", url: "/delete-account" },
+  twitter: { ...TWITTER_CARD, title: "Delete your Beadup account", description: "How to delete your Beadup account and data." },
 };
 
 const TOC = ["The fastest way: in the app", "No access to the app? Ask us", "What gets deleted", "What is kept"];

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, APP_STORE_LISTING } from "@/lib/seo";
 
 /*
  * Structured data as schema.org microdata (itemScope/itemProp on real HTML),
@@ -28,31 +28,59 @@ export function FaqMicrodata({ items }: { items: [string, ReactNode][] }) {
   );
 }
 
-/** Beadup itself, as a SoftwareApplication and Organization (rendered once, on the home page). */
+/** What the app does today, as plain facts (also the schema.org featureList). */
+export const FEATURE_LIST = [
+  "Booking link for appointment businesses: clients book in a browser with no app or account",
+  "AI photo quotes for car detailing, priced from the business's own price list and approved by the business",
+  "30% deposits paid straight to the business",
+  "WhatsApp reminders and receipts sent in one tap",
+  "No double bookings, with travel time between jobs",
+  "13 trades from car detailing to salons, barbers and groomers",
+];
+
+/**
+ * Beadup itself, as a SoftwareApplication and Organization (home and app landing pages).
+ * Offers: a free plan and the optional Pro subscription; Pro's price is set in the
+ * stores and is deliberately not stated here. Android is not listed until it is live.
+ */
 export function AppMicrodata({ description, appStoreUrl }: { description: string; appStoreUrl: string | null }) {
+  const store = appStoreUrl ?? APP_STORE_LISTING;
   return (
     <>
       <div itemScope itemType="https://schema.org/SoftwareApplication" className="hidden">
         <meta itemProp="name" content="Beadup" />
+        <meta itemProp="alternateName" content="Beadup booking app for service businesses" />
         <meta itemProp="description" content={description} />
         <meta itemProp="applicationCategory" content="BusinessApplication" />
-        <meta itemProp="operatingSystem" content="iOS" />
+        <meta itemProp="operatingSystem" content="iOS, Web" />
+        <meta itemProp="inLanguage" content="en" />
         <link itemProp="url" href={absoluteUrl("/")} />
         <link itemProp="image" href={absoluteUrl("/opengraph-image.png")} />
-        {appStoreUrl && <link itemProp="installUrl" href={appStoreUrl} />}
+        <link itemProp="installUrl" href={store} />
+        <link itemProp="downloadUrl" href={store} />
+        {FEATURE_LIST.map((f) => (
+          <meta key={f} itemProp="featureList" content={f} />
+        ))}
         <span itemProp="offers" itemScope itemType="https://schema.org/Offer">
+          <meta itemProp="name" content="Free plan" />
           <meta itemProp="price" content="0" />
           <meta itemProp="priceCurrency" content="USD" />
-          <meta itemProp="description" content="Free plan. Optional Beadup Pro subscription in the app." />
+          <meta itemProp="description" content="Free to start with every feature and a monthly booking limit." />
+        </span>
+        <span itemProp="offers" itemScope itemType="https://schema.org/Offer">
+          <meta itemProp="name" content="Beadup Pro, monthly subscription" />
+          <meta itemProp="description" content="Optional monthly subscription bought in the app through the App Store. Removes the booking limit. The price is shown in the App Store." />
+          <link itemProp="url" href={absoluteUrl("/pricing")} />
         </span>
         <span itemProp="audience" itemScope itemType="https://schema.org/BusinessAudience">
-          <meta itemProp="audienceType" content="Mobile car detailers" />
+          <meta itemProp="audienceType" content="Mobile car detailers, salons, barbers, groomers, cleaners, mechanics and other appointment businesses" />
         </span>
       </div>
       <div itemScope itemType="https://schema.org/Organization" className="hidden">
         <meta itemProp="name" content="Beadup" />
         <link itemProp="url" href={absoluteUrl("/")} />
         <link itemProp="logo" href={absoluteUrl("/icon.png")} />
+        <link itemProp="sameAs" href={store} />
       </div>
     </>
   );

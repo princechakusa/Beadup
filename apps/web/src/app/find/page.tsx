@@ -5,6 +5,7 @@ import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { directoryQuery, getDirectory } from "@/lib/directory";
 import { TRADES } from "@/lib/trades";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 const TITLE = "Find and book a pro near you";
 const DESCRIPTION =
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/find" },
-  openGraph: { title: `${TITLE} · Beadup`, description: DESCRIPTION, url: "/find" },
+  openGraph: { images: OG_IMAGES, title: `${TITLE} · Beadup`, description: DESCRIPTION, url: "/find" },
+  twitter: { ...TWITTER_CARD, title: `${TITLE} · Beadup`, description: DESCRIPTION },
 };
 
 /** The public directory: every published business that hasn't opted out. */

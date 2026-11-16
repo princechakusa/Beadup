@@ -28,7 +28,7 @@ import { Walkthrough } from "@/components/site/Walkthrough";
 import { ButtonLink, SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { BookInSeconds, FeatureBar, HeroLanding } from "@/components/site/HeroLanding";
-import { appStoreMetadata } from "@/lib/seo";
+import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { TRADES } from "@/lib/trades";
 import type { Country } from "@/lib/countries";
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: "/" },
-  twitter: { title: TITLE, description: DESCRIPTION },
+  openGraph: { images: OG_IMAGES, title: TITLE, description: DESCRIPTION, url: "/" },
+  twitter: { ...TWITTER_CARD, title: TITLE, description: DESCRIPTION },
   ...appStoreMetadata(),
 };
 
@@ -170,6 +170,11 @@ function Trades() {
           </li>
         ))}
       </ul>
+      <p className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-steel">
+        <Link href="/car-detailing-booking-app" className="text-bead hover:underline">Booking app for mobile car detailers</Link>
+        <Link href="/ai-detailing-quote-calculator" className="text-bead hover:underline">AI photo quotes for auto detailers</Link>
+        <Link href="/booking-link-with-deposits" className="text-bead hover:underline">Booking link with deposits</Link>
+      </p>
     </section>
   );
 }

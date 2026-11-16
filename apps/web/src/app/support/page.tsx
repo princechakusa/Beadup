@@ -6,6 +6,7 @@ import { FaqMicrodata } from "@/components/site/Structured";
 import { Reveal } from "@/components/site/Reveal";
 import { SitePage } from "@/components/site/SiteChrome";
 import { getPublicConfig, SUPPORT_EMAIL } from "@/lib/site";
+import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 
 const DESCRIPTION = "Help for detailers using Beadup and for clients who booked through a Beadup link.";
 
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
   title: "Support",
   description: DESCRIPTION,
   alternates: { canonical: "/support" },
-  openGraph: { title: "Beadup support", description: DESCRIPTION, url: "/support" },
-  twitter: { title: "Beadup support", description: DESCRIPTION },
+  openGraph: { images: OG_IMAGES, title: "Beadup support", description: DESCRIPTION, url: "/support" },
+  twitter: { ...TWITTER_CARD, title: "Beadup support", description: DESCRIPTION },
 };
 
 const CLIENT_FAQ_EXTERNAL: [string, ReactNode][] = [
