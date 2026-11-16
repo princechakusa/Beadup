@@ -1,4 +1,4 @@
--- /refund-policy is a website page (needed for Paddle), so it can't be a booking handle.
+-- /refund-policy is a website page, so it can't be a booking handle.
 -- NOT VALID: existing rows aren't re-checked; every new or changed handle is.
 alter table public.detailers drop constraint detailers_handle_reserved;
 alter table public.detailers add constraint detailers_handle_reserved

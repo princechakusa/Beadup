@@ -5,18 +5,18 @@ import { LEGAL_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Refund policy",
-  description: "How refunds work for Beadup Pro (bought in the app or on our website) and for appointment deposits paid to businesses.",
+  description: "How refunds work for Beadup Pro (bought in the app through Apple or Google) and for appointment deposits paid to businesses.",
   alternates: { canonical: "/refund-policy" },
 };
 
-// Written for today (Pro sold in the app through Apple and Google; deposits paid
-// to businesses directly) and for website purchases through Paddle (merchant of
-// record) once they are switched on. Have it reviewed by a lawyer before launch.
-const TOC = ["Summary", "Beadup Pro bought in the app", "Beadup Pro bought on our website", "Cancelling", "Appointment deposits", "The free plan", "How to ask for a refund"];
+// Pro is sold only in the app, through Apple and Google (owner decision, no web
+// checkout and no merchant of record); deposits are paid to businesses directly.
+// Have it reviewed by a lawyer before launch.
+const TOC = ["Summary", "Beadup Pro bought in the app", "Cancelling", "Appointment deposits", "The free plan", "How to ask for a refund"];
 
 export default function RefundPolicy() {
   return (
-    <DocPage eyebrow="Legal" title="Refund policy" updated="November 12, 2026" toc={TOC}>
+    <DocPage eyebrow="Legal" title="Refund policy" updated="November 17, 2026" toc={TOC}>
       <p>
         This policy explains how refunds work for payments to {LEGAL_NAME} (&quot;Beadup&quot;, &quot;we&quot;) for Beadup Pro,
         and what happens with money that clients pay to the businesses that use Beadup.
@@ -24,8 +24,7 @@ export default function RefundPolicy() {
 
       <H2>Summary</H2>
       <ul>
-        <li>Beadup Pro bought in the iPhone or Android app is refunded by Apple or Google, under their rules.</li>
-        <li>Beadup Pro bought on our website can be refunded in full within 14 days of any payment, no questions asked.</li>
+        <li>Beadup Pro is bought in the iPhone or Android app and is refunded by Apple or Google, under their rules.</li>
         <li>You can cancel Pro at any time. You keep Pro until the end of the period you paid for.</li>
         <li>
           Deposits and payments for appointments go straight to the business you booked, not to Beadup. Refunds for those are
@@ -48,24 +47,11 @@ export default function RefundPolicy() {
           <a href="https://support.google.com/googleplay/answer/2479637" rel="noopener noreferrer">Google Play Help</a>.
         </li>
       </ul>
-      <p>If you&apos;re not sure how you subscribed, write to us and we&apos;ll help.</p>
-
-      <H2>Beadup Pro bought on our website</H2>
-      <p>
-        When Pro is sold on our website, our order process is conducted by our online reseller Paddle.com. Paddle.com is the
-        merchant of record for those orders: it takes the payment and processes refunds.
-      </p>
-      <ul>
-        <li>You can ask for a full refund within 14 days of any payment (the first one or a renewal), for any reason.</li>
-        <li>After 14 days, payments are not refunded, except where the law requires it or where Beadup Pro didn&apos;t work as described and we couldn&apos;t fix it.</li>
-        <li>Refunds go back to the payment method you used. They usually arrive within 5 to 10 business days, depending on your bank.</li>
-        <li>When a payment is refunded, Pro ends and your account moves to the free plan. Your data stays.</li>
-      </ul>
+      <p>If you need help finding where to cancel or ask for a refund, write to us and we&apos;ll point you to the right place.</p>
 
       <H2>Cancelling</H2>
       <p>
-        You can cancel Pro at any time: in your App Store or Google Play subscription settings for app purchases, or from the
-        receipt email or your account for website purchases. Cancelling stops the next renewal. You keep Pro until the end of the
+        You can cancel Pro at any time in your App Store or Google Play subscription settings. Cancelling stops the next renewal. You keep Pro until the end of the
         period you already paid for, and there is no charge after that. Deleting your Beadup account does not cancel a store
         subscription, so cancel it in the store too.
       </p>

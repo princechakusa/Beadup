@@ -18,7 +18,7 @@ export default async function Terms() {
   const { payments_mode } = await getPublicConfig();
   const external = payments_mode === "external";
   return (
-    <DocPage eyebrow="Legal" title="Terms of service" updated="November 7, 2026" toc={TOC}>
+    <DocPage eyebrow="Legal" title="Terms of service" updated="November 17, 2026" toc={TOC}>
       <p>
         These terms are an agreement between you and {LEGAL_NAME} (&quot;Beadup&quot;, &quot;we&quot;) about using the
         Beadup app and website. By using Beadup you agree to them. If you are using Beadup for a business, you agree on
@@ -27,7 +27,7 @@ export default async function Terms() {
 
       <H2>What Beadup is</H2>
       <p>
-        Beadup is software for appointment businesses (car detailers, salons, barbers, groomers, cleaners, mechanics and
+        Beadup is software for appointment businesses (car businesses, salons, barbers, groomers, cleaners, mechanics and
         others) to take bookings, quote and get paid. These businesses are independent. Beadup is not a party to the service a
         business provides to a client, and is not responsible for the quality, timing or outcome of that work. Refunds are
         covered by our <Link href="/refund-policy">refund policy</Link>.
@@ -44,40 +44,40 @@ export default async function Terms() {
       {external ? (
       <ul>
         <li>
-          Beadup does not process or hold client payments. Clients pay the detailer directly, using the payment method
-          the detailer shows after booking (for example their own payment link or bank transfer details).
+          Beadup does not process or hold client payments. Clients pay the business directly, using the payment method
+          the business shows after booking (for example their own payment link or bank transfer details).
         </li>
         <li>
           The booking page shows the price and a suggested deposit (currently 30% of the price). Deposits, balances,
-          cancellations and refunds are agreed between the client and the detailer.
+          cancellations and refunds are agreed between the client and the business.
         </li>
-        <li>Beadup does not take a percentage of detailers&apos; payments.</li>
+        <li>Beadup does not take a percentage of businesses&apos; payments.</li>
       </ul>
       ) : (
       <ul>
         <li>
-          Client payments are processed by Stripe and paid out to the detailer&apos;s Stripe account. Detailers must
+          Client payments are processed by Stripe and paid out to the business&apos;s Stripe account. Businesses must
           accept Stripe&apos;s terms, and Stripe may verify their identity or hold payouts under its own policies.
         </li>
         <li>
           Clients pay a deposit when booking (currently 30% of the price) and the balance after the job, plus a booking fee
           that covers card processing. The amounts are shown before payment.
         </li>
-        <li>Beadup does not take a percentage of detailers&apos; payments.</li>
+        <li>Beadup does not take a percentage of businesses&apos; payments.</li>
       </ul>
       )}
 
       <H2>Cancellations and refunds for bookings</H2>
       {external ? (
       <p>
-        Clients should contact the detailer to change or cancel a booking. Because deposits are paid to the detailer
-        directly, refunds are made by the detailer under the policy they give the client. Beadup cannot issue refunds.
+        Clients should contact the business to change or cancel a booking. Because deposits are paid to the business
+        directly, refunds are made by the business under the policy they give the client. Beadup cannot issue refunds.
       </p>
       ) : (
       <ul>
         <li>If a client cancels 24 hours or more before the appointment, the deposit is refunded. The booking fee covers card processing and is not refunded.</li>
         <li>If a client cancels later than that, or doesn&apos;t show up, the deposit is not refunded.</li>
-        <li>If the detailer cancels, the client is refunded in full, including the booking fee.</li>
+        <li>If the business cancels, the client is refunded in full, including the booking fee.</li>
       </ul>
       )}
 
@@ -90,8 +90,8 @@ export default async function Terms() {
 
       <H2>AI photo quotes</H2>
       <p>
-        AI suggestions are estimates to help detailers price a job. They use the detailer&apos;s own price list and the
-        detailer reviews and approves every quote before it is sent. Clients are never charged based on an AI suggestion
+        AI suggestions are estimates to help businesses price a job. They use the business&apos;s own price list and the
+        business reviews and approves every quote before it is sent. Clients are never charged based on an AI suggestion
         alone.
       </p>
 
@@ -116,7 +116,7 @@ export default async function Terms() {
       </p>
 
       <H2>Changes</H2>
-      <p>We may update these terms. We&apos;ll change the date above and tell detailers in the app about significant changes.</p>
+      <p>We may update these terms. We&apos;ll change the date above and tell businesses in the app about significant changes.</p>
 
       <H2>Contact</H2>
       <p>

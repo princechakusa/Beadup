@@ -18,13 +18,13 @@ import {
 // a 4-up feature bar, and a "Let clients book in seconds" browser mockup.
 // Tailwind classes only: the nonce CSP forbids inline styles in server HTML.
 
-/** Wet paint backdrop: the owner's photo of a beaded hood. */
+/** Backdrop: one mosaic of every trade Beadup is for (barber, detailer, salon, groomer, cleaner, mechanic...). */
 function Beads() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* the owner's wet-hood photo, darkened on the left so the headline reads */}
+      {/* the all-trades mosaic, darkened on the left so the headline reads */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/hero/hood.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[70%_center] lg:w-[78%]" />
+      <img src="/hero/all-trades.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[60%_center] lg:w-[78%]" />
       <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/80 to-midnight/10" />
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-midnight/80 to-transparent" />
       {/* fade into the page below */}
