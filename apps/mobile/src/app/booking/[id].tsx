@@ -28,13 +28,14 @@ import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { useNow } from '@/lib/time';
 import { space } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 const STATUS = {
-  pending_payment: { label: 'Awaiting deposit', tone: 'gold' as const },
-  confirmed: { label: 'Deposit paid', tone: 'success' as const },
-  completed: { label: 'Paid in full', tone: 'success' as const },
-  cancelled: { label: 'Cancelled', tone: 'steel' as const },
-  no_show: { label: 'No-show', tone: 'danger' as const },
+  pending_payment: { label: 'bd_awaiting' as const, tone: 'gold' as const },
+  confirmed: { label: 'st_deposit_paid' as const, tone: 'success' as const },
+  completed: { label: 'st_paid_full' as const, tone: 'success' as const },
+  cancelled: { label: 'bd_cancelled' as const, tone: 'steel' as const },
+  no_show: { label: 'st_no_show' as const, tone: 'danger' as const },
 };
 
 export default function BookingDetail() {
@@ -61,7 +62,7 @@ export default function BookingDetail() {
       request.refresh();
     } catch {
       haptic.error();
-      setNotice('That didn’t go through. Check your connection and try again.');
+      setNotice(t('bd_fail'));
     } finally {
       setBusy(null);
     }
@@ -69,7 +70,7 @@ export default function BookingDetail() {
 
   if (!b) {
     return (
-      <Screen title={booking.loading ? 'Loading…' : 'Booking not found'} tabs={false} right={<BackButton />}>
+      <Screen title={booking.loading ? t('loading') : t('bd_notfound')} tabs={false} right={<BackButton />}>
         <View />
       </Screen>
     );
@@ -80,25 +81,25 @@ export default function BookingDetail() {
   const s =
     external && b.status === 'confirmed'
       ? b.depositReceived
-        ? { label: 'Deposit paid', tone: 'success' as const }
+        ? { label: 'st_deposit_paid' as const, tone: 'success' as const }
         : b.depositReported
-          ? { label: 'Client says paid', tone: 'gold' as const }
-          : { label: 'Deposit due', tone: 'gold' as const }
+          ? { label: 'bd_says_paid' as const, tone: 'gold' as const }
+          : { label: 'st_deposit_due' as const, tone: 'gold' as const }
       : STATUS[b.status];
 
   return (
     <Screen eyebrow={`${dayLabel(b.startsAt, tz)} · ${timeOf(b.startsAt, tz)}`} title={b.serviceName} tabs={false} right={<BackButton />}>
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-        <Badge label={s.label} tone={s.tone} />
+        <Badge label={t(s.label)} tone={s.tone} />
         <Text variant="caption">
-          {[sizeLabel(b.vehicleSize), `${Math.round((b.durationMin / 60) * 10) / 10} h`, b.staffName && `with ${b.staffName}`].filter(Boolean).join(' · ')}
+          {[sizeLabel(b.vehicleSize), t('hours_short', { n: Math.round((b.durationMin / 60) * 10) / 10 }), b.staffName && t('bd_with', { name: b.staffName })].filter(Boolean).join(' · ')}
         </Text>
       </View>
 
       {request.data && (b.status === 'confirmed' || b.status === 'pending_payment') && (
         <RequestCard
           r={request.data}
-          first={b.client.name.split(' ')[0] || 'The client'}
+          first={b.client.name.split(' ')[0] || t('bd_the_client')}
           busy={busy === 'dismiss'}
           onReschedule={() => router.push(`/reschedule/${b.id}`)}
           onCancel={() => setConfirmCancel(true)}
@@ -108,29 +109,29 @@ export default function BookingDetail() {
 
       <ListCard>
         <View style={styles.block}>
-          <Text variant="eyebrow">Client</Text>
+          <Text variant="eyebrow">{t('bd_client')}</Text>
           <Text variant="heading" style={{ fontSize: 18 }} onPress={() => router.push(`/client/${b.client.id}`)}>
             {b.client.name}
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
             <View style={{ flex: 1 }}>
-              <Button label="WhatsApp" variant="glass" onPress={() => Linking.openURL(whatsappUrl(b.client.phone, `Hi ${b.client.name.split(' ')[0]}, `))} />
+              <Button label={t('whatsapp')} variant="glass" onPress={() => Linking.openURL(whatsappUrl(b.client.phone, `${b.client.name.split(' ')[0]}, `))} />
             </View>
             <View style={{ flex: 1 }}>
-              <Button label="Text" variant="glass" onPress={() => Linking.openURL(`sms:${b.client.phone}`)} />
+              <Button label={t('text')} variant="glass" onPress={() => Linking.openURL(`sms:${b.client.phone}`)} />
             </View>
             <View style={{ flex: 1 }}>
-              <Button label="Call" variant="glass" onPress={() => Linking.openURL(`tel:${b.client.phone}`)} />
+              <Button label={t('call')} variant="glass" onPress={() => Linking.openURL(`tel:${b.client.phone}`)} />
             </View>
           </View>
         </View>
         <View style={styles.block}>
-          <Text variant="eyebrow">Where</Text>
+          <Text variant="eyebrow">{t('bd_where')}</Text>
           <Text variant="body">{b.address}</Text>
         </View>
         {!!b.notes && (
           <View style={styles.block}>
-            <Text variant="eyebrow">Notes</Text>
+            <Text variant="eyebrow">{t('bd_notes')}</Text>
             <Text variant="body">{b.notes}</Text>
           </View>
         )}
@@ -141,15 +142,15 @@ export default function BookingDetail() {
         {b.addOns.map((a) => (
           <Line key={a.name} label={a.name} value={a.priceCents != null ? money(a.priceCents) : ''} muted />
         ))}
-        <Line label="Total" value={money(b.subtotalCents)} strong />
+        <Line label={t('bd_total')} value={money(b.subtotalCents)} strong />
         {external ? (
           <Line
             label={
               b.depositReceived
-                ? 'Deposit received'
+                ? t('bd_dep_received')
                 : b.depositReported
-                  ? 'Deposit (30%): client says it’s sent. Check it arrived.'
-                  : 'Deposit (30%), not marked paid yet'
+                  ? t('bd_dep_check')
+                  : t('bd_dep_unpaid')
             }
             value={money(b.depositCents)}
             muted={b.depositReceived}
@@ -157,8 +158,8 @@ export default function BookingDetail() {
           />
         ) : (
           <>
-            <Line label="Paid so far" value={money(b.paidCents)} muted />
-            {balance > 0 && b.status !== 'cancelled' && <Line label="Balance due after the job" value={money(balance)} gold />}
+            <Line label={t('bd_paid_so_far')} value={money(b.paidCents)} muted />
+            {balance > 0 && b.status !== 'cancelled' && <Line label={t('bd_balance')} value={money(balance)} gold />}
           </>
         )}
       </ListCard>
@@ -173,10 +174,10 @@ export default function BookingDetail() {
         <Button
           label={
             b.depositReceived
-              ? 'Undo: deposit not received'
+              ? t('bd_undo_dep')
               : b.depositReported
-                ? `Confirm deposit received (${money(b.depositCents)})`
-                : `Deposit received (${money(b.depositCents)})`
+                ? t('bd_confirm_dep', { amount: money(b.depositCents) })
+                : t('bd_dep_btn', { amount: money(b.depositCents) })
           }
           variant={b.depositReceived ? 'ghost' : 'primary'}
           loading={busy === 'deposit'}
@@ -191,28 +192,28 @@ export default function BookingDetail() {
       )}
 
       {b.status === 'completed' && (
-        <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? 'us'} />
+        <AskReviewButton bookingId={b.id} clientName={b.client.name} clientPhone={b.client.phone} businessName={profile.data?.businessName ?? t('bd_us')} />
       )}
 
       {b.status === 'confirmed' && (
         <View style={{ gap: space.md }}>
           {!external && started && balance > 0 && (
             <Button
-              label="Send balance payment link"
+              label={t('bd_send_balance')}
               loading={busy === 'balance'}
               onPress={() =>
                 run('balance', async () => {
                   const link = await requestBalanceLink(b.id);
                   haptic.success();
                   setNotice(null);
-                  await shareLink('Thanks for choosing us! Pay your balance here:', link.url);
+                  await shareLink(t('bd_balance_msg'), link.url);
                 })
               }
             />
           )}
           {started && (
             <Button
-              label={external ? 'Mark job done' : balance > 0 ? 'Mark job done (paid another way)' : 'Mark job done'}
+              label={external ? t('bd_done') : balance > 0 ? t('bd_done_other') : t('bd_done')}
               variant="glass"
               loading={busy === 'done'}
               onPress={() =>
@@ -224,21 +225,21 @@ export default function BookingDetail() {
             />
           )}
           {started && (
-            <Button label="Client didn’t show" variant="ghost" loading={busy === 'noshow'} onPress={() => run('noshow', () => setBookingStatus(b.id, 'no_show'))} />
+            <Button label={t('bd_noshow')} variant="ghost" loading={busy === 'noshow'} onPress={() => run('noshow', () => setBookingStatus(b.id, 'no_show'))} />
           )}
-          {!started && <MessageClient b={b} tz={tz} businessName={profile.data?.businessName ?? 'your detailer'} />}
-          {!started && <Button label="Reschedule" variant="glass" onPress={() => router.push(`/reschedule/${b.id}`)} />}
+          {!started && <MessageClient b={b} tz={tz} businessName={profile.data?.businessName ?? t('bd_your_pro')} />}
+          {!started && <Button label={t('bd_reschedule')} variant="glass" onPress={() => router.push(`/reschedule/${b.id}`)} />}
           {!confirmCancel ? (
-            <Button label="Cancel booking" variant="danger" onPress={() => setConfirmCancel(true)} />
+            <Button label={t('bd_cancel_btn')} variant="danger" onPress={() => setConfirmCancel(true)} />
           ) : (
             <View style={styles.confirm}>
               <Text variant="body">
                 {external
-                  ? `Cancel ${b.client.name.split(' ')[0]}’s booking? If they paid you a deposit, refund it to them directly.`
-                  : `Cancel and refund ${b.client.name.split(' ')[0]} ${money(b.paidCents + b.bookingFeeCents)} in full? They’ll get it back on their card.`}
+                  ? t('bd_cancel_ext', { name: b.client.name.split(' ')[0] })
+                  : t('bd_cancel_refund', { name: b.client.name.split(' ')[0], amount: money(b.paidCents + b.bookingFeeCents) })}
               </Text>
               <Button
-                label={external ? 'Yes, cancel booking' : 'Yes, cancel and refund'}
+                label={external ? t('bd_yes_cancel') : t('bd_yes_refund')}
                 variant="danger"
                 loading={busy === 'cancel'}
                 onPress={() =>
@@ -250,7 +251,7 @@ export default function BookingDetail() {
                   })
                 }
               />
-              <Button label="Keep booking" variant="ghost" onPress={() => setConfirmCancel(false)} />
+              <Button label={t('bd_keep')} variant="ghost" onPress={() => setConfirmCancel(false)} />
             </View>
           )}
         </View>
@@ -259,9 +260,9 @@ export default function BookingDetail() {
       {justCancelled && b.status === 'cancelled' && (
         <TellClientCancelled
           phone={b.client.phone}
-          first={b.client.name.split(' ')[0] || 'there'}
-          what={`${b.serviceName} on ${new Date(b.startsAt).toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' })}`}
-          refundNote={external ? (b.depositReceived || b.depositReported ? ' I’ll refund your deposit.' : '') : ' Your refund is on its way to your card.'}
+          first={b.client.name.split(' ')[0] || t('bd_there')}
+          what={t('bd_what', { service: b.serviceName, date: new Date(b.startsAt).toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'long', month: 'short', day: 'numeric' }) })}
+          refundNote={external ? (b.depositReceived || b.depositReported ? t('bd_refund_dep') : '') : t('bd_refund_card')}
           businessName={profile.data?.businessName ?? ''}
         />
       )}
@@ -276,7 +277,7 @@ const to12h = (hhmm: string) => {
 /** "YYYY-MM-DD HH:MM" (business timezone) as "Tue, Nov 18 · 10:00 AM". */
 const localLabel = (s: string) => {
   const [date, time] = s.split(' ');
-  return `${new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })} · ${to12h(time)}`;
+  return `${new Date(`${date}T12:00:00Z`).toLocaleDateString(dateLocale(), { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })} · ${to12h(time)}`;
 };
 
 /** A request the client sent from their booking page. Moving or cancelling closes it by itself. */
@@ -298,7 +299,7 @@ function RequestCard({
   const cancel = r.kind === 'cancel';
   return (
     <View style={[styles.request, cancel && { borderColor: 'rgba(255,138,138,0.35)', backgroundColor: 'rgba(255,138,138,0.06)' }]}>
-      <Text variant="bodyStrong">{cancel ? `${first} asks to cancel` : `${first} asks for a new time`}</Text>
+      <Text variant="bodyStrong">{cancel ? t('bd_rq_cancel', { name: first }) : t('bd_rq_new', { name: first })}</Text>
       {r.preferred.map((p) => (
         <Text key={p} variant="body">
           {localLabel(p)}
@@ -307,14 +308,14 @@ function RequestCard({
       {!!r.note && <Text variant="caption">“{r.note}”</Text>}
       <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
         <View style={{ flex: 1 }}>
-          <Button label={cancel ? 'Cancel booking' : 'Reschedule'} variant={cancel ? 'danger' : 'primary'} onPress={cancel ? onCancel : onReschedule} />
+          <Button label={cancel ? t('bd_cancel_btn') : t('bd_reschedule')} variant={cancel ? 'danger' : 'primary'} onPress={cancel ? onCancel : onReschedule} />
         </View>
         <View style={{ flex: 1 }}>
-          <Button label="Dismiss" variant="ghost" loading={busy} onPress={onDismiss} />
+          <Button label={t('bd_dismiss')} variant="ghost" loading={busy} onPress={onDismiss} />
         </View>
       </View>
       <Text variant="caption" style={{ fontSize: 12 }}>
-        Dismiss if you sorted it out another way. {first} sees the request until then.
+        {t('bd_dismiss_d', { name: first })}
       </Text>
     </View>
   );
@@ -322,7 +323,7 @@ function RequestCard({
 
 /** Beadup doesn't text clients yet, so after cancelling the detailer sends the message from their own phone. */
 function TellClientCancelled({ phone, first, what, refundNote, businessName }: { phone: string; first: string; what: string; refundNote: string; businessName: string }) {
-  const message = `Hi ${first}, I’m sorry, I have to cancel your ${what}.${refundNote} ${businessName}`.trim();
+  const message = t('bd_tell_msg', { name: first, what, refund: refundNote, business: businessName }).trim();
   const tell = async () => {
     haptic.select();
     const sms = `sms:${phone}&body=${encodeURIComponent(message)}`;
@@ -335,8 +336,8 @@ function TellClientCancelled({ phone, first, what, refundNote, businessName }: {
   };
   return (
     <View style={{ gap: space.md }}>
-      <Text variant="caption">Cancelled. {first} isn’t told automatically.</Text>
-      <Button label={`Let ${first} know`} onPress={tell} />
+      <Text variant="caption">{t('bd_cancelled_note', { name: first })}</Text>
+      <Button label={t('bd_let_know', { name: first })} onPress={tell} />
     </View>
   );
 }

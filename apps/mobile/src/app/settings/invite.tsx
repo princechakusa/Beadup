@@ -18,14 +18,15 @@ import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors, space } from '@/theme/tokens';
+import { t, type MessageKey } from '@/lib/i18n';
 
-const CLAIM_ERRORS: Record<ClaimError, string> = {
-  self: "That's your own code.",
-  not_found: 'No detailer has that code. Check the spelling.',
-  already_claimed: 'You already entered a referral code.',
-  too_late: 'Referral codes can be entered in your first 30 days.',
-  no_profile: 'Finish setting up your business first.',
-  unavailable: "Couldn't check that code. Try again.",
+const CLAIM_ERRORS: Record<ClaimError, MessageKey> = {
+  self: 'iv_self',
+  not_found: 'iv_not_found',
+  already_claimed: 'iv_claimed',
+  too_late: 'iv_late',
+  no_profile: 'iv_no_profile',
+  unavailable: 'iv_unavail',
 };
 
 /**
@@ -42,7 +43,7 @@ export default function Invite() {
 
   const site = apiBaseUrl.replace(/^https?:\/\//, '');
   const message = s
-    ? `I run my bookings on Beadup: one booking link, deposits straight to me, receipts and reminders on WhatsApp. Enter my code "${s.code}" when you set up and we both get a free month of Pro.`
+    ? t('iv_message', { code: s.code })
     : '';
 
   const share = () => {
@@ -69,21 +70,21 @@ export default function Invite() {
       status.refresh();
     } else {
       haptic.error();
-      setClaimError(CLAIM_ERRORS[res.error]);
+      setClaimError(t(CLAIM_ERRORS[res.error]));
     }
   };
 
   return (
-    <Screen title="Invite & earn" tabs={false} right={<BackButton variant="back" />} onRefresh={status.refresh} refreshing={status.loading && !!s}>
+    <Screen title={t('iv_title')} tabs={false} right={<BackButton variant="back" />} onRefresh={status.refresh} refreshing={status.loading && !!s}>
       <Animated.View entering={FadeInDown.springify()}>
         <View style={styles.hero}>
           <LinearGradient colors={['rgba(77,216,255,0.20)', 'rgba(77,216,255,0)']} style={StyleSheet.absoluteFill} />
           <LiquidBead size={84} />
           <Text variant="title" style={{ textAlign: 'center', marginTop: space.lg }}>
-            Give a month, get a month
+            {t('iv_hero')}
           </Text>
           <Text variant="body" tone="steel" style={{ textAlign: 'center', marginTop: space.sm, maxWidth: 300 }}>
-            When a business you invite finishes its first job on Beadup, you both get a free month of Pro.
+            {t('iv_hero_d')}
           </Text>
         </View>
       </Animated.View>
@@ -91,73 +92,72 @@ export default function Invite() {
       {s && (
         <Animated.View entering={FadeInDown.delay(100).springify()} style={{ gap: space.md }}>
           <GlassCard>
-            <Text variant="eyebrow">Your invite code</Text>
+            <Text variant="eyebrow">{t('iv_code')}</Text>
             <View style={styles.codeRow}>
               {/* Long codes shrink to fit instead of being cut off. */}
               <Text style={styles.code} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.4}>
                 {s.code}
               </Text>
-              <Pressable onPress={copy} style={styles.copy} accessibilityRole="button" accessibilityLabel={copied ? 'Code copied' : 'Copy invite code'}>
+              <Pressable onPress={copy} style={styles.copy} accessibilityRole="button" accessibilityLabel={copied ? t('iv_code_copied') : t('iv_code_copy')}>
                 <Icon name={copied ? 'check' : 'link'} size={18} color={copied ? colors.success : colors.paint} />
               </Pressable>
             </View>
             <Text variant="caption" style={{ marginTop: 6 }}>
-              It&apos;s your booking link name, so it also works pasted as {site}/{s.code}.
+              {t('iv_code_d', { site, code: s.code })}
             </Text>
           </GlassCard>
 
-          <Button label="Share invite" icon={<Icon name="share" size={18} color={colors.beadInk} />} onPress={share} />
+          <Button label={t('iv_share')} icon={<Icon name="share" size={18} color={colors.beadInk} />} onPress={share} />
 
           <View style={styles.stats}>
             <GlassCard style={{ flex: 1 }}>
               <Text variant="heading">{s.invited}</Text>
-              <Text variant="caption">Signed up</Text>
+              <Text variant="caption">{t('iv_signed')}</Text>
             </GlassCard>
             <GlassCard style={{ flex: 1 }}>
               <Text variant="heading" tone="gold">
                 {s.rewarded}
               </Text>
-              <Text variant="caption">Months earned</Text>
+              <Text variant="caption">{t('iv_months')}</Text>
             </GlassCard>
           </View>
           {s.bonusProUntil && new Date(s.bonusProUntil) > new Date() && (
             <Text variant="caption" tone="bead" style={{ textAlign: 'center' }}>
-              Free Pro until {dayLabel(s.bonusProUntil, Intl.DateTimeFormat().resolvedOptions().timeZone)}
+              {t('iv_free_until', { date: dayLabel(s.bonusProUntil, Intl.DateTimeFormat().resolvedOptions().timeZone) })}
             </Text>
           )}
 
           {s.referredBy ? (
             <Text variant="caption" style={{ textAlign: 'center' }}>
-              You were invited by {s.referredBy}. Your free month starts after your first finished job.
+              {t('iv_by', { name: s.referredBy })}
             </Text>
           ) : (
             s.canClaim && (
               <GlassCard>
-                <Text variant="bodyStrong">Were you invited?</Text>
+                <Text variant="bodyStrong">{t('iv_were')}</Text>
                 <View style={{ marginTop: space.md, gap: space.md }}>
                   <Field
-                    label="Their invite code"
+                    label={t('iv_their')}
                     value={code}
                     onChangeText={setCode}
-                    placeholder="e.g. marcus"
+                    placeholder={t('iv_their_ph')}
                     autoCapitalize="none"
                     autoCorrect={false}
                     maxLength={120}
                     error={claimError}
                   />
-                  <Button label="Apply code" variant="glass" loading={busy} disabled={!code.trim()} onPress={claim} />
+                  <Button label={t('iv_apply')} variant="glass" loading={busy} disabled={!code.trim()} onPress={claim} />
                 </View>
               </GlassCard>
             )
           )}
 
           <Text variant="caption" style={{ lineHeight: 19 }}>
-            Rewards are added to your plan automatically, on top of any Pro time you already have. You can earn up to 12 months. They aren&apos;t
-            refunds and can&apos;t be exchanged for money.
+            {t('iv_rules')}
           </Text>
         </Animated.View>
       )}
-      {status.error && !s && <Text variant="caption">Could not load. Pull down to retry.</Text>}
+      {status.error && !s && <Text variant="caption">{t('bp_load_fail')}</Text>}
     </Screen>
   );
 }

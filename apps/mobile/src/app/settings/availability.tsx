@@ -11,7 +11,6 @@ import { haptic } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, space } from '@/theme/tokens';
 import { dateLocale, t } from '@/lib/i18n';
-import { t as tr } from '@/lib/i18n';
 
 // Weekly start times shown on the booking link (availability_slots).
 const DAYS = [1, 2, 3, 4, 5, 6, 0]; // Monday first; 0 = Sunday in the database
@@ -91,10 +90,10 @@ export default function Availability() {
             </View>
             {open === wd && (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingTop: 10 }}>
-                {CHOICES.filter((t) => !taken.has(t)).map((t) => (
-                  <Pressable key={t} onPress={() => add(wd, t)} style={styles.choice} accessibilityRole="button" accessibilityLabel={tr('av_add', { time: to12h(t) })}>
+                {CHOICES.filter((c) => !taken.has(c)).map((c) => (
+                  <Pressable key={c} onPress={() => add(wd, c)} style={styles.choice} accessibilityRole="button" accessibilityLabel={t('av_add', { time: to12h(c) })}>
                     <Text variant="caption" style={{ color: colors.paint }}>
-                      {to12h(t)}
+                      {to12h(c)}
                     </Text>
                   </Pressable>
                 ))}
