@@ -11,7 +11,7 @@ The privacy policy, terms and account-deletion page stay in English for now and 
 ## Spanish (es)
 
 **Name:** Beadup
-**Subtitle (App Store, 30):** Reservas y cobros en un enlace
+**Subtitle (App Store, 30):** Reservas y cobros fáciles
 **Short description (Play, 80):** Tu enlace de reservas, agenda y presupuestos. Tus clientes no instalan nada.
 **Promotional text:** Un enlace para que tus clientes reserven, un depósito que llega directo a ti y una agenda que se llena sola.
 **Keywords:** reservas,citas,agenda,presupuestos,negocio,peluquería,limpieza,mecánico,estética,autónomo,cobros
