@@ -6,6 +6,9 @@ import { BookingFlow } from "@/components/booking/BookingFlow";
 import { BusinessMicrodata } from "@/components/booking/BusinessMicrodata";
 import { getBookingPage } from "@/lib/booking-page";
 import { getPublicConfig } from "@/lib/site";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
+import { DATE_LOCALE, messagesFor, phrasesFor } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n/server";
 
 // Cache Components needs at least one param. "marcus" is the seeded demo
 // detailer used for App Review; other handles render on first visit.
@@ -39,11 +42,14 @@ async function Booking({ params }: { params: PageProps<"/[handle]">["params"] })
   // A detailer with no active services has nothing to book yet.
   if (!detailer || detailer.services.length === 0) notFound();
   const { sms_enabled } = await getPublicConfig();
+  const locale = await getLocale();
   return (
-    <>
+    <I18nProvider locale={locale} dateLocale={DATE_LOCALE[locale]} messages={messagesFor(locale)} phrases={phrasesFor(locale)}>
       <BusinessMicrodata detailer={detailer} />
-      <BookingFlow detailer={detailer} smsEnabled={sms_enabled} />
-    </>
+      <div lang={locale}>
+        <BookingFlow detailer={detailer} smsEnabled={sms_enabled} />
+      </div>
+    </I18nProvider>
   );
 }
 

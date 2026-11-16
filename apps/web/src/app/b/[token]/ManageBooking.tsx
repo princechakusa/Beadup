@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { isPayOnDay } from "@/lib/pay-on-day";
 import { AddToCalendar, DepositSent } from "@/components/booking/BookedCelebration";
 import type { Detailer } from "@/lib/booking-types";
 import type { ClientBooking } from "@/lib/client-booking";
@@ -82,7 +83,7 @@ export function ManageBooking({ token, booking: b, availability }: { token: stri
         </section>
       )}
 
-      {b.depositCents > 0 && b.status !== "cancelled" && (
+      {b.depositCents > 0 && b.status !== "cancelled" && !isPayOnDay(b.paymentNote) && (
         <Payment b={b} token={token} money={money} onDone={() => router.refresh()} />
       )}
 

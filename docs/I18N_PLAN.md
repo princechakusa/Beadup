@@ -1,4 +1,10 @@
-# Translations plan (written 2026-11-16, not started in code)
+# Translations plan (written 2026-11-16)
+
+## Status 2026-11-16
+- DONE (web): infrastructure in `apps/web/src/lib/i18n/` (typed catalogs `en/es/fr/pt`, `negotiate()` from Accept-Language or the `bd_lang` cookie, `fmt()`, `I18nProvider`/`useI18n`), the client booking flow and the confirmation screen are translated into Spanish, French and Portuguese (dates follow the language; trade wording via `phrases`). Tests: `i18n.test.ts` (every key, same placeholders) and `e2e/i18n.spec.ts`.
+- Drafts are machine-assisted: a native speaker must review before launch.
+- NOT done: `/b/<token>` manage page, `/[handle]/booked`, the review form, emails, the mobile app, Arabic (right-to-left), localized store listings, marketing pages.
+
 
 ## Languages
 - **Wave 1:** Spanish, French, Portuguese. Wave 2: Arabic with right-to-left layout (UAE is a launch country). Afrikaans dropped: English already works in South Africa.

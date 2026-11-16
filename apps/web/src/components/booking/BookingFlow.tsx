@@ -15,6 +15,8 @@ import { openDays } from "@/lib/slots";
 import { tierLabel, tradeOf } from "@/lib/trades";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { useCspNonce, useHydrated } from "@/lib/use-hydrated";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { Messages } from "@/lib/i18n";
 import { BookedCelebration } from "./BookedCelebration";
 import { Turnstile, turnstileEnabled } from "./Turnstile";
 
@@ -22,21 +24,17 @@ import { Turnstile, turnstileEnabled } from "./Turnstile";
 // forbids (no 'unsafe-eval'). Same validation, without the eval probe.
 z.config({ jitless: true });
 
-// Shown when Cloudflare wants a tick (or is still checking) and Book is tapped.
-const VERIFY_FIRST = "Just a quick check that you're not a bot. If a “Verify you are human” box appears above, tick it, then tap Book again.";
-
-const BOOK_ERRORS: Record<Exclude<BookingResult, { ok: true }>["error"], string> = {
-  invalid: "Something in the booking didn't check out. Please review your details.",
-  rate_limited: "Too many attempts. Please wait a few minutes and try again.",
-  bot_check: "We couldn't verify this browser. Please refresh and try again.",
-  slot_taken: "That time was just booked by someone else. Please pick another time.",
-  slot_unavailable: "That time is no longer available. Please pick another time.",
-  unavailable: "Booking is temporarily unavailable. Please try again shortly.",
-  payments_not_ready: "This detailer isn't taking online payments yet. Please contact them directly to book.",
-  plan_limit: "This detailer's online booking is full for this month. Please contact them directly to book.",
-  catalog_changed: "This business just updated its services or prices. Please choose again.",
-};
-
+const BOOK_ERROR_KEYS = {
+  invalid: "err_invalid",
+  rate_limited: "err_rate_limited",
+  bot_check: "err_bot_check",
+  slot_taken: "err_slot_taken",
+  slot_unavailable: "err_slot_unavailable",
+  unavailable: "err_unavailable",
+  payments_not_ready: "err_payments_not_ready",
+  plan_limit: "err_plan_limit",
+  catalog_changed: "err_catalog_changed",
+} as const satisfies Record<Exclude<BookingResult, { ok: true }>["error"], keyof Messages>;
 
 const SIZES: { id: VehicleSize; label: string }[] = [
   { id: "sedan", label: "Sedan" },
@@ -44,16 +42,18 @@ const SIZES: { id: VehicleSize; label: string }[] = [
   { id: "truck", label: "Truck" },
 ];
 
+type DetailsMessages = { v_name: string; v_phone: string; v_address: string; v_email: string };
+
 // Phone numbers are read the way people write them in the detailer's country.
-const detailsSchemaFor = (country: Country, needAddress: boolean) =>
+const detailsSchemaFor = (country: Country, needAddress: boolean, m: DetailsMessages) =>
   z.object({
-  name: z.string().trim().min(2, "Enter your name").max(80),
+  name: z.string().trim().min(2, m.v_name).max(80),
   phone: z
     .string()
     .trim()
-    .refine((p) => toE164(p, country) !== null, "Enter a valid mobile number"),
-  address: needAddress ? z.string().trim().min(6, "Enter the address for the appointment").max(200) : z.string().max(200),
-  email: z.union([z.literal(""), z.string().trim().email("Check the email address")]),
+    .refine((p) => toE164(p, country) !== null, m.v_phone),
+  address: needAddress ? z.string().trim().min(6, m.v_address).max(200) : z.string().max(200),
+  email: z.union([z.literal(""), z.string().trim().email(m.v_email)]),
   // Optional: consent to texts is never a condition of booking.
   smsConsent: z.boolean(),
 });
@@ -71,6 +71,7 @@ function initials(name: string) {
 
 
 export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsEnabled: boolean }) {
+  const { t, phrase, dateLocale } = useI18n();
   const money = (cents: number) => formatMoney(cents, detailer.country);
   const clock = (hhmm: string) => formatClock(hhmm, detailer.country);
   const reduce = useReducedMotion();
@@ -93,7 +94,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
   const tier: VehicleSize | null = tiers ? size : "sedan";
   // Step 2 (size and extras) is skipped when there is nothing to choose there.
   const skipExtras = !tiers && detailer.addOns.length === 0;
-  const steps = ["Service", tiers ? trade.tierTitle : "Extras", "Time", "Details", "Review"];
+  const steps = [t("step_service"), tiers ? phrase(trade.tierTitle) : t("step_extras"), t("step_time"), t("step_details"), t("step_review")];
   const [addOns, setAddOns] = useState<string[]>([]);
   // Computed only once the visitor reaches the time step, so the current date
   // is read in their browser and never during the server prerender.
@@ -117,9 +118,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             exclude: new Set([...detailer.taken, ...lostSlots]),
             daysOff: detailer.daysOff,
             staffIds: staffId ? [staffId] : detailer.staff.map((m) => m.id),
+            locale: dateLocale,
           })
         : [],
-    [showDays, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, detailer.daysOff, detailer.staff, staffId, durationMin, lostSlots],
+    [showDays, dateLocale, detailer.weeklySlots, detailer.busy, detailer.bufferMin, detailer.timezone, detailer.taken, detailer.daysOff, detailer.staff, staffId, durationMin, lostSlots],
   );
   const [pickedDay, setDayKey] = useState<string | null>(null);
   // A longer service picked after going back can close the chosen day or time.
@@ -176,7 +178,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
   function next() {
     if (step === 3) {
-      const parsed = detailsSchemaFor(detailer.country, !studio).safeParse(details);
+      const parsed = detailsSchemaFor(detailer.country, !studio, { v_name: t("v_name"), v_phone: t("v_phone"), v_address: t("v_address"), v_email: t("v_email") }).safeParse(details);
       if (!parsed.success) {
         const e: Partial<Record<keyof Details, string>> = {};
         for (const issue of parsed.error.issues) e[issue.path[0] as keyof Details] ??= issue.message;
@@ -191,7 +193,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       if (turnstileEnabled && !turnstileToken) {
         // Cloudflare sometimes asks for a tick (or is still checking): say so,
         // and bring the box and this message into view above the sticky bar.
-        setBookError(VERIFY_FIRST);
+        setBookError(t("verifyFirst"));
         requestAnimationFrame(() => document.getElementById("book-alert")?.scrollIntoView({ block: "center", behavior: "smooth" }));
         return;
       }
@@ -230,7 +232,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             setBooked(true);
             return;
           }
-          setBookError(BOOK_ERRORS[res.error]);
+          setBookError(t(BOOK_ERROR_KEYS[res.error]));
           if (res.error === "catalog_changed") {
             // Load the current services, then start the choice again (the old ids no longer exist).
             router.refresh();
@@ -246,7 +248,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             go(2);
           }
         })
-        .catch(() => setBookError(BOOK_ERRORS.unavailable))
+        .catch(() => setBookError(t("err_unavailable")))
         .finally(() => setPaying(false));
       return;
     }
@@ -272,13 +274,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           dayKey && slot
             ? {
                 uid: `${detailer.handle}-${dayKey}-${slot}`,
-                title: `${service?.name ?? "Detail"} with ${detailer.businessName}`,
+                title: t("calTitle", { service: service?.name ?? t("calDefaultService"), name: detailer.businessName }),
                 date: dayKey,
                 time: slot,
                 timezone: detailer.timezone,
                 durationMin: service?.durationMin ?? 60,
                 location: studio ? [shortName, detailer.serviceArea].filter(Boolean).join(", ") : details.address,
-                description: `Booked with ${detailer.businessName} on Beadup.`,
+                description: t("calDesc", { name: detailer.businessName }),
               }
             : undefined
         }
@@ -303,7 +305,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={`/api/media/${detailer.handle}/avatar?v=${detailer.photo}`}
-            alt={`${detailer.businessName}, the detailer`}
+            alt={t("detailerAlt", { name: detailer.businessName })}
             width={56}
             height={56}
             className="h-14 w-14 shrink-0 rounded-[18px] object-cover shadow-[0_10px_30px_-8px_rgba(77,216,255,0.45)] ring-1 ring-white/15"
@@ -322,7 +324,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             <path d="M12 3.5l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.1l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" />
           </svg>
           {detailer.rating === null ? (
-            <span className="font-medium text-steel">New</span>
+            <span className="font-medium text-steel">{t("newLabel")}</span>
           ) : (
             <>
               {detailer.rating.toFixed(1)}
@@ -335,9 +337,9 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
       {/* Progress */}
       {detailer.contactPhone && (
         <div className="mt-4 flex items-center gap-2 text-[13px]">
-          <span className="text-steel">Questions first?</span>
+          <span className="text-steel">{t("questionsFirst")}</span>
           <a
-            href={whatsappUrl(detailer.contactPhone, `Hi ${shortName}, I found you on Beadup and have a question before I book.`)}
+            href={whatsappUrl(detailer.contactPhone, t("waMsg", { name: shortName }))}
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-9 items-center gap-1.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-3 font-semibold text-[#7ff0a8]"
@@ -346,12 +348,12 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             WhatsApp
           </a>
           <a href={`tel:${detailer.contactPhone}`} className="flex h-9 items-center rounded-full border border-white/15 px-3 font-semibold">
-            Call
+            {t("call")}
           </a>
         </div>
       )}
 
-      <nav aria-label="Booking steps" className="mt-6 flex gap-1.5">
+      <nav aria-label={t("bookingSteps")} className="mt-6 flex gap-1.5">
         {steps.map((label, i) => (skipExtras && i === 1 ? null : (
           <button
             key={label}
@@ -383,13 +385,13 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
           >
             {step === 0 && (
               <>
-                <StepTitle eyebrow="Step 1" title={trade.pickTitle} />
+                <StepTitle eyebrow={t("stepN", { n: 1 })} title={phrase(trade.pickTitle)} />
                 {bookError && (
                   <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
                     {bookError}
                   </p>
                 )}
-                <div className="mt-5 flex flex-col gap-2.5" role="radiogroup" aria-label="Service">
+                <div className="mt-5 flex flex-col gap-2.5" role="radiogroup" aria-label={t("serviceLabel")}>
                   {detailer.services.map((s) => {
                     const active = s.id === serviceId;
                     return (
@@ -425,11 +427,11 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         <span className="relative flex-1">
                           <span className="block text-base font-semibold">{s.name}</span>
                           <span className="mt-0.5 block text-[13px] text-steel">
-                            {s.description} · {s.durationMin >= 60 ? `${s.durationMin / 60} hr` : `${s.durationMin} min`}
+                            {s.description} · {s.durationMin >= 60 ? t("hours", { n: s.durationMin / 60 }) : t("minutes", { n: s.durationMin })}
                           </span>
                         </span>
                         <span className={`relative text-[17px] font-bold ${active ? "text-bead" : ""}`}>
-                          {tiers ? `from ${money(Math.min(s.priceCents.sedan, s.priceCents.suv, s.priceCents.truck))}` : money(s.priceCents.sedan)}
+                          {tiers ? t("fromPrice", { price: money(Math.min(s.priceCents.sedan, s.priceCents.suv, s.priceCents.truck)) }) : money(s.priceCents.sedan)}
                         </span>
                         </span>
                       </motion.button>
@@ -442,10 +444,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 1 && (
               <>
-                <StepTitle eyebrow="Step 2" title={tiers ? trade.tierTitle : "Add extras"} />
+                <StepTitle eyebrow={t("stepN", { n: 2 })} title={tiers ? phrase(trade.tierTitle) : t("addExtras")} />
                 {tiers && (
-                <div className="glass mt-5 grid grid-cols-3 gap-1 rounded-[20px] p-1" role="radiogroup" aria-label={trade.tierTitle}>
-                  {SIZES.map((s) => ({ ...s, label: trade.tiers[s.id] })).map((s) => {
+                <div className="glass mt-5 grid grid-cols-3 gap-1 rounded-[20px] p-1" role="radiogroup" aria-label={phrase(trade.tierTitle)}>
+                  {SIZES.map((s) => ({ ...s, label: phrase(trade.tiers[s.id]) })).map((s) => {
                     const active = s.id === size;
                     return (
                       <button
@@ -464,7 +466,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                 </div>
                 )}
 
-                {detailer.addOns.length > 0 && tiers && <h3 className="mt-7 text-[13px] font-medium uppercase tracking-[0.12em] text-steel">Add-ons</h3>}
+                {detailer.addOns.length > 0 && tiers && <h3 className="mt-7 text-[13px] font-medium uppercase tracking-[0.12em] text-steel">{t("addOns")}</h3>}
                 <div className="mt-3 flex flex-col gap-2.5">
                   {detailer.addOns.map((a) => {
                     const on = addOns.includes(a.id);
@@ -500,10 +502,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 2 && (
               <>
-                <StepTitle eyebrow="Step 3" title="Pick a time" />
+                <StepTitle eyebrow={t("stepN", { n: 3 })} title={t("pickTime")} />
                 {detailer.staff.length > 0 && (
-                  <div className="mt-5 flex flex-wrap gap-2" role="radiogroup" aria-label="With">
-                    {[{ id: null, name: "Anyone" }, ...detailer.staff].map((m) => {
+                  <div className="mt-5 flex flex-wrap gap-2" role="radiogroup" aria-label={t("withWho")}>
+                    {[{ id: null, name: t("anyone") }, ...detailer.staff].map((m) => {
                       const on = m.id === staffId;
                       return (
                         <button
@@ -520,7 +522,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     })}
                   </div>
                 )}
-                <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="radiogroup" aria-label="Day">
+                <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="radiogroup" aria-label={t("dayLabel")}>
                   {days.map((d) => {
                     const active = d.key === dayKey;
                     return (
@@ -544,10 +546,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     );
                   })}
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Time">
+                <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("timeLabel")}>
                   {days.length === 0 && (
                     <p className="col-span-3 rounded-2xl border border-line bg-gunmetal p-4 text-sm text-steel">
-                      No open times in the next few weeks. Check back soon.
+                      {t("noTimes")}
                     </p>
                   )}
                   {(day?.slots ?? []).map((s) => {
@@ -567,7 +569,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     );
                   })}
                 </div>
-                <p className="mt-4 text-[13px] text-steel">Service area: {detailer.serviceArea}</p>
+                <p className="mt-4 text-[13px] text-steel">{t("serviceArea", { area: detailer.serviceArea })}</p>
                 {bookError && (
                   <p role="alert" className="mt-4 rounded-2xl border border-[#ff8a8a]/30 bg-[#ff8a8a]/10 p-3.5 text-sm text-[#ffb3b3]">
                     {bookError}
@@ -578,25 +580,24 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
 
             {step === 3 && (
               <>
-                <StepTitle eyebrow="Step 4" title={studio ? "Your details" : detailer.trade === "detailing" || detailer.trade === "boat_rv" ? "Where's the vehicle?" : "Where should we come?"} />
+                <StepTitle eyebrow={t("stepN", { n: 4 })} title={studio ? t("yourDetails") : detailer.trade === "detailing" || detailer.trade === "boat_rv" ? t("whereVehicle") : t("whereCome")} />
                 <form className="mt-5 flex flex-col gap-3" onSubmit={(e) => (e.preventDefault(), next())} noValidate>
-                  <Field label="Your name" error={errors.name}>
+                  <Field label={t("fName")} error={errors.name}>
                     <input autoComplete="name" value={details.name} maxLength={80} onChange={(e) => setDetails({ ...details, name: e.target.value })} />
                   </Field>
-                  <Field label="Mobile number" error={errors.phone}>
+                  <Field label={t("fPhone")} error={errors.phone}>
                     <input type="tel" inputMode="tel" autoComplete="tel" placeholder={COUNTRIES[detailer.country].phoneExample} value={details.phone} maxLength={20} onChange={(e) => setDetails({ ...details, phone: e.target.value })} />
                   </Field>
                   {studio ? (
                     <p className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-[14px] leading-relaxed text-steel">
-                      You go to {shortName}
-                      {detailer.serviceArea ? `, ${detailer.serviceArea}` : ""}. They&apos;ll confirm the exact address when you book.
+                      {t("studioGo", { name: shortName, area: detailer.serviceArea ? `, ${detailer.serviceArea}` : "" })}
                     </p>
                   ) : (
-                    <Field label="Service address" error={errors.address}>
+                    <Field label={t("fAddress")} error={errors.address}>
                       <input autoComplete="street-address" value={details.address} maxLength={200} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
                     </Field>
                   )}
-                  <Field label="Email (optional, for your confirmation and reminder)" error={errors.email}>
+                  <Field label={t("fEmail")} error={errors.email}>
                     <input type="email" inputMode="email" autoComplete="email" value={details.email} maxLength={254} onChange={(e) => setDetails({ ...details, email: e.target.value })} />
                   </Field>
                   {smsEnabled && (
@@ -612,14 +613,14 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     </span>
                   </label>
                   )}
-                  <button type="submit" className="sr-only">Continue</button>
+                  <button type="submit" className="sr-only">{t("continueBtn")}</button>
                 </form>
               </>
             )}
 
             {step === 4 && (
               <>
-                <StepTitle eyebrow="Last step" title="Review and book" />
+                <StepTitle eyebrow={t("lastStep")} title={t("reviewTitle")} />
                 <div className="glass glass-edge mt-5 rounded-[24px] p-5">
                   <p className="font-display text-lg font-bold">{service?.name}</p>
                   <p className="mt-1 text-sm text-steel">
@@ -632,16 +633,15 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     .map((a) => (
                       <Row key={a.id} label={a.name} value={money(a.priceCents)} />
                     ))}
-                  <Row label="Total" value={money(totals.total)} strong />
+                  <Row label={t("total")} value={money(totals.total)} strong />
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label="Deposit (30%)" value={money(totals.deposit)} />
-                  {!external && <Row label="Booking fee" value={money(totals.fee)} muted />}
-                  <Row label={`Pay ${money(totals.total - totals.deposit)} after the job`} value="" muted />
+                  <Row label={t("deposit30")} value={money(totals.deposit)} />
+                  {!external && <Row label={t("bookingFee")} value={money(totals.fee)} muted />}
+                  <Row label={t("payAfter", { amount: money(totals.total - totals.deposit) })} value="" muted />
                 </div>
                 {external ? (
                   <p className="mt-4 text-[13px] leading-relaxed text-steel">
-                    After you book, you&apos;ll pay the {money(totals.deposit)} deposit to {shortName} directly. Beadup
-                    never takes your card. Deposits, changes and refunds are handled by {shortName}.
+                    {t("externalNote", { amount: money(totals.deposit), name: shortName })}
                   </p>
                 ) : (
                   <>
@@ -650,18 +650,17 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                         <rect x="2" y="8" width="12" height="9" rx="2" fill="currentColor" />
                         <path d="M5 8V5a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" strokeWidth="2" />
                       </svg>
-                      Encrypted checkout. Your card is never stored by Beadup.
+                      {t("encrypted")}
                     </p>
                     <p className="mt-2 text-[13px] leading-relaxed text-steel">
-                      Cancel 24 hours or more before your appointment and your deposit is refunded. The booking fee covers card
-                      processing and isn&apos;t refundable. If {shortName} cancels, you get everything back.
+                      {t("cancelPolicy", { name: shortName })}
                     </p>
                   </>
                 )}
                 <Turnstile
-                  onToken={(t) => {
-                    setTurnstileToken(t);
-                    if (t) setBookError((e) => (e === VERIFY_FIRST ? null : e)); // ticked: clear the hint
+                  onToken={(token) => {
+                    setTurnstileToken(token);
+                    if (token) setBookError((e) => (e === t("verifyFirst") ? null : e)); // ticked: clear the hint
                   }}
                 />
                 {bookError && (
@@ -680,7 +679,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
         <div className="pointer-events-auto mx-auto max-w-md px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
           <div className="glass flex items-center gap-3 rounded-[26px] p-3 pl-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_rgba(0,0,0,0.55)]">
             {step > 0 && (
-              <button type="button" onClick={() => go(step === 2 && skipExtras ? 0 : step - 1)} aria-label="Back" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-steel hover:text-paint">
+              <button type="button" onClick={() => go(step === 2 && skipExtras ? 0 : step - 1)} aria-label={t("back")} className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-steel hover:text-paint">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
@@ -690,12 +689,12 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               {service ? (
                 <>
                   <p className="text-xs text-steel">
-                    {step === 4 ? (external ? `Deposit, paid to ${shortName}` : "Due today") : tier ? "Estimated total" : "From"}
+                    {step === 4 ? (external ? t("depositPaidTo", { name: shortName }) : t("dueToday")) : tier ? t("estimatedTotal") : t("fromLabel")}
                   </p>
                   <AnimatedPrice cents={step === 4 ? totals.dueToday : totals.total} animate={hydrated} country={detailer.country} />
                 </>
               ) : (
-                <p className="text-sm text-steel">Pick a service to see the price</p>
+                <p className="text-sm text-steel">{t("pickToSee")}</p>
               )}
             </div>
             <motion.button
@@ -707,11 +706,11 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
               className="btn-sheen flex h-[52px] items-center gap-2 rounded-[18px] bg-bead px-6 font-bold text-bead-ink shadow-[0_10px_30px_rgba(77,216,255,0.35)] disabled:opacity-40 disabled:shadow-none"
             >
               {paying ? (
-                <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="block h-5 w-5 rounded-full border-2 border-bead-ink border-t-transparent" aria-label="Processing" />
+                <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }} className="block h-5 w-5 rounded-full border-2 border-bead-ink border-t-transparent" aria-label={t("processing")} />
               ) : step === 4 ? (
-                external ? "Book" : "Book & pay"
+                external ? t("book") : t("bookPay")
               ) : (
-                "Continue"
+                t("continueBtn")
               )}
             </motion.button>
           </div>
@@ -720,7 +719,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
             href={`/?utm_source=booking_page&utm_medium=referral&utm_campaign=${encodeURIComponent(detailer.handle)}`}
             className="mx-auto mt-2.5 flex w-fit items-center justify-center gap-1.5 rounded-full px-2 py-1 text-[11px] text-steel transition-colors hover:text-mist"
           >
-            <BeadLogo size={12} animate={false} /> Powered by beadup
+            <BeadLogo size={12} animate={false} /> {t("powered")}
           </a>
         </div>
       </div>
@@ -780,16 +779,17 @@ function AnimatedPrice({ cents, animate, country }: { cents: number; animate: bo
 
 /** Photos of the detailer's work: a swipeable strip under the services. */
 function OurWork({ handle, items, businessName }: { handle: string; items: Detailer["portfolio"]; businessName: string }) {
+  const { t } = useI18n();
   return (
-    <section aria-label={`Work by ${businessName}`} className="mt-7">
-      <h3 className="font-display text-[17px] font-bold">Recent work</h3>
+    <section aria-label={t("workBy", { name: businessName })} className="mt-7">
+      <h3 className="font-display text-[17px] font-bold">{t("recentWork")}</h3>
       <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
         {items.map((p) => (
           <li key={p.id} className="w-[72%] max-w-[280px] shrink-0 snap-start">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/media/${handle}/${p.id}`}
-              alt={p.caption || `Work by ${businessName}`}
+              alt={p.caption || t("workBy", { name: businessName })}
               loading="lazy"
               width={280}
               height={210}

@@ -48,6 +48,8 @@ export function openDays(opts: {
   timeZone: string;
   now: Date;
   count: number;
+  /** Language for the weekday and date labels (default US English). */
+  locale?: string;
   /** Exact "YYYY-MM-DD HH:MM" starts to hide (lost to someone else during this visit). */
   exclude?: ReadonlySet<string>;
   /** Whole days the detailer isn't working ("YYYY-MM-DD"). */
@@ -88,9 +90,9 @@ export function openDays(opts: {
     out.push({
       key,
       slots,
-      dow: day.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" }),
+      dow: day.toLocaleDateString(opts.locale ?? "en-US", { weekday: "short", timeZone: "UTC" }),
       day: day.getUTCDate(),
-      label: day.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" }),
+      label: day.toLocaleDateString(opts.locale ?? "en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" }),
     });
   }
   return out;

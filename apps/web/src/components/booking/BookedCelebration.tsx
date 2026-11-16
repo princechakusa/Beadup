@@ -3,12 +3,14 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { reportDepositSent } from "@/app/[handle]/actions";
+import { isPayOnDay } from "@/lib/pay-on-day";
 import { WhatsAppIcon } from "@/components/booking/WhatsAppIcon";
 import { whatsappUrl } from "@/lib/countries";
 import { haptic, playBookedChime } from "@/lib/feedback";
 import { GlassBead } from "@/components/GlassBead";
 import { buildIcs, type CalendarEvent } from "@/lib/ics";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type Bead = { x: number; size: number; delay: number; drift: number; fall: number };
 
@@ -55,6 +57,7 @@ export function BookedCelebration({
   depositSent?: { bookingId: string; token: string };
 }) {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
   // The falling beads need inline sizes, so they render only after hydration
   // (server HTML has no style="" attributes: CSP). Entrances are CSS keyframes.
   const hydrated = useHydrated();
@@ -64,6 +67,7 @@ export function BookedCelebration({
     playBookedChime();
   }, [celebrate]);
   const beads = useMemo(() => makeBeads(22), []);
+  const payOnDay = isPayOnDay(payment?.note);
 
   return (
     <main id="main" className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center overflow-hidden px-5 pb-10 pt-20 text-center">
@@ -110,18 +114,18 @@ export function BookedCelebration({
       </div>
 
       <div className="enter d-5 relative mt-8 w-full">
-        <h1 className="text-gradient font-display text-[44px] font-extrabold leading-none tracking-[-0.04em]">You&apos;re booked</h1>
+        <h1 className="text-gradient font-display text-[44px] font-extrabold leading-none tracking-[-0.04em]">{t("booked")}</h1>
         <p className="mt-3 text-[15px] text-steel">
-          {serviceName} with {businessName}
+          {t("serviceWith", { service: serviceName, name: businessName })}
         </p>
 
         <div className="glass glass-edge mt-8 rounded-[24px] p-5 text-left">
           <div className="flex justify-between py-1.5 text-[15px]">
-            <span className="text-steel">When</span>
+            <span className="text-steel">{t("whenLabel")}</span>
             <span className="font-semibold">{when}</span>
           </div>
           <div className="flex justify-between py-1.5 text-[15px]">
-            <span className="text-steel">{payment ? "Deposit to pay" : "Paid today"}</span>
+            <span className="text-steel">{payOnDay ? t("payOnDayLabel") : payment ? t("depositToPay") : t("paidToday")}</span>
             <span className="font-display font-bold text-gold">{paid}</span>
           </div>
         </div>
@@ -130,11 +134,18 @@ export function BookedCelebration({
 
         {depositSent && <SaveBookingLink token={depositSent.token} />}
 
-        {payment && (
+        {payOnDay && (
+          <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5 text-left">
+            <p className="text-[15px] font-semibold">{t("nothingOnline")}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-steel">{t("takesPayment", { name: businessName })}</p>
+          </div>
+        )}
+
+        {payment && !payOnDay && (
           <div className="mt-4 rounded-[24px] border border-gold/30 bg-gold/[0.06] p-5 text-left">
-            <p className="text-[15px] font-semibold">Pay your deposit to {businessName}</p>
+            <p className="text-[15px] font-semibold">{t("payYourDeposit", { name: businessName })}</p>
             <p className="mt-1 text-[13px] leading-relaxed text-steel">
-              Your time is held. Pay the {paid} deposit to secure it.
+              {t("timeHeld", { amount: paid })}
             </p>
             {payment.note && <p className="mt-3 whitespace-pre-line break-words text-[15px] font-medium">{payment.note}</p>}
             {payment.link && (
@@ -144,11 +155,11 @@ export function BookedCelebration({
                 rel="noopener noreferrer nofollow"
                 className="btn-sheen mt-4 flex h-[52px] items-center justify-center rounded-[18px] bg-gold font-bold text-midnight shadow-[0_10px_30px_rgba(255,181,71,0.3)] transition-transform active:scale-[0.98]"
               >
-                Pay {paid} deposit
+                {t("payDepositBtn", { amount: paid })}
               </a>
             )}
             {!payment.link && !payment.note && (
-              <p className="mt-3 text-[13px] text-steel">{businessName} will contact you about the deposit.</p>
+              <p className="mt-3 text-[13px] text-steel">{t("contactDeposit", { name: businessName })}</p>
             )}
             {depositSent && (payment.link || payment.note) && (
               <DepositSent businessName={businessName} report={() => reportDepositSent(depositSent)} />
@@ -159,12 +170,12 @@ export function BookedCelebration({
         {contact && (
           <div className="mt-4 flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 text-left">
             <div className="min-w-0">
-              <p className="text-[13px] text-steel">Questions? {businessName}</p>
+              <p className="text-[13px] text-steel">{t("questionsName", { name: businessName })}</p>
               <p className="truncate text-[15px] font-semibold">{contact.display}</p>
             </div>
             <div className="flex shrink-0 gap-2">
               <a
-                href={whatsappUrl(contact.e164, `Hi ${businessName}, I just booked ${serviceName} (${when}) on Beadup.`)}
+                href={whatsappUrl(contact.e164, t("waMsgBooked", { name: businessName, service: serviceName, when }))}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`WhatsApp ${businessName}`}
@@ -173,10 +184,10 @@ export function BookedCelebration({
                 <WhatsAppIcon size={18} />
               </a>
               <a href={`sms:${contact.e164}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold transition-transform active:scale-[0.97]">
-                Text
+                {t("textBtn")}
               </a>
               <a href={`tel:${contact.e164}`} className="flex h-11 items-center rounded-full border border-white/15 px-4 text-[14px] font-semibold transition-transform active:scale-[0.97]">
-                Call
+                {t("call")}
               </a>
             </div>
           </div>
@@ -185,11 +196,11 @@ export function BookedCelebration({
         <p className="mt-6 text-[13px] leading-relaxed text-steel">
           {payment
             ? contact
-              ? "Need to change anything? Text or call the detailer."
-              : "Need to change anything? Contact the detailer directly."
+              ? t("changeContact")
+              : t("changeDirect")
             : smsEnabled
-              ? "Your receipt and confirmation are on their way by text and email. You'll get a reminder the day before."
-              : "Your receipt is on its way by email. Need to change anything? Contact the detailer directly."}
+              ? t("receiptSms")
+              : t("receiptEmail")}
         </p>
       </div>
     </main>
@@ -197,6 +208,7 @@ export function BookedCelebration({
 }
 
 export function AddToCalendar({ event }: { event: CalendarEvent }) {
+  const { t } = useI18n();
   function save() {
     haptic("step");
     let ics: string;
@@ -224,7 +236,7 @@ export function AddToCalendar({ event }: { event: CalendarEvent }) {
         <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
         <path d="M3.5 10h17M8 3v4M16 3v4M12 13.5v4M10 15.5h4" />
       </svg>
-      Add to calendar
+      {t("addToCal")}
     </button>
   );
 }
@@ -234,11 +246,12 @@ export function AddToCalendar({ event }: { event: CalendarEvent }) {
  * not mark anything paid; the detailer confirms the money arrived in the app.
  */
 export function DepositSent({ businessName, report }: { businessName: string; report: () => Promise<{ ok: boolean }> }) {
+  const { t } = useI18n();
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   if (state === "sent") {
     return (
       <p role="status" className="mt-4 text-[13px] leading-relaxed text-steel">
-        Thanks. We&apos;ve told {businessName}. They&apos;ll confirm once the deposit arrives.
+        {t("thanksTold", { name: businessName })}
       </p>
     );
   }
@@ -256,11 +269,11 @@ export function DepositSent({ businessName, report }: { businessName: string; re
         }}
         className="flex h-11 w-full items-center justify-center rounded-[16px] border border-gold/40 text-[14px] font-semibold text-gold transition-transform active:scale-[0.98] disabled:opacity-60"
       >
-        {state === "sending" ? "Letting them know…" : "I've sent the deposit"}
+        {state === "sending" ? t("letting") : t("sentBtn")}
       </button>
       {state === "error" && (
         <p role="alert" className="mt-2 text-[13px] text-steel">
-          That didn&apos;t go through. Please try again, or let {businessName} know directly.
+          {t("sendError", { name: businessName })}
         </p>
       )}
     </div>
@@ -269,17 +282,18 @@ export function DepositSent({ businessName, report }: { businessName: string; re
 
 /** The client's private booking page: view, pay, ask to move or cancel. Saved by the client, never sent by Beadup. */
 function SaveBookingLink({ token }: { token: string }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const path = `/b/${token}`;
   return (
     <div className="mt-3 rounded-[20px] border border-white/10 bg-white/[0.03] p-4 text-left">
-      <p className="text-[14px] font-semibold">Your booking page</p>
+      <p className="text-[14px] font-semibold">{t("bookingPage")}</p>
       <p className="mt-1 text-[13px] leading-relaxed text-steel">
-        Save this private link to see your booking, pay the deposit later, or ask to change it.
+        {t("saveLink")}
       </p>
       <div className="mt-3 flex gap-2">
         <a href={path} className="flex h-11 flex-1 items-center justify-center rounded-full bg-bead/15 text-[14px] font-semibold text-bead">
-          Open
+          {t("openBtn")}
         </a>
         <button
           type="button"
@@ -292,7 +306,7 @@ function SaveBookingLink({ token }: { token: string }) {
           }}
           className="flex h-11 flex-1 items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold"
         >
-          {copied ? "Copied" : "Copy link"}
+          {copied ? t("copied") : t("copyLink")}
         </button>
       </div>
     </div>
