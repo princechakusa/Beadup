@@ -1002,3 +1002,26 @@ export async function switchToStarters(trade: TradeId, country: Country): Promis
   }
   await refreshBookingPage();
 }
+
+/**
+ * Ids of the jobs the business archived. Kept apart from the main booking
+ * query on purpose: if the database has not got the column yet (an app update
+ * can arrive first), this quietly returns nothing instead of breaking Today.
+ */
+export async function fetchArchivedIds(): Promise<string[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await db().from('bookings').select('id').not('archived_at', 'is', null).limit(5000);
+    if (error) return [];
+    return (data ?? []).map((r) => r.id as string);
+  } catch {
+    return [];
+  }
+}
+
+/** Archive (or restore) finished jobs. They stay in earnings and client history; they only leave job lists. */
+export async function setArchived(ids: string[], on: boolean): Promise<void> {
+  if (!supabase || ids.length === 0) return;
+  const { error } = await db().from('bookings').update({ archived_at: on ? new Date().toISOString() : null }).in('id', ids);
+  if (error) throw error;
+}

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { dateKey, initials, localTime, mondayOf, minutesOfDay, startOfDay, money, moneyParts, setMoneyCountry, weekdayIndex } from './format';
+import { dateKey, greeting, initials, localTime, mondayOf, minutesOfDay, startOfDay, money, moneyParts, setMoneyCountry, weekdayIndex } from './format';
 
 // Reference instants below were confirmed with the browser/Node Intl engine
 // for the 2026 DST transitions in America/Chicago:
@@ -154,5 +154,16 @@ describe('countryFromTimezone (same rule as the database)', () => {
     expect(countryFromTimezone('America/Toronto')).toBe('CA');
     expect(countryFromTimezone('America/Chicago')).toBe('US');
     expect(countryFromTimezone('Africa/Harare')).toBeNull();
+  });
+});
+
+describe('greeting', () => {
+  it('follows the phone clock, not a saved business timezone', () => {
+    expect(greeting(new Date(2026, 10, 16, 9, 0))).toBe('Morning');
+    expect(greeting(new Date(2026, 10, 16, 12, 0))).toBe('Afternoon');
+    expect(greeting(new Date(2026, 10, 16, 15, 30))).toBe('Afternoon');
+    expect(greeting(new Date(2026, 10, 16, 18, 0))).toBe('Evening');
+    expect(greeting(new Date(2026, 10, 16, 23, 59))).toBe('Evening');
+    expect(greeting(new Date(2026, 10, 16, 0, 5))).toBe('Morning');
   });
 });

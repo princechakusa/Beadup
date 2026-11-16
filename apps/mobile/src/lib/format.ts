@@ -158,8 +158,14 @@ export function initials(name: string): string {
   );
 }
 
-export function greeting(timeZone: string): string {
-  const h = Number(new Date().toLocaleString('en-US', { timeZone, hour: 'numeric', hourCycle: 'h23' }));
+/**
+ * "Morning / Afternoon / Evening" for the person looking at the phone, so it
+ * follows the phone's own clock, not the business's saved timezone (a detailer
+ * whose profile still says another timezone would otherwise be told "Morning"
+ * in the afternoon).
+ */
+export function greeting(now: Date = new Date()): string {
+  const h = now.getHours();
   return t(h < 12 ? 'greet_morning' : h < 18 ? 'greet_afternoon' : 'greet_evening');
 }
 

@@ -635,6 +635,20 @@ export const en = {
   nav_new_quote: 'New quote',
   ai_take: 'Take a photo',
   ai_choose: 'Choose photos',
+  // Language setting
+  lang_label: 'Language',
+  lang_auto: 'Automatic (phone language)',
+  lang_title: 'App language',
+  lang_note: 'Automatic follows your phone. The app restarts to apply a change.',
+  // Archive finished jobs
+  ach_job: 'Archive this job',
+  ach_restore: 'Restore to my lists',
+  ach_badge: 'Archived',
+  ach_month: 'Archive finished jobs ({n})',
+  ach_confirm: 'Archive {n} finished jobs? They stay in your earnings and in each client’s history. They only leave your job lists, and you can restore any of them from the job.',
+  ach_yes: 'Yes, archive',
+  ach_fail: 'Could not archive. Check your connection and try again.',
+  ach_note: 'Archived jobs still count in your earnings.',
 } as const;
 
 export type MessageKey = keyof typeof en;

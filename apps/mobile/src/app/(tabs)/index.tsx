@@ -83,7 +83,7 @@ export default function Today() {
   return (
     <Screen
       eyebrow={new Date().toLocaleDateString(dateLocale(), { timeZone: tz, weekday: 'long', day: 'numeric', month: 'short' })}
-      title={`${greeting(tz)}${firstName ? `, ${firstName}` : ''}`}
+      title={`${greeting()}${firstName ? `, ${firstName}` : ''}`}
       offline={week.stale || next.stale}
       refreshing={refreshing && !!week.data}
       onRefresh={() => {

@@ -18,6 +18,7 @@ import { disablePush, enablePush, pushState, type PushState } from '@/lib/push';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
 import { dateLocale, t } from '@/lib/i18n';
+import { LanguagePicker } from '@/components/LanguagePicker';
 
 const SUPPORT_EMAIL = 'support@beadup.app';
 
@@ -256,6 +257,12 @@ export default function Settings() {
             trackColor={{ true: colors.bead, false: '#262B35' }}
             accessibilityLabel={t('se_ai')}
           />
+        </View>
+      </ListCard>
+
+      <ListCard>
+        <View style={{ padding: 14 }}>
+          <LanguagePicker />
         </View>
       </ListCard>
 

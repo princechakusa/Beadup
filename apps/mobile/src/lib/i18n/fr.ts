@@ -632,4 +632,18 @@ export const fr: Partial<Record<MessageKey, string>> = {
   nav_new_quote: 'Nouveau devis',
   ai_take: 'Prendre une photo',
   ai_choose: 'Choisir des photos',
+  // Language setting
+  lang_label: 'Langue',
+  lang_auto: 'Automatique (langue du téléphone)',
+  lang_title: 'Langue de l’appli',
+  lang_note: 'Automatique suit la langue de votre téléphone. L’appli redémarre pour appliquer le changement.',
+  // Archive finished jobs
+  ach_job: 'Archiver cette mission',
+  ach_restore: 'Remettre dans mes listes',
+  ach_badge: 'Archivée',
+  ach_month: 'Archiver les missions terminées ({n})',
+  ach_confirm: 'Archiver {n} missions terminées ? Elles restent dans vos gains et dans l’historique de chaque client. Elles quittent seulement vos listes de missions, et vous pouvez en restaurer une depuis la mission.',
+  ach_yes: 'Oui, archiver',
+  ach_fail: 'Archivage impossible. Vérifiez votre connexion et réessayez.',
+  ach_note: 'Les missions archivées comptent toujours dans vos gains.',
 };

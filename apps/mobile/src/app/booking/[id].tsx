@@ -15,6 +15,8 @@ import {
   fetchBooking,
   fetchBookingRequest,
   fetchProfile,
+  fetchArchivedIds,
+  setArchived,
   markDepositReceived,
   requestBalanceLink,
   setBookingStatus,
@@ -42,6 +44,7 @@ export default function BookingDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const booking = useQuery(() => fetchBooking(id), [id]);
   const request = useQuery(() => fetchBookingRequest(id), [id]);
+  const archivedIds = useQuery(fetchArchivedIds, [], 'archived-ids');
   const profile = useQuery(fetchProfile);
   const tz = profile.data?.timezone ?? 'America/Chicago';
   const [busy, setBusy] = useState<string | null>(null);
@@ -255,6 +258,20 @@ export default function BookingDetail() {
             </View>
           )}
         </View>
+      )}
+
+      {(b.status === 'completed' || b.status === 'no_show') && (
+        <Button
+          label={(archivedIds.data ?? []).includes(b.id) ? t('ach_restore') : t('ach_job')}
+          variant="ghost"
+          loading={busy === 'archive'}
+          onPress={() =>
+            run('archive', async () => {
+              await setArchived([b.id], !(archivedIds.data ?? []).includes(b.id));
+              archivedIds.refresh();
+            })
+          }
+        />
       )}
 
       {justCancelled && b.status === 'cancelled' && (

@@ -12,7 +12,7 @@ import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { fetchCatalog, fetchProfile, saveQuote, useQuery, type QuoteItem } from '@/lib/data';
 import { currencySymbol, money } from '@/lib/format';
-import { currentTrade, currentTradeId } from '@/lib/trades';
+import { currentTrade, currentTradeId, tradeOf } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
@@ -33,7 +33,9 @@ const depositOf = (cents: number) => Math.floor((cents * 3 + 5) / 10); // same r
 export default function NewQuote() {
   const catalog = useQuery(fetchCatalog);
   const profile = useQuery(fetchProfile);
-  const trade = currentTrade();
+  // The saved profile decides (not a module variable that may not be set yet), so the AI scan card is there as soon as the profile loads.
+  const tradeId = profile.data?.trade ?? currentTradeId();
+  const trade = profile.data ? tradeOf(profile.data.trade) : currentTrade();
   const tiers = trade.pricing === 'tiers';
   const [size, setSize] = useState<Size>(tiers ? 'suv' : 'sedan');
   const [vehicle, setVehicle] = useState('');
@@ -90,7 +92,7 @@ export default function NewQuote() {
   return (
     <Screen title={t('qt_title')} tabs={false} right={<BackButton />}>
       {/* The AI photo scan recognises vehicles only. */}
-      {currentTradeId() === 'detailing' && (
+      {tradeId === 'detailing' && (
       <AiScan
         onSuggestion={(s) => {
           setQuoteId(s.quoteId);
@@ -125,10 +127,10 @@ export default function NewQuote() {
       )}
 
       <Field
-        label={currentTradeId() === 'detailing' || currentTradeId() === 'boat_rv' ? t('qt_vehicle') : t('qt_details')}
+        label={tradeId === 'detailing' || tradeId === 'boat_rv' ? t('qt_vehicle') : t('qt_details')}
         value={vehicle}
         onChangeText={setVehicle}
-        placeholder={currentTradeId() === 'detailing' ? t('qt_vehicle_ph') : t('qt_details_ph')}
+        placeholder={tradeId === 'detailing' ? t('qt_vehicle_ph') : t('qt_details_ph')}
         maxLength={120}
       />
 

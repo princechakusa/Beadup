@@ -632,4 +632,18 @@ export const es: Partial<Record<MessageKey, string>> = {
   nav_new_quote: 'Nuevo presupuesto',
   ai_take: 'Hacer una foto',
   ai_choose: 'Elegir fotos',
+  // Language setting
+  lang_label: 'Idioma',
+  lang_auto: 'Automático (idioma del teléfono)',
+  lang_title: 'Idioma de la app',
+  lang_note: 'Automático sigue el idioma de tu teléfono. La app se reinicia para aplicar el cambio.',
+  // Archive finished jobs
+  ach_job: 'Archivar este trabajo',
+  ach_restore: 'Devolver a mis listas',
+  ach_badge: 'Archivado',
+  ach_month: 'Archivar trabajos terminados ({n})',
+  ach_confirm: '¿Archivar {n} trabajos terminados? Siguen contando en tus ganancias y en el historial de cada cliente. Solo salen de tus listas de trabajos, y puedes restaurar cualquiera desde el propio trabajo.',
+  ach_yes: 'Sí, archivar',
+  ach_fail: 'No se pudo archivar. Revisa tu conexión e inténtalo de nuevo.',
+  ach_note: 'Los trabajos archivados siguen contando en tus ganancias.',
 };

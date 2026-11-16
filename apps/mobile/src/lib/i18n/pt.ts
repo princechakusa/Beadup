@@ -632,4 +632,18 @@ export const pt: Partial<Record<MessageKey, string>> = {
   nav_new_quote: 'Novo orçamento',
   ai_take: 'Tirar uma foto',
   ai_choose: 'Escolher fotos',
+  // Language setting
+  lang_label: 'Idioma',
+  lang_auto: 'Automático (idioma do telefone)',
+  lang_title: 'Idioma do app',
+  lang_note: 'Automático segue o idioma do telefone. O app reinicia para aplicar a mudança.',
+  // Archive finished jobs
+  ach_job: 'Arquivar este serviço',
+  ach_restore: 'Voltar para minhas listas',
+  ach_badge: 'Arquivado',
+  ach_month: 'Arquivar serviços concluídos ({n})',
+  ach_confirm: 'Arquivar {n} serviços concluídos? Eles continuam nos seus ganhos e no histórico de cada cliente. Só saem das suas listas de serviços, e você pode restaurar qualquer um pelo próprio serviço.',
+  ach_yes: 'Sim, arquivar',
+  ach_fail: 'Não foi possível arquivar. Verifique a conexão e tente novamente.',
+  ach_note: 'Serviços arquivados continuam contando nos seus ganhos.',
 };

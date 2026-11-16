@@ -6,7 +6,7 @@ import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { Badge, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { fetchBookings, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
+import { fetchBookings, fetchProfile, usePaymentsMode, useQuery, type Booking, fetchArchivedIds } from '@/lib/data';
 import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, timeOf, money } from '@/lib/format';
 import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
@@ -32,9 +32,11 @@ export default function Calendar() {
     [weekStart, tz],
     `calendar-${weekStart}`,
   );
+  const archived = useQuery(fetchArchivedIds, [], 'archived-ids');
+  const shown = (week.data ?? []).filter((b) => !(archived.data ?? []).includes(b.id));
   const days = Array.from({ length: 7 }, (_, i) => addDaysKey(weekStart, i));
-  const dayJobs = (week.data ?? []).filter((b) => dateKey(new Date(b.startsAt), tz) === selected);
-  const count = (key: string) => (week.data ?? []).filter((b) => dateKey(new Date(b.startsAt), tz) === key).length;
+  const dayJobs = shown.filter((b) => dateKey(new Date(b.startsAt), tz) === selected);
+  const count = (key: string) => shown.filter((b) => dateKey(new Date(b.startsAt), tz) === key).length;
 
   const FIRST_HOUR = Math.min(DAY_START_HOUR, ...dayJobs.map((b) => Math.floor(minutesOfDay(b.startsAt, tz) / 60)));
   const LAST_HOUR = Math.max(

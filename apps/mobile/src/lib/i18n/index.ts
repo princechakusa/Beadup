@@ -28,7 +28,40 @@ function deviceLocale(): Locale {
   }
 }
 
-let current: Locale = deviceLocale();
+// The language the person chose in Settings (kept on the device), else the phone's.
+export type LanguagePreference = 'auto' | Locale;
+const PREF_KEY = 'beadup.language';
+type KeyValueStore = { getItem(key: string): string | null; setItem(key: string, value: string): void };
+function store(): KeyValueStore | null {
+  try {
+    // Loaded lazily so tests and the web preview never need the native module.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-secure-store') as KeyValueStore;
+  } catch {
+    return null;
+  }
+}
+export function getLanguagePreference(): LanguagePreference {
+  try {
+    const v = store()?.getItem(PREF_KEY);
+    return v && (LOCALES as readonly string[]).includes(v) ? (v as Locale) : 'auto';
+  } catch {
+    return 'auto';
+  }
+}
+export function saveLanguagePreference(pref: LanguagePreference): void {
+  try {
+    store()?.setItem(PREF_KEY, pref);
+  } catch {
+    // keep going: the choice then lasts until the app closes
+  }
+  current = pref === 'auto' ? deviceLocale() : pref;
+}
+
+let current: Locale = (() => {
+  const pref = getLanguagePreference();
+  return pref === 'auto' ? deviceLocale() : pref;
+})();
 export const setLocale = (l: Locale) => {
   current = l;
 };

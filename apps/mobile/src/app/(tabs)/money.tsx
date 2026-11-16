@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState, ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { fetchBalance, fetchBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
+import { fetchArchivedIds, setArchived, fetchBalance, fetchBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
 import { dateKey, dayLabel, startOfDay, timeOf, money, moneyParts } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
 import { dateLocale, t } from '@/lib/i18n';
+import { useState } from 'react';
 
 export default function Money() {
   const external = usePaymentsMode() === 'external';
@@ -42,7 +43,12 @@ function MoneyDirect() {
   const depositsDue = ahead.filter((b) => !b.depositReceived).length;
   const { whole, fraction } = moneyParts(earned);
   const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString(dateLocale(), { month: 'long', timeZone: 'UTC' });
-  const recent = [...jobs].sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)).slice(0, 20);
+  const archived = useQuery(fetchArchivedIds, [], 'archived-ids');
+  const archivedSet = new Set(archived.data ?? []);
+  const finishedVisible = jobs.filter((b) => (b.status === 'completed' || b.status === 'no_show') && !archivedSet.has(b.id));
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [archiveError, setArchiveError] = useState(false);
+  const recent = [...jobs].filter((b) => !archivedSet.has(b.id)).sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)).slice(0, 20);
   const STATUS_TEXT: Partial<Record<Booking['status'], string>> = { completed: t('mo_s_done'), confirmed: t('mo_s_booked'), no_show: t('mo_s_noshow') };
 
   return (
@@ -115,6 +121,44 @@ function MoneyDirect() {
           <EmptyState title={month.loading ? t('mo_loading') : t('mo_none')} body={month.loading ? '' : t('mo_none_body')} />
         </ListCard>
       )}
+
+      {finishedVisible.length > 0 &&
+        (confirmArchive ? (
+          <View style={{ gap: 10 }}>
+            <Text variant="body" tone="steel">
+              {t('ach_confirm', { n: finishedVisible.length })}
+            </Text>
+            {archiveError && (
+              <Text variant="caption" tone="danger">
+                {t('ach_fail')}
+              </Text>
+            )}
+            <Button
+              label={t('ach_yes')}
+              onPress={async () => {
+                setArchiveError(false);
+                try {
+                  await setArchived(
+                    finishedVisible.map((b) => b.id),
+                    true,
+                  );
+                  setConfirmArchive(false);
+                  archived.refresh();
+                } catch {
+                  setArchiveError(true);
+                }
+              }}
+            />
+            <Button label={t('cancel')} variant="ghost" onPress={() => setConfirmArchive(false)} />
+          </View>
+        ) : (
+          <View style={{ gap: 6 }}>
+            <Button label={t('ach_month', { n: finishedVisible.length })} variant="glass" onPress={() => setConfirmArchive(true)} />
+            <Text variant="caption" style={{ fontSize: 12, textAlign: 'center' }}>
+              {t('ach_note')}
+            </Text>
+          </View>
+        ))}
     </Screen>
   );
 }
