@@ -175,3 +175,9 @@ UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod
 - Web: client booking flow, confirmation, `/b/<token>`, review form, Stripe return page in ES/FR/PT (`apps/web/src/lib/i18n`, `LocaleProvider`). E2E 33/33, unit 75.
 - Mobile: i18n layer + tabs, Today, Needs attention, link card, Calendar, Clients, Money (see `docs/I18N_PLAN.md` for the exact list of what is left). Unit 40, iOS export OK. All JS only (OTA safe, no new native module).
 - Native speaker review of every draft is still needed before launch.
+
+## 2026-11-16 (late), Claude Code: translations finished except Arabic and the marketing site
+- Mobile: every live screen translated (ES/FR/PT), completeness test, iOS export OK, all JS only. Preview in a browser: see the Expo web command above; set the browser language to test.
+- Emails: client language saved on the booking, emails written in it. Migration `20261116000100_client_language.sql` must be deployed (Supabase GitHub integration) before the language is used; until then emails default to English.
+- Store text drafts in `docs/STORE_LISTINGS_I18N.md`.
+- Still open: native review, Arabic (RTL), marketing pages, screenshots, then ONE iOS OTA (queue: cold-start fix, dropdowns, trade switch, payment method picker, translations). Android has no build yet.
