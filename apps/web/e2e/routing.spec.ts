@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { sql } from "./helpers";
 
 test("site pages answer 200 and unknown handles a real 404", async ({ request }) => {
-  for (const path of ["/", "/pricing", "/privacy", "/terms", "/refund-policy", "/support", "/delete-account", "/for", "/marcus"]) {
+  for (const path of ["/", "/pricing", "/privacy", "/terms", "/refund-policy", "/support", "/delete-account", "/for", "/car-detailing-booking-app", "/ai-detailing-quote-calculator", "/booking-link-with-deposits", "/marcus"]) {
     expect((await request.get(path)).status(), path).toBe(200);
   }
   expect((await request.get("/some-unknown-handle")).status()).toBe(404);

@@ -77,6 +77,9 @@ const FOOTER = [
       { href: "/#how-it-works", label: "How it works" },
       { href: "/pricing", label: "Pricing" },
       { href: SAMPLE_PAGE, label: "Sample booking page" },
+      { href: "/car-detailing-booking-app", label: "Booking app for car detailers" },
+      { href: "/ai-detailing-quote-calculator", label: "AI photo quotes" },
+      { href: "/booking-link-with-deposits", label: "Booking link with deposits" },
     ],
   },
   {

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 
-const PRIVATE = ["/api/", "/r/", "/stripe/", "/*/booked", "/admin"];
+const PRIVATE = ["/api/", "/r/", "/stripe/", "/*/booked", "/admin", "/b/", "/indexnow/"];
 
 // Answer engines and AI search crawlers are welcome on public pages: being
 // cited by ChatGPT, Claude, Perplexity and Google's AI answers is marketing.

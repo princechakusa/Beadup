@@ -1,4 +1,5 @@
 import { GUIDES } from "@/content/guides";
+import { LANDING_PAGES } from "@/content/landing-pages";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { SITE_URL } from "@/lib/seo";
 import { getPublicConfig } from "@/lib/site";
@@ -41,6 +42,10 @@ Prices show in the business's own currency (USD, CAD, GBP, AUD, NZD, AED, ZAR or
 ## Key pages
 - [Home](${SITE_URL}/)
 - [Pricing](${SITE_URL}/pricing)
+${LANDING_PAGES.map((p) => `- [${p.title}](${SITE_URL}/${p.slug}): ${p.description}`).join(String.fromCharCode(10))}
+- [All businesses Beadup is for](${SITE_URL}/for)
+- [Guides](${SITE_URL}/blog)
+- [Find a business](${SITE_URL}/find)
 - [Support and FAQ](${SITE_URL}/support)
 - [Privacy policy](${SITE_URL}/privacy)
 - [Sample booking page](${SITE_URL}/beadup-demo-detailing)${process.env.NEXT_PUBLIC_APP_STORE_URL ? `\n- [Beadup on the App Store](${process.env.NEXT_PUBLIC_APP_STORE_URL})` : ""}

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { unstable_cache } from "next/cache";
+import { LANDING_PAGES } from "@/content/landing-pages";
 import { GUIDES } from "@/content/guides";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { SITE_URL } from "@/lib/seo";
@@ -26,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/pricing`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/for`, changeFrequency: "monthly", priority: 0.9 },
+    ...LANDING_PAGES.map((p) => ({ url: `${SITE_URL}/${p.slug}`, changeFrequency: "monthly" as const, priority: 0.9 })),
     { url: `${SITE_URL}/find`, changeFrequency: "daily", priority: 0.9 },
     ...TRADE_PAGES.map((t) => ({ url: `${SITE_URL}/find/${t.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
     ...TRADE_PAGES.map((t) => ({ url: `${SITE_URL}/for/${t.slug}`, changeFrequency: "monthly" as const, priority: 0.9 })),
