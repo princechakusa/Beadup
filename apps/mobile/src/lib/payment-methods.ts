@@ -1,5 +1,6 @@
 import type { Country } from './format';
 import { t } from './i18n';
+import { phrase } from './i18n/phrases';
 
 /**
  * Ways a business can take its deposit without Beadup touching the money.
@@ -97,7 +98,14 @@ const BY_COUNTRY: Record<Country, PaymentMethod[]> = {
 };
 
 /** The methods for a country, then pay-on-the-day and a free-form option. */
-export const methodsFor = (country: Country): PaymentMethod[] => [...(BY_COUNTRY[country] ?? []), PAY_ON_DAY, CUSTOM];
+/** The methods are written in English here; the picker shows them in the phone's language (brand names stay as they are). */
+const localized = (m: PaymentMethod): PaymentMethod => ({
+  ...m,
+  label: phrase(m.label),
+  hint: phrase(m.hint),
+  detailLabel: m.detailLabel?.endsWith(' link') && m.kind === 'link' ? phrase('{m} link').replace('{m}', m.label) : m.detailLabel && phrase(m.detailLabel),
+});
+export const methodsFor = (country: Country): PaymentMethod[] => [...(BY_COUNTRY[country] ?? []).map(localized), PAY_ON_DAY, CUSTOM];
 
 /** Which method a saved link/note most likely came from, so the form opens on it. */
 export function guessMethod(country: Country, linkValue: string | null, noteValue: string | null): PaymentMethod {

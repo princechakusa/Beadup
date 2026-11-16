@@ -83,7 +83,7 @@ function QuoteButton() {
     <Animated.View style={style}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="New quote"
+        accessibilityLabel={t('nav_new_quote')}
         onPressIn={() => scale.set(withSpring(0.9, springs.press))}
         onPressOut={() => scale.set(withSpring(1, springs.bouncy))}
         onPress={() => {

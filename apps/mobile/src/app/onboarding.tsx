@@ -21,16 +21,12 @@ import { Dropdown } from '@/components/ui/Dropdown';
 import { haptic } from '@/lib/haptics';
 import { apiBaseUrl, supabase } from '@/lib/supabase';
 import { colors, fonts, radius, space, springs } from '@/theme/tokens';
+import { phrase } from '@/lib/i18n/phrases';
+import { dateLocale, t } from '@/lib/i18n';
 
-const DAYS = [
-  { wd: 1, label: 'Mon' },
-  { wd: 2, label: 'Tue' },
-  { wd: 3, label: 'Wed' },
-  { wd: 4, label: 'Thu' },
-  { wd: 5, label: 'Fri' },
-  { wd: 6, label: 'Sat' },
-  { wd: 0, label: 'Sun' },
-];
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+// 2023-01-01 was a Sunday, so weekday number n is 2023-01-0(1 + n).
+const dayShort = (wd: number) => new Date(Date.UTC(2023, 0, 1 + wd)).toLocaleDateString(dateLocale(), { weekday: 'short', timeZone: 'UTC' });
 const TIMES = ['07:00', '08:00', '09:30', '10:30', '12:00', '13:00', '14:30', '15:30', '17:00'];
 const to12h = (t: string) => {
   const [h, m] = t.split(':').map(Number);
@@ -43,7 +39,7 @@ const slug = (s: string) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 40);
 const cents = (v: string) => Math.round(Number(v.replace(/[^0-9.]/g, '')) * 100);
-const STEPS = ['Business', 'Services', 'Hours', 'Get paid'];
+const STEP_KEYS = ['ob_s1', 'ob_s2', 'ob_s3', 'ob_s4'] as const;
 
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
@@ -72,16 +68,16 @@ export default function Onboarding() {
     setMoneyCountry(c);
     if (!pricesEdited) {
       const st = startersFor(tradeId, c);
-      setServices((xs) => st.services.map((t, i) => ({ ...t, on: xs[i]?.on ?? t.on })));
+      setServices((xs) => st.services.map((sv, i) => ({ ...sv, on: xs[i]?.on ?? sv.on })));
       setAddOns((xs) => st.addOns.map((a, i) => ({ ...a, on: xs[i]?.on ?? a.on })));
     }
   };
-  const pickTrade = (t: TradeId) => {
-    setTradeId(t);
-    setVisitMode(TRADES[t].visit);
-    setCurrentTrade(t);
+  const pickTrade = (tid: TradeId) => {
+    setTradeId(tid);
+    setVisitMode(TRADES[tid].visit);
+    setCurrentTrade(tid);
     // A new trade means new starter services (the old ones were for another trade).
-    const st = startersFor(t, country);
+    const st = startersFor(tid, country);
     setServices(st.services);
     setAddOns(st.addOns);
     setPricesEdited(false);
@@ -98,18 +94,18 @@ export default function Onboarding() {
   useEffect(() => {
     if (!supabase || effectiveHandle.length < 2) return;
     let alive = true;
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       const { data } = await supabase!.rpc('handle_available', { p_handle: effectiveHandle });
       if (alive) setHandleOk(data === true);
     }, 350);
     return () => {
       alive = false;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [effectiveHandle]);
   const handleValid = effectiveHandle.length >= 2 && handleOk !== false;
 
-  const progress = useAnimatedStyle(() => ({ width: withSpring(`${((step + 1) / STEPS.length) * 100}%`, springs.settle) }));
+  const progress = useAnimatedStyle(() => ({ width: withSpring(`${((step + 1) / STEP_KEYS.length) * 100}%`, springs.settle) }));
   const go = (n: number) => {
     haptic.select();
     setError(null);
@@ -142,10 +138,10 @@ export default function Onboarding() {
       haptic.error();
       if (res?.error === 'exists') return go(3); // already set up on another device
       if (res?.error === 'handle_taken') {
-        setError('That booking link was just taken. Pick another.');
+        setError(t('ob_taken_now'));
         return setStep(0);
       }
-      return setError('Something in your setup didn’t check out. Check the prices and try again.');
+      return setError(t('ob_bad'));
     }
     // The business country (currency). The database guessed it from the
     // timezone; the detailer's choice wins.
@@ -167,7 +163,7 @@ export default function Onboarding() {
       await refreshProfile();
     } catch {
       haptic.error();
-      setError('Could not open Stripe. You can finish this later in Settings.');
+      setError(t('ob_stripe_fail'));
     } finally {
       setBusy(false);
     }
@@ -186,17 +182,17 @@ export default function Onboarding() {
                 onPress={() => go(step - 1)}
                 hitSlop={10}
                 accessibilityRole="button"
-                accessibilityLabel="Back"
+                accessibilityLabel={t('back')}
                 style={styles.backBtn}>
                 <Icon name="chevronLeft" size={20} color={colors.paint} />
               </Pressable>
             )}
             <Text variant="eyebrow" tone="bead" style={{ flex: 1 }}>
-              Step {step + 1} of {STEPS.length} · {STEPS[step]}
+              {t('ob_step', { n: step + 1, total: STEP_KEYS.length, name: t(STEP_KEYS[step]) })}
             </Text>
             {step === 0 && (
               <Pressable onPress={() => signOut()} hitSlop={8}>
-                <Text variant="caption">Sign out</Text>
+                <Text variant="caption">{t('signout')}</Text>
               </Pressable>
             )}
           </View>
@@ -207,13 +203,13 @@ export default function Onboarding() {
           <Animated.View key={step} entering={FadeInRight.springify().damping(20)} exiting={FadeOutLeft.duration(150)} style={{ gap: space.lg }}>
             {step === 0 && (
               <>
-                <Text variant="title">Set up your business</Text>
+                <Text variant="title">{t('ob_title')}</Text>
                 <TradePicker value={tradeId} onChange={pickTrade} />
                 <VisitPicker value={visitMode} onChange={setVisitMode} />
-                <Field label="Business name" value={name} onChangeText={setName} placeholder="e.g. Marcus Shine Co." maxLength={80} autoCapitalize="words" />
+                <Field label={t('bp_name')} value={name} onChangeText={setName} placeholder={t('ob_name_ph')} maxLength={80} autoCapitalize="words" />
                 <View style={{ gap: 6 }}>
                   <Field
-                    label="Your booking link"
+                    label={t('ob_link')}
                     value={effectiveHandle}
                     onChangeText={(v) => {
                       setHandleEdited(true);
@@ -222,42 +218,42 @@ export default function Onboarding() {
                     autoCapitalize="none"
                     autoCorrect={false}
                     maxLength={40}
-                    error={handleOk === false ? 'That link is taken. Try another.' : error}
+                    error={handleOk === false ? t('ob_taken') : error}
                   />
                   <Text variant="caption" tone={handleOk ? 'bead' : 'steel'}>
-                    {apiBaseUrl.replace(/^https?:\/\//, '')}/{effectiveHandle || 'your-name'}
-                    {handleOk ? '  ·  available' : ''}
+                    {apiBaseUrl.replace(/^https?:\/\//, '')}/{effectiveHandle || t('ob_your_name')}
+                    {handleOk ? `  ·  ${t('ob_available')}` : ''}
                   </Text>
                 </View>
-                <Field label="Service area" value={area} onChangeText={setArea} placeholder="e.g. Austin, TX · 25 mi" maxLength={80} />
+                <Field label={t('ob_area')} value={area} onChangeText={setArea} placeholder={t('bp_area_ph')} maxLength={80} />
                 <Field
-                  label="Referred by a detailer? (optional)"
+                  label={t('ob_ref')}
                   value={referral}
                   onChangeText={setReferral}
-                  placeholder="Their code, e.g. marcus"
+                  placeholder={t('ob_ref_ph')}
                   maxLength={120}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
                 <Dropdown
-                  label="Country (sets your currency)"
+                  label={t('ob_country')}
                   value={country}
                   options={(Object.keys(COUNTRIES) as Country[]).map((c) => ({ value: c, label: COUNTRIES[c].name, meta: COUNTRIES[c].currency }))}
                   onChange={pickCountry}
                   searchable
                 />
-                <Text variant="caption">Times are in your timezone: {timezone.replace(/_/g, ' ')}</Text>
-                <Button label="Continue" onPress={() => go(1)} disabled={!name.trim() || !handleValid} />
+                <Text variant="caption">{t('ob_tz', { tz: timezone.replace(/_/g, ' ') })}</Text>
+                <Button label={t('continue')} onPress={() => go(1)} disabled={!name.trim() || !handleValid} />
               </>
             )}
 
             {step === 1 && (
               <>
-                <Text variant="title">Services and prices</Text>
+                <Text variant="title">{t('ob_services')}</Text>
                 <Text variant="body" tone="steel">
                   {tiers
-                    ? `Start from these and change anything. Clients pick a size (${trade.tiers.sedan}, ${trade.tiers.suv}, ${trade.tiers.truck}) and see that price.`
-                    : 'Start from these and change anything. You can add a photo to each service later in Settings.'}
+                    ? t('ob_intro_tiers', { a: phrase(trade.tiers.sedan), b: phrase(trade.tiers.suv), c: phrase(trade.tiers.truck) })
+                    : t('ob_intro_single')}
                 </Text>
                 {services.map((s, i) => (
                   <View key={s.name} style={[styles.card, s.on && styles.cardOn]}>
@@ -270,14 +266,14 @@ export default function Onboarding() {
                         value={s.on}
                         onValueChange={(on) => setServices((xs) => xs.map((x, j) => (j === i ? { ...x, on } : x)))}
                         trackColor={{ true: colors.bead, false: '#262B35' }}
-                        accessibilityLabel={`Offer ${s.name}`}
+                        accessibilityLabel={t('ob_offer', { name: s.name })}
                       />
                     </View>
                     {s.on && (
                       <View style={styles.prices}>
                         {(tiers ? (['sedan', 'suv', 'truck'] as const) : (['sedan'] as const)).map((k) => (
                           <View key={k} style={{ flex: 1, gap: 4 }}>
-                            <Text variant="caption">{tiers ? trade.tiers[k] : 'Price'}</Text>
+                            <Text variant="caption">{tiers ? phrase(trade.tiers[k]) : t('ob_price')}</Text>
                             <TextInput
                               value={`${symbol}${s[k]}`}
                               onChangeText={(v) => {
@@ -285,7 +281,7 @@ export default function Onboarding() {
                                 setServices((xs) => xs.map((x, j) => (j === i ? { ...x, [k]: v.replace(/[^0-9.]/g, '') } : x)));
                               }}
                               keyboardType="decimal-pad"
-                              accessibilityLabel={tiers ? `${s.name} ${trade.tiers[k]} price` : `${s.name} price`}
+                              accessibilityLabel={tiers ? t('ob_tier_price_a11y', { name: s.name, tier: phrase(trade.tiers[k]) }) : t('ob_price_a11y', { name: s.name })}
                               style={styles.price}
                             />
                           </View>
@@ -294,7 +290,7 @@ export default function Onboarding() {
                     )}
                   </View>
                 ))}
-                {addOns.length > 0 && <Text variant="eyebrow">Add-ons</Text>}
+                {addOns.length > 0 && <Text variant="eyebrow">{t('sv_addons')}</Text>}
                 {addOns.map((a, i) => (
                   <View key={a.name} style={styles.addOn}>
                     <Text variant="body" style={{ flex: 1 }}>
@@ -307,49 +303,49 @@ export default function Onboarding() {
                         setAddOns((xs) => xs.map((x, j) => (j === i ? { ...x, price: v.replace(/[^0-9.]/g, '') } : x)));
                       }}
                       keyboardType="decimal-pad"
-                      accessibilityLabel={`${a.name} price`}
+                      accessibilityLabel={t('ob_price_a11y', { name: a.name })}
                       style={[styles.price, { width: 72 }]}
                     />
                     <Switch
                       value={a.on}
                       onValueChange={(on) => setAddOns((xs) => xs.map((x, j) => (j === i ? { ...x, on } : x)))}
                       trackColor={{ true: colors.bead, false: '#262B35' }}
-                      accessibilityLabel={`Offer ${a.name}`}
+                      accessibilityLabel={t('ob_offer', { name: a.name })}
                     />
                   </View>
                 ))}
                 <Button
-                  label="Continue"
+                  label={t('continue')}
                   onPress={() => go(2)}
                   disabled={!services.some((s) => s.on) || services.some((s) => s.on && [s.sedan, s.suv, s.truck].some((v) => !(cents(v) > 0)))}
                 />
-                <Button label="Back" variant="ghost" onPress={() => go(0)} />
+                <Button label={t('back')} variant="ghost" onPress={() => go(0)} />
               </>
             )}
 
             {step === 2 && (
               <>
-                <Text variant="title">When can clients book?</Text>
+                <Text variant="title">{t('ob_when')}</Text>
                 <Text variant="body" tone="steel">
-                  Pick your days and start times. You can fine-tune each day later in Settings.
+                  {t('ob_when_d')}
                 </Text>
                 <View style={styles.wrap}>
-                  {DAYS.map((d) => {
-                    const on = days.includes(d.wd);
+                  {DAY_ORDER.map((wd) => {
+                    const on = days.includes(wd);
                     return (
                       <Chip
-                        key={d.wd}
-                        label={d.label}
+                        key={wd}
+                        label={dayShort(wd)}
                         on={on}
-                        onPress={() => setDays((xs) => (on ? xs.filter((x) => x !== d.wd) : [...xs, d.wd]))}
+                        onPress={() => setDays((xs) => (on ? xs.filter((x) => x !== wd) : [...xs, wd]))}
                       />
                     );
                   })}
                 </View>
                 <View style={styles.wrap}>
-                  {TIMES.map((t) => {
-                    const on = times.includes(t);
-                    return <Chip key={t} label={to12h(t)} on={on} onPress={() => setTimes((xs) => (on ? xs.filter((x) => x !== t) : [...xs, t].sort()))} />;
+                  {TIMES.map((slot) => {
+                    const on = times.includes(slot);
+                    return <Chip key={slot} label={to12h(slot)} on={on} onPress={() => setTimes((xs) => (on ? xs.filter((x) => x !== slot) : [...xs, slot].sort()))} />;
                   })}
                 </View>
                 {error && (
@@ -357,8 +353,8 @@ export default function Onboarding() {
                     {error}
                   </Text>
                 )}
-                <Button label="Create my booking page" onPress={create} loading={busy} disabled={!days.length || !times.length} />
-                <Button label="Back" variant="ghost" onPress={() => go(1)} />
+                <Button label={t('ob_create')} onPress={create} loading={busy} disabled={!days.length || !times.length} />
+                <Button label={t('back')} variant="ghost" onPress={() => go(1)} />
               </>
             )}
 
@@ -367,7 +363,7 @@ export default function Onboarding() {
                 <View style={{ alignItems: 'center', gap: space.md }}>
                   <LiquidBead size={96} />
                   <Text variant="title" style={{ textAlign: 'center' }}>
-                    Your page is live
+                    {t('ob_live')}
                   </Text>
                   <Text variant="body" tone="bead" style={{ textAlign: 'center' }}>
                     {apiBaseUrl.replace(/^https?:\/\//, '')}/{effectiveHandle}
@@ -376,25 +372,24 @@ export default function Onboarding() {
                 {paymentsMode === 'external' ? (
                   <>
                     <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
-                      Last step: how should clients pay your deposit? They see this right after they book.
+                      {t('ob_last')}
                     </Text>
-                    <PaymentDetailsForm initial={{ link: null, note: null }} saveLabel="Save and open Beadup" onSaved={() => refreshProfile()} />
+                    <PaymentDetailsForm initial={{ link: null, note: null }} saveLabel={t('ob_save_open')} onSaved={() => refreshProfile()} />
                   </>
                 ) : (
                   <>
                     <Text variant="body" tone="steel" style={{ textAlign: 'center' }}>
-                      Connect Stripe so clients can pay deposits. Beadup never sees card numbers, and payouts go straight to
-                      your bank.
+                      {t('ob_connect_d')}
                     </Text>
                     {error && (
                       <Text variant="caption" tone="danger" style={{ textAlign: 'center' }}>
                         {error}
                       </Text>
                     )}
-                    <Button label="Connect Stripe" onPress={connectStripe} loading={busy} />
+                    <Button label={t('ob_connect')} onPress={connectStripe} loading={busy} />
                   </>
                 )}
-                <Button label="I’ll do this later" variant="ghost" onPress={() => refreshProfile()} />
+                <Button label={t('ob_later')} variant="ghost" onPress={() => refreshProfile()} />
               </>
             )}
           </Animated.View>

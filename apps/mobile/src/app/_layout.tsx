@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { listenForNotificationTaps } from '@/lib/push';
 import { reportError } from '@/lib/report-error';
 import { colors } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -123,13 +124,13 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
   useEffect(() => reportError(error, 'ErrorBoundary'), [error]);
   return (
     <View style={{ flex: 1, backgroundColor: colors.midnight, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-      <Text style={{ color: colors.paint, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>Something went wrong</Text>
-      <Text style={{ color: colors.steel, fontSize: 15, textAlign: 'center' }}>Your data is safe. Try again, or close and reopen Beadup.</Text>
+      <Text style={{ color: colors.paint, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{t('er_title')}</Text>
+      <Text style={{ color: colors.steel, fontSize: 15, textAlign: 'center' }}>{t('er_body')}</Text>
       <Pressable
         onPress={() => retry()}
         accessibilityRole="button"
         style={{ marginTop: 12, height: 48, paddingHorizontal: 28, borderRadius: 24, backgroundColor: colors.bead, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: colors.beadInk, fontSize: 16, fontWeight: '700' }}>Try again</Text>
+        <Text style={{ color: colors.beadInk, fontSize: 16, fontWeight: '700' }}>{t('er_retry')}</Text>
       </Pressable>
     </View>
   );

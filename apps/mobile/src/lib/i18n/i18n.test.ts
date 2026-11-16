@@ -41,6 +41,15 @@ describe('mobile i18n', () => {
     }
   });
 
+  it.each([
+    ['es', es],
+    ['fr', fr],
+    ['pt', pt],
+  ] as const)('%s translates every English key', (_name, catalog) => {
+    const missing = Object.keys(en).filter((k) => !(k in catalog));
+    expect(missing).toEqual([]);
+  });
+
   it('week letters give seven days in every language', () => {
     for (const c of [en, es, fr, pt]) expect(((c as Record<string, string>).week_letters ?? en.week_letters).split(',')).toHaveLength(7);
   });

@@ -56,7 +56,7 @@ export default function GoogleGuide() {
           </Text>
         </View>
       ))}
-      <Button label="Open Google Business" onPress={() => WebBrowser.openBrowserAsync('https://business.google.com')} />
+      <Button label={t('gg_open')} onPress={() => WebBrowser.openBrowserAsync('https://business.google.com')} />
     </Screen>
   );
 }

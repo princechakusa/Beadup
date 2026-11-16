@@ -112,10 +112,10 @@ export function AiScan({ onSuggestion }: { onSuggestion: (s: AiSuggestion) => vo
           ))}
           {uris.length < MAX_PHOTOS && (
             <>
-              <Pressable onPress={() => add('camera')} style={styles.add} accessibilityRole="button" accessibilityLabel="Take a photo">
+              <Pressable onPress={() => add('camera')} style={styles.add} accessibilityRole="button" accessibilityLabel={t('ai_take')}>
                 <Icon name="camera" size={22} color={colors.bead} />
               </Pressable>
-              <Pressable onPress={() => add('library')} style={styles.add} accessibilityRole="button" accessibilityLabel="Choose photos">
+              <Pressable onPress={() => add('library')} style={styles.add} accessibilityRole="button" accessibilityLabel={t('ai_choose')}>
                 <Icon name="plus" size={22} color={colors.bead} />
               </Pressable>
             </>

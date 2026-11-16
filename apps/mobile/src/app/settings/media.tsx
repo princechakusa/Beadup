@@ -122,9 +122,9 @@ function WorkRow({ item, busy, onRemove, onCaption }: { item: WorkItem; busy: bo
         placeholderTextColor={colors.steel}
         maxLength={80}
         style={styles.caption}
-        accessibilityLabel="Caption"
+        accessibilityLabel={t('md_caption')}
       />
-      <Pressable onPress={onRemove} disabled={busy} hitSlop={8} accessibilityRole="button" accessibilityLabel="Remove this photo" style={styles.remove}>
+      <Pressable onPress={onRemove} disabled={busy} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('md_remove_photo')} style={styles.remove}>
         <Icon name="trash" size={18} color={busy ? colors.steel : colors.danger} />
       </Pressable>
     </View>

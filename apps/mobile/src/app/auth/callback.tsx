@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/Text';
 import { AuthError, completeMagicLink } from '@/lib/auth';
 import { haptic } from '@/lib/haptics';
 import { colors, space } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /**
  * Magic link landing: beadup://auth/callback?code=... (PKCE). Exchanges the
@@ -26,14 +27,14 @@ export default function AuthCallback() {
         haptic.success();
         router.replace('/');
       })
-      .catch((e) => setError(e instanceof AuthError ? e.message : 'Could not sign you in.'));
+      .catch((e) => setError(e instanceof AuthError ? e.message : t('ac_fail')));
   }, [code, error_description]);
 
   return (
     <View style={styles.root}>
       <LiquidBead size={96} interactive={false} />
       <Text variant="heading" style={{ marginTop: space.xl, textAlign: 'center' }}>
-        {error ? 'Link not valid' : 'Signing you in…'}
+        {error ? t('ac_invalid') : t('ac_signing')}
       </Text>
       {error && (
         <>
@@ -41,7 +42,7 @@ export default function AuthCallback() {
             {error}
           </Text>
           <View style={{ marginTop: space.xl, alignSelf: 'stretch' }}>
-            <Button label="Back to sign in" onPress={() => router.replace('/sign-in')} />
+            <Button label={t('ac_back')} onPress={() => router.replace('/sign-in')} />
           </View>
         </>
       )}
