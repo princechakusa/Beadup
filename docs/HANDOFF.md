@@ -165,3 +165,8 @@ UPDATE: steps 1, 3, 4, 5 DONE (pushed e09e458, Cloudflare + Supabase green, prod
 - Cold-start error: fix 903a25a (per-update offline cache, Needs attention defaults) is pushed but NOT yet published as an OTA (needs owner go-ahead). /admin Recent errors now shows stack and release.
 - Security: `docs/SECURITY_ROUTES.md` (15 routes, 6 server actions, Burp checklist); rate limits added to cancel, revalidate, stripe/balance.
 - Not started: /admin rebuild, translations (i18n), E2E specs for teams and POST /api/log. Queued after: payment-method presets for countries without payment links (ZA).
+
+## 2026-11-16 (later), Claude Code: Monday session continued
+- Done: E2E specs (api-security, teams, /api/log), /admin rebuilt (nav tabs, audit trail with filter, security tab, 15-min idle sign-out, failed sign-ins and sign-outs audited), premium `Dropdown` (trade, country, payment method), trade change offers starter services (`switchToStarters`), preview data follows the trade (Expo web: fixtures, Skia fallbacks `*.web.tsx`), payment method picker per country (`lib/payment-methods.ts`, South Africa: PayShap, Yoco, PayFast, SnapScan, EFT).
+- Expo web preview: `cd apps/mobile && EXPO_PUBLIC_SUPABASE_URL= EXPO_PUBLIC_SUPABASE_ANON_KEY= npx expo start --web --port 8099` (empty env = sample data).
+- Not done: translations (plan in `docs/I18N_PLAN.md`), publish the iOS OTA (owner will do together with a new build), Pay-on-the-day still shows the 30% deposit line on the client page (copy only).
