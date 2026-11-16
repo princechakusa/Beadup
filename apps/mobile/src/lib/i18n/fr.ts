@@ -651,4 +651,9 @@ export const fr: Partial<Record<MessageKey, string>> = {
   sv_del_service: 'Supprimer ce service',
   sv_del_confirm: 'Supprimer « {name} » ? Les réservations passées gardent son nom. Cette action est irréversible.',
   sv_del_yes: 'Oui, supprimer',
+  // Sign out confirmation
+  so_title: 'Se déconnecter ?',
+  so_body: 'Vous devrez vous reconnecter pour voir vos réservations.',
+  so_yes: 'Oui, me déconnecter',
+  so_no: 'Non, rester connecté',
 };

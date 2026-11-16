@@ -6,6 +6,7 @@ import { Linking, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { BackButton } from '@/components/nav/BackButton';
 import { Icon, type IconName } from '@/components/ui/Icon';
+import { Button } from '@/components/ui/Button';
 import { ListCard, Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { AI_PROVIDER_LABEL, aiConsentStatus, withdrawAiConsent, type AiProviderId } from '@/lib/ai';
@@ -27,6 +28,7 @@ export default function Settings() {
   const account = useQuery(fetchAccount);
   const usage = useQuery(fetchPlanUsage);
   const [copied, setCopied] = useState(false);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [opening, setOpening] = useState(false);
   const [push, setPush] = useState<PushState | null>(null);
   // The switch shows the requested value while registering (permission,
@@ -271,8 +273,21 @@ export default function Settings() {
         <Row icon="message" label={t('se_help')} detail={SUPPORT_EMAIL} onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
       </ListCard>
 
+      {confirmSignOut && (
+        <View style={styles.signOutCard}>
+          <Text variant="heading" style={{ fontSize: 18 }}>
+            {t('so_title')}
+          </Text>
+          <Text variant="body" tone="steel">
+            {t('so_body')}
+          </Text>
+          <Button label={t('so_yes')} variant="danger" onPress={() => signOut()} />
+          <Button label={t('so_no')} variant="ghost" onPress={() => setConfirmSignOut(false)} />
+        </View>
+      )}
+
       <ListCard>
-        <Row icon="logout" label={t('se_signout')} onPress={() => signOut()} />
+        <Row icon="logout" label={t('se_signout')} onPress={() => setConfirmSignOut(true)} />
         <Row icon="trash" label={t('se_delete')} danger onPress={() => router.push('/settings/delete-account')} />
       </ListCard>
     </Screen>
@@ -321,6 +336,7 @@ function Row({
 }
 
 const styles = StyleSheet.create({
+  signOutCard: { gap: 12, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,138,138,0.35)', backgroundColor: 'rgba(255,138,138,0.06)' },
   profile: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   monogram: { width: 56, height: 56, borderRadius: 18, backgroundColor: colors.paint, alignItems: 'center', justifyContent: 'center' },
   linkCard: { borderRadius: 28, padding: 18, gap: 12, backgroundColor: '#0F1A20', borderWidth: 1, borderColor: 'rgba(77,216,255,0.35)' },

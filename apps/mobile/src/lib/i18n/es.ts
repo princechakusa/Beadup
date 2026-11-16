@@ -651,4 +651,9 @@ export const es: Partial<Record<MessageKey, string>> = {
   sv_del_service: 'Eliminar este servicio',
   sv_del_confirm: '¿Eliminar “{name}”? Las reservas pasadas conservan su nombre. No se puede deshacer.',
   sv_del_yes: 'Sí, eliminar',
+  // Sign out confirmation
+  so_title: '¿Cerrar sesión?',
+  so_body: 'Tendrás que iniciar sesión de nuevo para ver tus reservas.',
+  so_yes: 'Sí, cerrar sesión',
+  so_no: 'No, seguir con la sesión',
 };

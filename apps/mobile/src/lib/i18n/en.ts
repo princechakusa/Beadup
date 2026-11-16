@@ -654,6 +654,11 @@ export const en = {
   sv_del_service: 'Delete this service',
   sv_del_confirm: 'Delete “{name}”? Past bookings keep its name. This can’t be undone.',
   sv_del_yes: 'Yes, delete',
+  // Sign out confirmation
+  so_title: 'Sign out?',
+  so_body: 'You’ll need to sign in again to see your bookings.',
+  so_yes: 'Yes, sign out',
+  so_no: 'No, stay signed in',
 } as const;
 
 export type MessageKey = keyof typeof en;

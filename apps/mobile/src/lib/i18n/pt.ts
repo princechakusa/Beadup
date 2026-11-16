@@ -651,4 +651,9 @@ export const pt: Partial<Record<MessageKey, string>> = {
   sv_del_service: 'Excluir este serviço',
   sv_del_confirm: 'Excluir “{name}”? Reservas passadas mantêm o nome. Isso não pode ser desfeito.',
   sv_del_yes: 'Sim, excluir',
+  // Sign out confirmation
+  so_title: 'Sair?',
+  so_body: 'Você precisará entrar de novo para ver suas reservas.',
+  so_yes: 'Sim, sair',
+  so_no: 'Não, continuar conectado',
 };

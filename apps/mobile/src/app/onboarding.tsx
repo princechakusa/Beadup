@@ -85,6 +85,7 @@ export default function Onboarding() {
   const [days, setDays] = useState([1, 2, 3, 4, 5, 6]);
   const [times, setTimes] = useState(['08:00', '10:30', '13:00', '15:30']);
   const [busy, setBusy] = useState(false);
+  const [confirmOut, setConfirmOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const effectiveHandle = handleEdited ? handle : slug(name);
@@ -191,11 +192,23 @@ export default function Onboarding() {
               {t('ob_step', { n: step + 1, total: STEP_KEYS.length, name: t(STEP_KEYS[step]) })}
             </Text>
             {step === 0 && (
-              <Pressable onPress={() => signOut()} hitSlop={8}>
+              <Pressable onPress={() => setConfirmOut(true)} hitSlop={8}>
                 <Text variant="caption">{t('signout')}</Text>
               </Pressable>
             )}
           </View>
+          {confirmOut && (
+            <View style={{ gap: 10, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,138,138,0.35)', backgroundColor: 'rgba(255,138,138,0.06)' }}>
+              <Text variant="heading" style={{ fontSize: 18 }}>
+                {t('so_title')}
+              </Text>
+              <Text variant="body" tone="steel">
+                {t('so_body')}
+              </Text>
+              <Button label={t('so_yes')} variant="danger" onPress={() => signOut()} />
+              <Button label={t('so_no')} variant="ghost" onPress={() => setConfirmOut(false)} />
+            </View>
+          )}
           <View style={styles.track}>
             <Animated.View style={[styles.fill, progress]} />
           </View>
