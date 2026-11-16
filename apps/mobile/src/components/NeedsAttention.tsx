@@ -8,6 +8,7 @@ import type { Attention, Booking } from '@/lib/data';
 import { dayLabel, money, timeOf } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 const MAX_ROWS = 3;
 
@@ -26,15 +27,15 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
         b={b}
         tz={tz}
         tone={r.kind === 'cancel' ? 'danger' : 'bead'}
-        badge={r.kind === 'cancel' ? 'Wants to cancel' : 'Wants new time'}
-        detail={`${b.client.name}${r.note ? ` · “${r.note}”` : r.preferred.length ? ` · ${r.preferred.length} time${r.preferred.length > 1 ? 's' : ''} suggested` : ''}`}
+        badge={r.kind === 'cancel' ? t('na_cancel') : t('na_newtime')}
+        detail={`${b.client.name}${r.note ? ` · “${r.note}”` : r.preferred.length ? ` · ${t(r.preferred.length > 1 ? 'na_times_many' : 'na_times', { n: r.preferred.length })}` : ''}`}
       />
     )),
     ...tomorrow.slice(0, MAX_ROWS).map((b) => (
-      <BookingRow key={`t-${b.id}`} b={b} tz={tz} tone="bead" badge="Remind" detail={`${b.client.name} · send a reminder on WhatsApp`} />
+      <BookingRow key={`t-${b.id}`} b={b} tz={tz} tone="bead" badge={t('na_remind')} detail={t('na_remind_detail', { name: b.client.name })} />
     )),
     ...toCloseOut.slice(0, MAX_ROWS).map((b) => (
-      <BookingRow key={`c-${b.id}`} b={b} tz={tz} tone="steel" badge="Close out" detail={`${b.client.name} · ended, not marked done`} />
+      <BookingRow key={`c-${b.id}`} b={b} tz={tz} tone="steel" badge={t('na_close')} detail={t('na_close_detail', { name: b.client.name })} />
     )),
     ...deposits.slice(0, MAX_ROWS).map((b) => (
       <BookingRow
@@ -42,8 +43,8 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
         b={b}
         tz={tz}
         tone="gold"
-        badge={b.depositReported ? 'Says paid' : 'Deposit due'}
-        detail={`${b.client.name} · ${money(b.depositCents)} deposit${b.depositReported ? ', check it arrived' : ''}`}
+        badge={b.depositReported ? t('na_says_paid') : t('na_deposit_due')}
+        detail={t('na_deposit_detail', { name: b.client.name, amount: money(b.depositCents) }) + (b.depositReported ? t('na_check_arrived') : '')}
       />
     )),
     ...dueBack.slice(0, MAX_ROWS).map((c) => (
@@ -55,27 +56,27 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
         }}
         style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
         accessibilityRole="button"
-        accessibilityLabel={`${c.name} is due back. Invite them to book again.`}>
+        accessibilityLabel={t('na_due_back_a11y', { name: c.name })}>
         <View style={[styles.stripe, { backgroundColor: colors.success }]} />
         <View style={{ flex: 1, gap: 1 }}>
           <Text variant="bodyStrong" style={{ fontSize: 14 }}>
             {c.name}
           </Text>
           <Text variant="caption" style={{ fontSize: 12 }}>
-            Last visit {dayLabel(c.lastVisit!, tz)} · invite them back
+            {t('na_last_visit', { day: dayLabel(c.lastVisit!, tz) })}
           </Text>
         </View>
-        <Badge label="Due back" tone="success" />
+        <Badge label={t('na_due_back')} tone="success" />
       </Pressable>
     )),
     missingPayment && (
-      <SetupRow key="pay" icon="money" title="Add how clients pay your deposit" detail="A payment link or note shows after they book." href="/settings/payment" />
+      <SetupRow key="pay" icon="money" title={t('na_pay_title')} detail={t('na_pay_detail')} href="/settings/payment" />
     ),
     missingPhoto && (
-      <SetupRow key="photo" icon="camera" title="Add your photo and your work" detail="New clients book faster when they can see who is coming." href="/settings/media" />
+      <SetupRow key="photo" icon="camera" title={t('na_photo_title')} detail={t('na_photo_detail')} href="/settings/media" />
     ),
     missingPhone && (
-      <SetupRow key="phone" icon="phone" title="Add a phone number for clients" detail="So they can text or call you about a booking." href="/settings/profile" />
+      <SetupRow key="phone" icon="phone" title={t('na_phone_title')} detail={t('na_phone_detail')} href="/settings/profile" />
     ),
   ].filter(Boolean);
   if (rows.length === 0) return null;
@@ -84,13 +85,13 @@ export function NeedsAttention({ data, tz }: { data: Attention | null | undefine
   return (
     <View style={{ gap: 10 }}>
       <Text variant="heading" style={{ fontSize: 18 }}>
-        Needs attention
+        {t('na_title')}
       </Text>
       <ListCard>{rows}</ListCard>
       {more > 0 && (
         <Pressable onPress={() => router.navigate('/calendar')} hitSlop={8}>
           <Text variant="caption" tone="bead">
-            {more} more in your calendar
+            {t('na_more', { n: more })}
           </Text>
         </Pressable>
       )}
@@ -145,7 +146,7 @@ function SetupRow({ icon, title, detail, href }: { icon: 'money' | 'phone' | 'ca
           {detail}
         </Text>
       </View>
-      <Badge label="Set up" tone="bead" />
+      <Badge label={t('na_setup')} tone="bead" />
     </Pressable>
   );
 }

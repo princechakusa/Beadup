@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { fetchBalance, fetchBookings, fetchPayments, fetchProfile, usePaymentsMode, useQuery, type Booking } from '@/lib/data';
 import { dateKey, dayLabel, startOfDay, timeOf, money, moneyParts } from '@/lib/format';
 import { colors, fonts } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 export default function Money() {
   const external = usePaymentsMode() === 'external';
@@ -40,25 +41,25 @@ function MoneyDirect() {
   const depositsIn = jobs.filter((b) => b.depositReceived && b.status !== 'cancelled').reduce((n, b) => n + b.depositCents, 0);
   const depositsDue = ahead.filter((b) => !b.depositReceived).length;
   const { whole, fraction } = moneyParts(earned);
-  const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  const monthName = new Date(`${monthKey}T12:00:00Z`).toLocaleDateString(dateLocale(), { month: 'long', timeZone: 'UTC' });
   const recent = [...jobs].sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)).slice(0, 20);
-  const STATUS_TEXT: Partial<Record<Booking['status'], string>> = { completed: 'done', confirmed: 'booked', no_show: 'no-show' };
+  const STATUS_TEXT: Partial<Record<Booking['status'], string>> = { completed: t('mo_s_done'), confirmed: t('mo_s_booked'), no_show: t('mo_s_noshow') };
 
   return (
-    <Screen eyebrow="This month" title="Money" offline={month.stale} refreshing={month.loading && !!month.data} onRefresh={month.refresh}>
+    <Screen eyebrow={t('mo_this_month')} title={t('mo_title')} offline={month.stale} refreshing={month.loading && !!month.data} onRefresh={month.refresh}>
       <View style={styles.hero}>
         <GoldGlow />
         <Text variant="caption" style={{ fontSize: 13 }}>
-          Earned in {monthName}
+          {t('mo_earned_in', { month: monthName })}
         </Text>
-        <Text style={styles.bigMoney} accessibilityLabel={`Earned ${money(earned)}`}>
+        <Text style={styles.bigMoney} accessibilityLabel={t('mo_earned_a11y', { amount: money(earned) })}>
           {whole}
           <Text style={styles.fraction}>{fraction}</Text>
         </Text>
         <View style={styles.payoutRow}>
           <StatusMark />
           <Text variant="caption" style={{ fontSize: 13, color: '#C9D0DC' }}>
-            From {done.length} finished job{done.length === 1 ? '' : 's'} · clients pay you directly
+            {t(done.length === 1 ? 'mo_from_jobs' : 'mo_from_jobs_many', { n: done.length })}
           </Text>
         </View>
       </View>
@@ -66,7 +67,7 @@ function MoneyDirect() {
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <View style={styles.tile}>
           <Text variant="caption" style={{ fontSize: 12 }}>
-            Still booked this month
+            {t('mo_still_booked')}
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
             {money(booked, { cents: false })}
@@ -74,19 +75,19 @@ function MoneyDirect() {
         </View>
         <View style={styles.tile}>
           <Text variant="caption" style={{ fontSize: 12 }}>
-            Deposits received
+            {t('mo_deposits_in')}
           </Text>
           <Text variant="heading" style={{ fontSize: 22 }}>
             {money(depositsIn, { cents: false })}
           </Text>
           <Text variant="caption" style={{ fontSize: 11, color: depositsDue ? colors.gold : colors.steel }}>
-            {depositsDue ? `${depositsDue} still due` : noShows ? `${noShows} no-show${noShows === 1 ? '' : 's'}` : 'All paid'}
+            {depositsDue ? t('mo_still_due', { n: depositsDue }) : noShows ? t(noShows === 1 ? 'mo_no_show' : 'mo_no_shows', { n: noShows }) : t('mo_all_paid')}
           </Text>
         </View>
       </View>
 
       <Text variant="heading" style={{ fontSize: 18 }}>
-        Jobs this month
+        {t('mo_jobs_month')}
       </Text>
       {recent.length ? (
         <ListCard>
@@ -111,7 +112,7 @@ function MoneyDirect() {
         </ListCard>
       ) : (
         <ListCard>
-          <EmptyState title={month.loading ? 'Loading…' : 'No jobs yet this month'} body={month.loading ? '' : 'Bookings from your link show up here.'} />
+          <EmptyState title={month.loading ? t('mo_loading') : t('mo_none')} body={month.loading ? '' : t('mo_none_body')} />
         </ListCard>
       )}
     </Screen>

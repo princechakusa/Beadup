@@ -7,6 +7,7 @@ import { colors, space } from '@/theme/tokens';
 
 import { Icon } from './Icon';
 import { Text } from './Text';
+import { t } from '@/lib/i18n';
 
 type Props = {
   eyebrow?: string;
@@ -55,7 +56,7 @@ export function Screen({ eyebrow, title, right, children, refreshing = false, on
         <View style={styles.offline} accessibilityLiveRegion="polite">
           <Icon name="offline" size={14} color={colors.steel} strokeWidth={2} />
           <Text variant="caption" style={{ fontSize: 12 }}>
-            Offline · showing your saved schedule
+            {t('offline_chip')}
           </Text>
         </View>
       )}

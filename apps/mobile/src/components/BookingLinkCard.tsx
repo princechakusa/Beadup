@@ -9,6 +9,7 @@ import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 import { apiBaseUrl } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 /**
  * The detailer's public booking link. Clients never install the app: they
@@ -23,7 +24,7 @@ export function BookingLinkCard({ handle, businessName }: { handle: string; busi
 
   const share = () => {
     haptic.select();
-    shareLink(`Book your next detail with ${businessName}:`, url);
+    shareLink(t('link_share_msg', { name: businessName }), url);
   };
   const copy = async () => {
     await Clipboard.setStringAsync(url);
@@ -36,13 +37,13 @@ export function BookingLinkCard({ handle, businessName }: { handle: string; busi
     <View style={styles.card}>
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="caption" style={{ fontSize: 12 }}>
-          Clients book here, no app needed
+          {t('link_clients_book')}
         </Text>
         <Text variant="bodyStrong" tone="bead" numberOfLines={1} style={{ fontSize: 15 }}>
           {shown}
         </Text>
       </View>
-      <Pressable onPress={copy} style={styles.btn} accessibilityRole="button" accessibilityLabel={copied ? 'Link copied' : 'Copy booking link'} hitSlop={4}>
+      <Pressable onPress={copy} style={styles.btn} accessibilityRole="button" accessibilityLabel={copied ? t('link_copied') : t('link_copy')} hitSlop={4}>
         <Icon name={copied ? 'check' : 'link'} size={18} color={copied ? colors.success : colors.paint} />
       </Pressable>
       <Pressable
@@ -52,14 +53,14 @@ export function BookingLinkCard({ handle, businessName }: { handle: string; busi
         }}
         style={styles.btn}
         accessibilityRole="button"
-        accessibilityLabel="Show booking QR code"
+        accessibilityLabel={t('link_qr')}
         hitSlop={4}
       >
         <Icon name="qr" size={18} />
       </Pressable>
-      <Pressable onPress={share} style={[styles.btn, styles.primary]} accessibilityRole="button" accessibilityLabel="Share booking link" hitSlop={4}>
+      <Pressable onPress={share} style={[styles.btn, styles.primary]} accessibilityRole="button" accessibilityLabel={t('link_share_a11y')} hitSlop={4}>
         <Text variant="bodyStrong" style={{ color: colors.beadInk, fontSize: 14 }}>
-          Share
+          {t('share')}
         </Text>
       </Pressable>
       <QrSheet visible={qrOpen} onClose={() => setQrOpen(false)} url={url} businessName={businessName} />

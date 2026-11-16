@@ -11,6 +11,7 @@ import { addDaysKey, dateKey, initials, minutesOfDay, mondayOf, startOfDay, time
 import { sizeLabel } from '@/lib/trades';
 import { haptic } from '@/lib/haptics';
 import { colors } from '@/theme/tokens';
+import { dateLocale, t } from '@/lib/i18n';
 
 // Default visible day; it stretches to fit jobs that start earlier or run
 // later (a 6-hour ceramic coating from 4 PM ends at 10 PM).
@@ -42,7 +43,7 @@ export default function Calendar() {
   );
   const nowMin = minutesOfDay(new Date().toISOString(), tz);
   const showNow = selected === todayKey && nowMin >= FIRST_HOUR * 60 && nowMin <= (LAST_HOUR + 1) * 60;
-  const month = new Date(`${selected}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const month = new Date(`${selected}T12:00:00Z`).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' });
 
   const shiftWeek = (n: number) => {
     haptic.select();
@@ -54,15 +55,15 @@ export default function Calendar() {
   return (
     <Screen
       eyebrow={month}
-      title="Calendar"
+      title={t('cal_title')}
       offline={week.stale}
       refreshing={week.loading && !!week.data}
       onRefresh={week.refresh}
       right={
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <WeekButton label="Previous week" text="‹" onPress={() => shiftWeek(-1)} />
-          <WeekButton label="This week" text="Today" onPress={() => { setWeekStart(mondayOf(todayKey)); setSelected(todayKey); haptic.select(); }} />
-          <WeekButton label="Next week" text="›" onPress={() => shiftWeek(1)} />
+          <WeekButton label={t('cal_prev')} text="‹" onPress={() => shiftWeek(-1)} />
+          <WeekButton label={t('cal_this')} text={t('day_today')} onPress={() => { setWeekStart(mondayOf(todayKey)); setSelected(todayKey); haptic.select(); }} />
+          <WeekButton label={t('cal_next')} text="›" onPress={() => shiftWeek(1)} />
         </View>
       }>
       <View style={styles.strip}>
@@ -76,14 +77,14 @@ export default function Calendar() {
               key={key}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
-              accessibilityLabel={`${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}, ${n} jobs`}
+              accessibilityLabel={t('cal_jobs', { day: d.toLocaleDateString(dateLocale(), { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }), n })}
               onPress={() => {
                 haptic.select();
                 setSelected(key);
               }}
               style={[styles.day, active ? styles.dayActive : isSunday && styles.dayQuiet]}>
               <Text variant="caption" style={{ fontSize: 11, color: active ? colors.beadInk : colors.steel }}>
-                {d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })}
+                {d.toLocaleDateString(dateLocale(), { weekday: 'short', timeZone: 'UTC' })}
               </Text>
               <Text variant="heading" style={{ fontSize: 17, color: active ? colors.beadInk : colors.paint }}>
                 {d.getUTCDate()}
@@ -117,7 +118,7 @@ export default function Calendar() {
 
         {!week.loading && dayJobs.length === 0 && (
           <View pointerEvents="none" style={styles.free}>
-            <Text variant="caption">Nothing booked this day</Text>
+            <Text variant="caption">{t('cal_free')}</Text>
           </View>
         )}
       </View>
@@ -136,9 +137,9 @@ function WeekButton({ label, text, onPress }: { label: string; text: string; onP
 }
 
 const STATUS = {
-  confirmed: { label: 'Deposit paid', tone: 'success' as const, color: colors.bead, tint: 'rgba(77,216,255,' },
-  completed: { label: 'Paid in full', tone: 'success' as const, color: colors.success, tint: 'rgba(91,227,164,' },
-  no_show: { label: 'No-show', tone: 'danger' as const, color: colors.danger, tint: 'rgba(255,138,138,' },
+  confirmed: { label: 'st_deposit_paid' as const, tone: 'success' as const, color: colors.bead, tint: 'rgba(77,216,255,' },
+  completed: { label: 'st_paid_full' as const, tone: 'success' as const, color: colors.success, tint: 'rgba(91,227,164,' },
+  no_show: { label: 'st_no_show' as const, tone: 'danger' as const, color: colors.danger, tint: 'rgba(255,138,138,' },
 };
 
 function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; tz: string; firstHour: number; external: boolean }) {
@@ -156,7 +157,7 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
       <Pressable
         onPress={() => router.push(`/booking/${b.id}`)}
         accessibilityRole="button"
-        accessibilityLabel={`${b.serviceName} for ${b.client.name} at ${timeOf(b.startsAt, tz)}`}
+        accessibilityLabel={t('cal_job_a11y', { service: b.serviceName, client: b.client.name, time: timeOf(b.startsAt, tz) })}
         style={{ flex: 1 }}>
         <LinearGradient
           colors={[`${s.tint}0.18)`, `${s.tint}0.05)`, 'rgba(17,21,27,0.9)']}
@@ -173,7 +174,7 @@ function JobBlock({ booking: b, tz, firstHour, external }: { booking: Booking; t
             </Text>
             {!compact && (
               <Badge
-                label={external && b.status === 'confirmed' ? (b.depositReceived ? 'Deposit paid' : 'Deposit due') : s.label}
+                label={external && b.status === 'confirmed' ? (b.depositReceived ? t('st_deposit_paid') : t('st_deposit_due')) : t(s.label)}
                 tone={external && b.status === 'confirmed' && !b.depositReceived ? 'gold' : s.tone}
               />
             )}

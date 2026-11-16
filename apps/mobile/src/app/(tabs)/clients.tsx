@@ -10,6 +10,7 @@ import { dayLabel, initials, timeOf, money } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { useNow } from '@/lib/time';
 import { colors, fonts } from '@/theme/tokens';
+import { t } from '@/lib/i18n';
 
 type Filter = 'all' | 'regulars' | 'due';
 const DUE_AFTER_DAYS = 60;
@@ -33,19 +34,19 @@ export default function Clients() {
     .sort((a, b) => b.spentCents - a.spentCents);
 
   const status = (c: ClientSummary): { text: string; color: string } => {
-    if (c.nextBooking) return { text: `Booked ${dayLabel(c.nextBooking, tz) === 'Today' ? timeOf(c.nextBooking, tz) : dayLabel(c.nextBooking, tz)}`, color: colors.steel };
+    if (c.nextBooking) return { text: t('cl_booked', { when: dayLabel(c.nextBooking, tz) === t('day_today') ? timeOf(c.nextBooking, tz) : dayLabel(c.nextBooking, tz) }), color: colors.steel };
     if (isDue(c)) {
       const months = Math.floor((now - Date.parse(c.lastVisit!)) / (30 * 86_400_000));
-      return { text: `Last visit ${months} mo ago`, color: colors.danger };
+      return { text: t('cl_last_visit', { n: months }), color: colors.danger };
     }
-    if (c.visits >= 3) return { text: 'Regular', color: colors.success };
-    return { text: c.visits ? `${c.visits} visit${c.visits > 1 ? 's' : ''}` : 'New', color: colors.steel };
+    if (c.visits >= 3) return { text: t('cl_regular'), color: colors.success };
+    return { text: c.visits ? t(c.visits > 1 ? 'cl_visits' : 'cl_visit', { n: c.visits }) : t('cl_new'), color: colors.steel };
   };
 
   return (
     <Screen
-      eyebrow={clients.data ? `${clients.data.length} client${clients.data.length === 1 ? '' : 's'}` : ' '}
-      title="Clients"
+      eyebrow={clients.data ? t(clients.data.length === 1 ? 'cl_count' : 'cl_count_many', { n: clients.data.length }) : ' '}
+      title={t('cl_title')}
       offline={clients.stale}
       refreshing={clients.loading && !!clients.data}
       onRefresh={clients.refresh}>
@@ -54,9 +55,9 @@ export default function Clients() {
         <TextInput
           value={q}
           onChangeText={setQ}
-          placeholder="Search name or phone"
+          placeholder={t('cl_search')}
           placeholderTextColor="rgba(154,163,178,0.7)"
-          accessibilityLabel="Search clients"
+          accessibilityLabel={t('cl_search_a11y')}
           selectionColor={colors.bead}
           autoCorrect={false}
           style={styles.searchInput}
@@ -66,9 +67,9 @@ export default function Clients() {
       <View style={{ flexDirection: 'row', gap: 8 }}>
         {(
           [
-            ['all', 'All'],
-            ['regulars', 'Regulars'],
-            ['due', 'Due for a detail'],
+            ['all', t('cl_all')],
+            ['regulars', t('cl_regulars')],
+            ['due', t('cl_due')],
           ] as const
         ).map(([key, label]) => {
           const on = filter === key;
@@ -130,8 +131,8 @@ export default function Clients() {
       ) : (
         <ListCard>
           <EmptyState
-            title={clients.loading ? 'Loading clients…' : needle || filter !== 'all' ? 'No matches' : 'No clients yet'}
-            body={clients.loading ? '' : needle || filter !== 'all' ? 'Try a different search or filter.' : 'Clients appear here after their first booking.'}
+            title={clients.loading ? t('cl_loading') : needle || filter !== 'all' ? t('cl_no_match') : t('cl_none')}
+            body={clients.loading ? '' : needle || filter !== 'all' ? t('cl_try') : t('cl_appear')}
           />
         </ListCard>
       )}
