@@ -72,7 +72,7 @@ export async function LandingArticle({ slug }: { slug: LandingSlug }) {
         <section className="mt-16">
           <h2 className="font-display text-3xl font-extrabold tracking-[-0.03em]">{p.compare.heading}</h2>
           <p className="mt-4 text-[17px] leading-relaxed text-mist">{p.compare.intro}</p>
-          <div className="mt-6 overflow-x-auto rounded-[24px] border border-white/10">
+          <div tabIndex={0} role="region" aria-label={p.compare.heading} className="mt-6 overflow-x-auto rounded-[24px] border border-white/10 focus-visible:outline-2 focus-visible:outline-bead">
             <table className="w-full min-w-[640px] border-collapse text-left text-[15px]">
               <caption className="sr-only">{p.compare.heading}</caption>
               <thead>
