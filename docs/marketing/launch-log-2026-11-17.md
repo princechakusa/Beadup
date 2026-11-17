@@ -54,3 +54,8 @@ Suggested: r/SideProject, r/EntrepreneurRideAlong. Title: "I built a booking lin
 | Reddit (r/SideProject, r/EntrepreneurRideAlong) | Skipped: reddit.com is blocked for the browser tool ("not allowed due to safety restrictions"), so rules could not be read. Text above is ready for the owner. |
 
 Engagement: no comments, likes, follows or group requests were made. The #mobiledetailing results were mostly reels and old posts (for example a 24-week-old customer shout-out, not a business owner's own post), so genuine, specific comments were not possible without risking generic or spammy ones. Nothing was skipped because of a spam or rate-limit warning (none seen). No replies were needed yet on the new posts.
+
+## Engagement (third pass, 2026-11-17)
+- Instagram @beadupapp (signed in): browsed #mobiledetailing. Liked and left two specific, different comments on detailer posts (@dfw.mobile.detail price-list flyer, @xtramiledetails pricing post). The first comment was not visually confirmed after posting.
+- Our IG launch post has 0 likes and 0 comments so far, so there was nothing to reply to. Facebook launch post and replies not checked in this pass.
+- No follows (new account, 0 following; hashtag results were mostly stale 5-8 month old posts, and 10-15 comments would have turned generic or spammy). X and Reddit skipped (blocked). Total: 2 likes, 2 comments, 0 follows, no spam warnings seen.
