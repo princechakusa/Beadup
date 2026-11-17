@@ -80,3 +80,10 @@ Engagement: no comments, likes, follows or group requests were made. The #mobile
 ### Instagram (fourth pass, retry after owner update)
 - New posts: the image upload into the composer was denied by the permission classifier a second time (barbers.jpg), so 0 new posts. Needs the owner to allow uploads or post by hand.
 - Engagement: #mobiledetailer shows mostly undated reels; no comments, likes or follows were made rather than risk stale or generic replies. The notification badge (1) was not opened. No warnings seen.
+
+## Facebook (Page "Beadup", 2026-11-17, signed in)
+- Launch post: no comments, nothing to reply to. Edited it to drop the "Android in testing" line (owner: never mention Android).
+- New posts (2): "how a booking works" (location tag Dallas, TX) and "one-person business, three jobs off your plate" (tag Houston, TX); both edited after publishing to remove the Android mention, copy now "live on the US App Store". A first draft of the how-it-works post was saved but not published, so only 2 new posts went out. Note: the link preview card (site social image) still shows "Coming soon to the App Store"; fix the og image.
+- Follows (as the Page): about 19 US pages (Texas mobile detailing pages and Houston/Dallas/Kingwood barber shops). Rate-limit or spam warnings: none seen.
+- Likes + comments (6, Houston/Dallas/Austin posts found by search, none from groups): Amor's Auto Cleaning (Range Rover finish, no pitch), Houston Mobile Car Detailing (before/after seat, Beadup mention), Nightmare Ready Mobile Detailing in Austin (foam on a Ford, no pitch; posting not visually confirmed), Rutherford Auto Detail (holiday rush, Beadup mention), an Acura detail post (no pitch; posting not visually confirmed), Lisa Porter, Dallas barber (link-in-bio booking, Beadup mention, confirmed). Comments were short and casual.
+- Shortfall vs target: 6 comments instead of 20+ and no group engagement (UI too slow per comment in this session). Locations used: Dallas, Houston, Austin (TX).
