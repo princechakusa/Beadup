@@ -35,3 +35,16 @@ Profile kit, the same everywhere:
 - **Pinterest** (before/after pins can drive slow, steady search traffic)
 - **Google Business Profile**: not for Beadup itself (it's for businesses that serve customers in person). Tell detailers to
   create one and put their Beadup link on it.
+
+## Setup status 2026-11-17
+
+Bios say only that the iOS app is live; Android is not mentioned anywhere (owner decision).
+
+| Platform | Done | Missing | Owner action |
+|---|---|---|---|
+| Facebook Page "Beadup" | Logo, cover, bio, link beadup.app, email support@beadup.app, rating/reviews on | Service area (no country option, only cities), CTA button not checked, address/phone/hours left blank on purpose; category shows "App page" | Optionally set CTA "Download app" to the App Store link; add a cover banner image if the black one is a placeholder |
+| Instagram @beadupapp | Photo, bio (mentions beadup.app), username | Website link field and Professional category/contact email are mobile-app only | In the Instagram phone app: Edit profile > add link https://beadup.app, set category, contact email support@beadup.app |
+| Pinterest | Photo uploaded (app icon), name Beadup, About, website beadup.app, username beadupapp | Website not claimed; no cover | Claim beadup.app in Settings > Claimed accounts (needs a DNS/meta tag) |
+| LinkedIn | Searched for a company page: one result named "beadup" exists, not verified as ours | Nothing created | Check whether that page is yours; create a company page if not |
+| Google Business Profile | Not checked/created (online-only app, not eligible) | n/a | None |
+| X, Product Hunt, Reddit, HN | Not touched (blocked or logged out earlier) | Profile text | See launch-log-2026-11-17.md |
