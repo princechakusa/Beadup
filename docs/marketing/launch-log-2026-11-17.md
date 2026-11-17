@@ -59,3 +59,14 @@ Engagement: no comments, likes, follows or group requests were made. The #mobile
 - Instagram @beadupapp (signed in): browsed #mobiledetailing. Liked and left two specific, different comments on detailer posts (@dfw.mobile.detail price-list flyer, @xtramiledetails pricing post). The first comment was not visually confirmed after posting.
 - Our IG launch post has 0 likes and 0 comments so far, so there was nothing to reply to. Facebook launch post and replies not checked in this pass.
 - No follows (new account, 0 following; hashtag results were mostly stale 5-8 month old posts, and 10-15 comments would have turned generic or spammy). X and Reddit skipped (blocked). Total: 2 likes, 2 comments, 0 follows, no spam warnings seen.
+
+## Third pass (2026-11-17): LinkedIn, Threads, Pinterest, TikTok, Google Business, Nextdoor
+
+| Platform | Result |
+|---|---|
+| LinkedIn (Prince Chakusa personal profile) | Posted and verified in the feed ("now", link preview for beadup.app). Text: adapted from the Facebook text, with "I built Beadup", free plan, languages, iOS live (US), Android in testing, https://beadup.app. Link: https://www.linkedin.com/in/me/recent-activity/all/ (permalink not captured). Note: it is on the owner's personal profile, not a company page. |
+| Threads | Skipped: logged out. |
+| Pinterest | Skipped: logged out. |
+| TikTok | Skipped: logged out (login page). |
+| Google Business Profile | Skipped: signed in, but the only profile is an unrelated business; no Beadup profile exists and none was created. |
+| Nextdoor | Skipped: logged out. |
