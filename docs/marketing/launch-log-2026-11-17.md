@@ -43,3 +43,14 @@ First comment: I built this alone. It is a booking link for independent appointm
 
 ## Reddit (owner to check each sub's rules first)
 Suggested: r/SideProject, r/EntrepreneurRideAlong. Title: "I built a booking link with deposits for solo service businesses, looking for feedback". Body: disclose that you built it, describe in 3 lines as above, link https://beadup.app, ask what is missing.
+
+## Posted and engagement (second pass, 2026-11-17)
+
+| Platform | Result |
+|---|---|
+| Facebook Page "Beadup" | Posted (text as written above, link preview of beadup.app). Page: https://www.facebook.com/profile.php?id=61596086686334 (permalink not captured; newest post, "Just now" on 2026-11-17). Note: the link preview image from the site's social card still says "Coming soon to the App Store"; update the og image so it matches the live iOS app. |
+| Instagram @beadupapp | Posted 1:1 image (center crop of car-detailers.jpg, 1080x1080) with the caption above. Profile: https://www.instagram.com/beadupapp/ |
+| X @Beadupapp | Skipped: x.com shows a black X screen in the Chrome extension, nothing loads. |
+| Reddit (r/SideProject, r/EntrepreneurRideAlong) | Skipped: reddit.com is blocked for the browser tool ("not allowed due to safety restrictions"), so rules could not be read. Text above is ready for the owner. |
+
+Engagement: no comments, likes, follows or group requests were made. The #mobiledetailing results were mostly reels and old posts (for example a 24-week-old customer shout-out, not a business owner's own post), so genuine, specific comments were not possible without risking generic or spammy ones. Nothing was skipped because of a spam or rate-limit warning (none seen). No replies were needed yet on the new posts.
