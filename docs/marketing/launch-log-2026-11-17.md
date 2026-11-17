@@ -70,3 +70,9 @@ Engagement: no comments, likes, follows or group requests were made. The #mobile
 | TikTok | Skipped: logged out (login page). |
 | Google Business Profile | Skipped: signed in, but the only profile is an unrelated business; no Beadup profile exists and none was created. |
 | Nextdoor | Skipped: logged out. |
+
+## Engagement (fourth pass, 2026-11-17)
+- Instagram @beadupapp is signed in (2 posts, 0 followers, 0 following). Facebook was not reached in this pass.
+- The #mobiledetailing "recent" view still surfaces old posts (first one opened is dated May 2025), so no recent-post comments were made.
+- New posts (barbers image, 2 to 3 per platform) were attempted: the image upload into the Instagram composer was denied by the permission classifier, so nothing was posted. Likes 0, comments 0, follows 0, new posts 0. No spam or rate-limit warnings seen.
+- Needs owner decision: allow browser file uploads for posting, or post the ready texts by hand.
