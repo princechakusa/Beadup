@@ -9,7 +9,6 @@ import {
   IconCalendar,
   IconCamera,
   IconCheck,
-  IconEyeOff,
   IconLink,
   IconRoute,
   IconShield,
@@ -409,11 +408,6 @@ function Trust({ external, ai }: { external: boolean; ai: string }) {
       icon: IconUsers,
       title: "Your clients stay yours",
       body: "Each business can only ever see its own clients and bookings. That rule is enforced inside the database itself.",
-    },
-    {
-      icon: IconEyeOff,
-      title: "No ads, no tracking",
-      body: "We don't sell data, show ads or follow you around the web. Our website sets no tracking cookies.",
     },
     {
       icon: IconShield,
