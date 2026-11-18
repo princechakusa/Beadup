@@ -18,6 +18,11 @@ export function AquaHero({
 }) {
   return (
     <section className="aqua-hero relative -mt-[76px] overflow-hidden rounded-b-[40px] pb-14 pt-[150px] text-[#0A2A33] sm:pt-[170px]">
+      {/* Our own water photo (generated for Beadup); the gradient above is the fallback while it loads. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/hero/aqua-water.webp" alt="" fetchPriority="high" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[72%_center]" />
+      {/* Phones: a light veil so the dark text stays readable over the splash. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-white/30 sm:bg-transparent" />
       <div className="relative mx-auto w-full max-w-4xl px-5 text-center sm:px-8">
         <h1 className="enter text-balance font-display text-[36px] font-bold leading-[1.08] tracking-[-0.035em] sm:text-[52px]">{title}</h1>
         {children && <p className="enter d-1 mx-auto mt-4 max-w-2xl text-balance text-[17px] leading-relaxed text-[#254852] sm:text-lg">{children}</p>}
