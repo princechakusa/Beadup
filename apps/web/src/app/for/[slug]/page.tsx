@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AquaHero } from "@/components/site/AquaHero";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import { IconArrowRight, IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
@@ -65,7 +66,22 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
   return (
     <SitePage>
       <AppMicrodata description={p.description} appStoreUrl={APP_STORE_URL} />
-      <section className="mx-auto w-full max-w-4xl px-5 pt-10 sm:px-8 sm:pt-16">
+      <AquaHero
+        title={p.h1}
+        below={
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <AppStoreButton />
+              <Link href="/beadup-demo-detailing" className="inline-flex h-[60px] items-center gap-2 rounded-full border border-white/30 bg-midnight/40 px-7 font-semibold text-paint backdrop-blur hover:bg-white/[0.1]">
+                See a booking page <IconArrowRight size={18} />
+              </Link>
+            </div>
+            <IphoneNote />
+          </div>
+        }>
+        {p.answer}
+      </AquaHero>
+      <section className="mx-auto w-full max-w-4xl px-5 pt-10 sm:px-8">
         <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
           <Link href="/" className="hover:text-paint">
             Beadup
@@ -77,17 +93,6 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
           <span aria-hidden="true">/</span> {trade.name}
         </nav>
         <TradeHero slug={p.slug} trade={trade.name} />
-        <h1 className="text-gradient mt-8 text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{p.h1}</h1>
-        <p className="mt-6 max-w-2xl text-xl leading-relaxed text-mist">{p.answer}</p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <AppStoreButton />
-          <Link href="/beadup-demo-detailing" className="inline-flex h-[60px] items-center gap-2 rounded-full border border-white/30 px-7 font-semibold hover:bg-white/[0.06]">
-            See a booking page <IconArrowRight size={18} />
-          </Link>
-        </div>
-        <div className="mt-4">
-          <IphoneNote />
-        </div>
       </section>
 
       <section aria-label="What it fixes" className="mx-auto mt-20 grid w-full max-w-4xl gap-5 px-5 sm:px-8 md:grid-cols-2">

@@ -10,7 +10,7 @@ export function TradeHero({ slug, trade }: { slug: string; trade: string }) {
   const src = tradeHeroSrc(slug);
   return (
     <figure className="relative mt-6 overflow-hidden rounded-[32px] border border-white/10 bg-gunmetal shadow-[0_30px_80px_-30px_rgba(77,216,255,0.35)]">
-      <div className="relative aspect-[16/9] w-full sm:aspect-[16/6]">
+      <div className="relative aspect-[16/9] w-full">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={`${trade} at work`} width={1280} height={731} fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover" />

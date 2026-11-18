@@ -5,7 +5,7 @@ test.afterAll(cleanup);
 
 test("the directory lists published businesses, by trade", async ({ page, request }) => {
   await page.goto("/find");
-  await expect(page.getByRole("heading", { level: 1, name: "Find and book a pro near you" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Find a pro. Book with confidence." })).toBeVisible();
   await expect(page.locator('a[href="/marcus"]')).toHaveCount(1);
   await page.goto("/find/car-detailers?q=austin");
   await expect(page.locator('a[href="/marcus"]')).toHaveCount(1);

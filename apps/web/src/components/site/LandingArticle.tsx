@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import { IconArrowRight } from "@/components/site/Icons";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { landingPage, LANDING_PAGES, type LandingSlug } from "@/content/landing-pages";
@@ -30,26 +31,28 @@ export async function LandingArticle({ slug }: { slug: LandingSlug }) {
   return (
     <SitePage>
       <AppMicrodata description={p.description} appStoreUrl={APP_STORE_URL} />
-      <article className="mx-auto w-full max-w-4xl px-5 pt-10 sm:px-8 sm:pt-16">
-        <header>
-          <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
-            <Link href="/" className="hover:text-paint">
-              Beadup
-            </Link>{" "}
-            <span aria-hidden="true">/</span> {p.h1}
-          </nav>
-          <h1 className="text-gradient mt-6 text-balance font-display text-[38px] font-extrabold leading-[1.04] tracking-[-0.045em] sm:text-6xl">{p.h1}</h1>
-          <p className="mt-6 max-w-3xl text-xl leading-relaxed text-mist">{p.answer}</p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <AppStoreButton />
-            <Link href="/beadup-demo-detailing" className="inline-flex h-[60px] items-center gap-2 rounded-full border border-white/30 px-7 font-semibold hover:bg-white/[0.06]">
-              See a booking page <IconArrowRight size={18} />
-            </Link>
-          </div>
-          <div className="mt-4">
+      <AquaHero
+        title={p.h1}
+        below={
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <AppStoreButton />
+              <Link href="/beadup-demo-detailing" className="inline-flex h-[60px] items-center gap-2 rounded-full border border-white/30 bg-midnight/40 px-7 font-semibold text-paint backdrop-blur hover:bg-white/[0.1]">
+                See a booking page <IconArrowRight size={18} />
+              </Link>
+            </div>
             <IphoneNote />
           </div>
-        </header>
+        }>
+        {p.answer}
+      </AquaHero>
+      <article className="mx-auto w-full max-w-4xl px-5 pt-6 sm:px-8">
+        <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
+          <Link href="/" className="hover:text-paint">
+            Beadup
+          </Link>{" "}
+          <span aria-hidden="true">/</span> {p.h1}
+        </nav>
 
         {p.sections.map((s) => (
           <section key={s.h2} className="mt-16">

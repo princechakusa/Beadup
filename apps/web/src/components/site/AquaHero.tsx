@@ -6,10 +6,13 @@ import type { ReactNode } from "react";
  * Tailwind classes only (the CSP forbids inline styles).
  */
 export function AquaHero({
+  eyebrow,
   title,
   children,
   below,
 }: {
+  /** Small label above the title (e.g. "Legal"). */
+  eyebrow?: string;
   title: ReactNode;
   /** The line under the title. */
   children?: ReactNode;
@@ -17,15 +20,16 @@ export function AquaHero({
   below?: ReactNode;
 }) {
   return (
-    <section className="aqua-hero relative -mt-[76px] overflow-hidden rounded-b-[40px] pb-14 pt-[150px] text-paint sm:pt-[170px]">
+    <section className="aqua-hero relative -mt-[76px] flex min-h-[500px] items-center overflow-hidden rounded-b-[40px] pb-14 pt-[130px] text-paint sm:min-h-[560px] sm:pt-[140px]">
       {/* Our own photo, made for Beadup: water beads on dark glossy paint. The dark gradient is the fallback while it loads. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/hero/beads-paint.webp" alt="" fetchPriority="high" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[72%_center]" />
       {/* Phones: the beads sit on the right, so darken the left for the headline. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-midnight/35 sm:bg-transparent" />
       <div className="relative mx-auto w-full max-w-4xl px-5 text-center sm:px-8">
+        {eyebrow && <p className="enter mb-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">{eyebrow}</p>}
         <h1 className="enter text-balance [text-shadow:0_2px_24px_rgb(10_12_16/0.6)] font-display text-[36px] font-bold leading-[1.08] tracking-[-0.035em] sm:text-[52px]">{title}</h1>
-        {children && <p className="enter d-1 mx-auto mt-4 max-w-2xl text-balance text-[17px] leading-relaxed text-mist [text-shadow:0_1px_12px_rgb(10_12_16/0.9)] sm:text-lg">{children}</p>}
+        {children && <div className="enter d-1 mx-auto mt-4 max-w-2xl text-balance text-[17px] leading-relaxed text-mist [text-shadow:0_1px_12px_rgb(10_12_16/0.9)] sm:text-lg">{children}</div>}
         {below && <div className="enter d-2 mt-8">{below}</div>}
       </div>
     </section>

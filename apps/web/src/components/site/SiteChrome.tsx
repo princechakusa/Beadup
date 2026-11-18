@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
 import { SAMPLE_PAGE } from "@/lib/site";
 import { AppStoreButton } from "./AppStoreButton";
+import { AquaHero } from "./AquaHero";
 import { IconArrowRight } from "./Icons";
 import { MobileMenu } from "./MobileMenu";
 
@@ -232,17 +233,11 @@ export function DocPage({
 }) {
   return (
     <SitePage>
-      <div className="mx-auto w-full max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
-        <div className="enter max-w-3xl">
-          {eyebrow && <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">{eyebrow}</p>}
-          <h1 className="text-gradient mt-3 font-display text-[40px] font-extrabold leading-[1.05] tracking-[-0.04em] sm:text-6xl">
-            {title}
-          </h1>
-          {updated && <p className="mt-4 text-sm text-steel">Last updated {updated}</p>}
-          {intro && <div className="mt-6 text-lg leading-relaxed text-mist">{intro}</div>}
-        </div>
-
-        <div className={`mt-12 grid gap-10 ${toc ? "lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16" : ""}`}>
+      <AquaHero eyebrow={eyebrow} title={title} below={updated ? <p className="text-sm text-mist">Last updated {updated}</p> : undefined}>
+        {intro}
+      </AquaHero>
+      <div className="mx-auto w-full max-w-6xl px-5 pt-12 sm:px-8">
+        <div className={`grid gap-10 ${toc ? "lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16" : ""}`}>
           {toc && (
             <>
               <details className="glass group rounded-[22px] lg:hidden">
