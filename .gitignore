@@ -8,3 +8,6 @@ dist/
 build/
 *.log
 .DS_Store
+
+# Marketing videos are large masters (many MB each); keep them out of the public repo
+apps/mobile/assets/marketing/
