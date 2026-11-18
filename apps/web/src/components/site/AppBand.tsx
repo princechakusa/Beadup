@@ -34,7 +34,6 @@ export function AppBand({ className = "" }: { className?: string }) {
           <Phone screen="today" glow={false} sizes="170px" className="mt-6" />
         </div>
         <div className="relative flex flex-col gap-3 lg:py-9">
-          <p className="text-sm text-steel">Built for solo pros in 8 countries</p>
           <h2 id="app-band-title" className="font-display text-[28px] font-extrabold leading-[1.1] tracking-[-0.03em] sm:text-[32px]">
             Get more with the Beadup app
           </h2>

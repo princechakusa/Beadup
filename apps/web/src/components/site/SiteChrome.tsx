@@ -99,7 +99,6 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-1.5 border-t border-white/[0.05] px-5 py-4 text-[12.5px] text-steel sm:flex-row sm:justify-between sm:px-8">
         <span>© 2026 Beadup. All rights reserved.</span>
-        <span>No ads. No tracking. We never sell your data.</span>
       </div>
     </footer>
   );
