@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import { IconArrowRight } from "@/components/site/Icons";
-import { AquaHero } from "@/components/site/AquaHero";
+import { AquaHero, firstSentence } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { AppMicrodata, FaqMicrodata } from "@/components/site/Structured";
 import { landingPage, LANDING_PAGES, type LandingSlug } from "@/content/landing-pages";
@@ -44,7 +44,7 @@ export async function LandingArticle({ slug }: { slug: LandingSlug }) {
             <IphoneNote />
           </div>
         }>
-        {p.answer}
+        {firstSentence(p.answer)}
       </AquaHero>
       <article className="mx-auto w-full max-w-4xl px-5 pt-6 sm:px-8">
         <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
@@ -53,6 +53,7 @@ export async function LandingArticle({ slug }: { slug: LandingSlug }) {
           </Link>{" "}
           <span aria-hidden="true">/</span> {p.h1}
         </nav>
+        <p className="mt-6 max-w-3xl text-xl leading-relaxed text-mist">{p.answer}</p>
 
         {p.sections.map((s) => (
           <section key={s.h2} className="mt-16">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AquaHero } from "@/components/site/AquaHero";
+import { AquaHero, firstSentence } from "@/components/site/AquaHero";
 import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import { IconArrowRight, IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
@@ -79,7 +79,7 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
             <IphoneNote />
           </div>
         }>
-        {p.answer}
+        {firstSentence(p.answer)}
       </AquaHero>
       <section className="mx-auto w-full max-w-4xl px-5 pt-10 sm:px-8">
         <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
@@ -92,6 +92,7 @@ export default async function TradeLanding({ params }: PageProps<"/for/[slug]">)
           </Link>{" "}
           <span aria-hidden="true">/</span> {trade.name}
         </nav>
+        <p className="mt-6 max-w-3xl text-xl leading-relaxed text-mist">{p.answer}</p>
         <TradeHero slug={p.slug} trade={trade.name} />
       </section>
 
