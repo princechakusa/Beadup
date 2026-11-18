@@ -4,11 +4,21 @@ import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
 import { AppBand } from "@/components/site/AppBand";
 import { AquaHero, heroChip } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
-import { TRADE_PAGES } from "@/content/trade-pages";
 import { visitorCountry } from "@/lib/site";
 import { directoryQuery, getDirectory } from "@/lib/directory";
-import { TRADES } from "@/lib/trades";
 import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
+
+/** One short row, like a store's category chips. */
+const HERO_TRADES = [
+  { href: "/find/car-detailers", label: "Detailing" },
+  { href: "/find/hair-salons", label: "Hair" },
+  { href: "/find/barbers", label: "Barber" },
+  { href: "/find/nail-technicians", label: "Nails" },
+  { href: "/find/pet-groomers", label: "Grooming" },
+  { href: "/find/house-cleaners", label: "Cleaning" },
+  { href: "/find/mobile-mechanics", label: "Mechanic" },
+  { href: "/for", label: "More..." },
+];
 
 const TITLE = "Find and book a pro near you";
 const DESCRIPTION =
@@ -30,17 +40,20 @@ export default async function Find({ searchParams }: PageProps<"/find">) {
   return (
     <SitePage>
       <AquaHero
-        tint="sky"
         title="Find a pro. Book with confidence."
         below={
           <div className="flex flex-col gap-6">
             <DirectorySearch query={query} />
-            <nav aria-label="Trades" className="flex flex-wrap justify-center gap-3">
-              {TRADE_PAGES.map((p) => (
-                <Link key={p.slug} href={`/find/${p.slug}`} className={heroChip}>
-                  {TRADES[p.trade].name}
-                </Link>
-              ))}
+            <nav aria-label="Trades" className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:overflow-visible sm:px-0">
+              <ul className="mx-auto flex w-max items-center gap-3 sm:w-auto sm:justify-center">
+                {HERO_TRADES.map((c) => (
+                  <li key={c.href}>
+                    <Link href={c.href} className={heroChip}>
+                      {c.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </nav>
           </div>
         }>

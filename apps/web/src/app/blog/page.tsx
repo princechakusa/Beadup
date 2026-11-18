@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function Blog() {
   return (
     <SitePage>
-      <AquaHero tint="mint" title="Run a tighter booking business">
+      <AquaHero title="Run a tighter booking business">
         {DESCRIPTION}
       </AquaHero>
       <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">

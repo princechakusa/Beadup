@@ -79,7 +79,7 @@ export default async function Support() {
   ];
   return (
     <SitePage>
-      <AquaHero tint="lilac" title="How can we help?">
+      <AquaHero title="How can we help?">
         Answers for detailers and for clients who booked through a Beadup link. A real person reads every email.
       </AquaHero>
       <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">

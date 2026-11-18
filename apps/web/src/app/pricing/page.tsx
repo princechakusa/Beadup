@@ -78,7 +78,7 @@ export default async function Pricing() {
 
   return (
     <SitePage>
-      <AquaHero tint="gold" title="Simple pricing for busy pros">
+      <AquaHero title="Simple pricing for busy pros">
         Start free with every feature. Upgrade in the app when you&apos;re booking more.
       </AquaHero>
 

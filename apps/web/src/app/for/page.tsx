@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowRight } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
-import { AquaHero, heroChip } from "@/components/site/AquaHero";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
@@ -26,17 +26,7 @@ export default function WhoItsFor() {
   return (
     <SitePage>
       <AquaHero
-        tint="aqua"
-        title="One booking link for every appointment business"
-        below={
-          <div className="flex flex-wrap justify-center gap-3">
-            {TRADE_PAGES.slice(0, 8).map((p) => (
-              <Link key={p.slug} href={`/for/${p.slug}`} className={heroChip}>
-                {TRADES[p.trade].name}
-              </Link>
-            ))}
-          </div>
-        }>
+        title="One booking link for every appointment business">
         Pick your trade when you sign up and Beadup sets itself up for it: the right words, prices by size or one price, photos on
         your services, and whether clients come to you or you go to them.
       </AquaHero>

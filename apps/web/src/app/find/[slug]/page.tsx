@@ -45,7 +45,6 @@ export default async function FindTrade({ params, searchParams }: PageProps<"/fi
   return (
     <SitePage>
       <AquaHero
-        tint="sky"
         title={heading(name)}
         below={<DirectorySearch query={query} action={`/find/${p.slug}`} fixedTrade />}>
         {name} on Beadup, with prices, photos and ratings. Book a time online, no app needed.{" "}
