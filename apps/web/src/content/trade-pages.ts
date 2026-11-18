@@ -101,7 +101,7 @@ export const TRADE_PAGES: TradePage[] = [
   {
     slug: "hair-salons",
     trade: "hair_salon",
-    title: "Booking app for hair salons and braiders",
+    title: "Booking app for hair salons, braiders and stylists",
     h1: "Your styles, with photos, booked in a minute",
     description: "Show each hairstyle with a photo and price, take a deposit and confirm on WhatsApp. Clients pick the style they want and book.",
     answer: "Beadup lets hair salons and braiders list each style with a photo and one price, so clients pick exactly the look they want, choose a time and pay a deposit. " + NO_APP,
@@ -128,7 +128,7 @@ export const TRADE_PAGES: TradePage[] = [
   {
     slug: "nail-technicians",
     trade: "nails_beauty",
-    title: "Booking app for nail technicians and beauty salons",
+    title: "Booking app for nail techs and beauty salons",
     h1: "Nails and beauty, chosen from your photos",
     description: "Show each set with a photo and price, take deposits, and send reminders. Clients pick the look and book in a minute.",
     answer: "Beadup lets nail technicians and beauty pros list each set or treatment with a photo and price, take a deposit and fill their book from one link. " + NO_APP,
