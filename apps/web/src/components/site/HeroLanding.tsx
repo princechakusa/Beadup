@@ -21,15 +21,15 @@ import {
 function Beads() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* the all-trades mosaic, darkened on the left so the headline reads */}
+      {/* the all-trades mosaic runs edge to edge (like Booksy); only a soft scrim on the left keeps the headline readable */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/hero/all-trades.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[60%_center] lg:w-[78%]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/75 to-midnight/0" />
+      <img src="/hero/all-trades.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[60%_center]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-midnight/85 via-midnight/45 to-midnight/0 lg:from-midnight/80 lg:via-midnight/30" />
       {/* Phones: the text sits over the photo, so darken it for legibility. */}
       <div className="absolute inset-0 bg-midnight/55 lg:hidden" />
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-midnight/80 to-transparent" />
       {/* fade into the page below */}
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-midnight" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-midnight" />
     </div>
   );
 }
