@@ -6,30 +6,30 @@ import { IconStar } from "./Icons";
 
 /** Search by name or area, trade and country. A plain GET form: works without JavaScript. */
 export function DirectorySearch({ query, action = "/find", fixedTrade }: { query: DirectoryQuery; action?: string; fixedTrade?: boolean }) {
-  const field = "h-12 rounded-[16px] border border-[#0A2A33]/10 bg-[#eef6f7] px-4 text-left text-[15px] text-[#0A2A33] outline-none placeholder:text-[#5b6b73] focus:border-[#0A2A33]/40";
+  const field = "h-12 rounded-[16px] border border-white/15 bg-white/[0.06] px-4 text-left text-[15px] text-paint outline-none placeholder:text-steel focus:border-bead/60";
   return (
-    <form action={action} method="get" role="search" className="grid gap-3 rounded-[28px] bg-white p-3 text-left shadow-[0_10px_30px_rgba(10,60,80,0.22)] sm:grid-cols-[minmax(0,1fr)_200px_190px_auto]">
+    <form action={action} method="get" role="search" className="grid gap-3 rounded-[28px] border border-white/20 bg-white/[0.1] p-3 text-left shadow-[0_10px_40px_rgba(77,216,255,0.18)] backdrop-blur sm:grid-cols-[minmax(0,1fr)_200px_190px_auto]">
       <label className="sr-only" htmlFor="dir-q">Name or area</label>
       <input id="dir-q" name="q" defaultValue={query.q ?? ""} placeholder="Name or area, e.g. Soweto" maxLength={60} className={field} />
       {!fixedTrade && (
         <>
           <label className="sr-only" htmlFor="dir-trade">Trade</label>
           <select id="dir-trade" name="trade" defaultValue={query.trade ?? ""} className={field}>
-            <option value="">All trades</option>
+            <option className="bg-gunmetal text-paint" value="">All trades</option>
             {TRADE_IDS.filter((t) => t !== "other").map((t) => (
-              <option key={t} value={t}>{TRADES[t].name}</option>
+              <option className="bg-gunmetal text-paint" key={t} value={t}>{TRADES[t].name}</option>
             ))}
           </select>
         </>
       )}
       <label className="sr-only" htmlFor="dir-country">Country</label>
       <select id="dir-country" name="country" defaultValue={query.country ?? ""} className={field}>
-        <option value="">All countries</option>
+        <option className="bg-gunmetal text-paint" value="">All countries</option>
         {COUNTRY_CODES.map((c) => (
-          <option key={c} value={c}>{COUNTRIES[c].name}</option>
+          <option className="bg-gunmetal text-paint" key={c} value={c}>{COUNTRIES[c].name}</option>
         ))}
       </select>
-      <button type="submit" className="h-12 rounded-full bg-[#0A2A33] px-7 font-semibold text-white">Search</button>
+      <button type="submit" className="h-12 rounded-full bg-bead px-7 font-bold text-bead-ink">Search</button>
     </form>
   );
 }

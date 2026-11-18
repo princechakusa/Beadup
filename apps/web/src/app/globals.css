@@ -547,11 +547,10 @@ body {
   html, body { background: #fff !important; }
 }
 
-/* ---------- Aqua hero (design B, owner pick 2026-11-18) ---------- */
-/* One clean aqua gradient at the top of every marketing page; the page below stays dark. */
+/* ---------- Page hero (design: water beads on dark paint, owner pick 2026-11-18) ---------- */
+/* Fallback behind the photo, and the colour while it loads. */
 @utility aqua-hero {
   background:
-    radial-gradient(560px 320px at 88% 12%, rgb(255 255 255 / 0.55), transparent 65%),
-    radial-gradient(520px 300px at 10% 90%, rgb(255 255 255 / 0.3), transparent 70%),
-    linear-gradient(115deg, #9fe8ec 0%, #7fd6e0 40%, #b9f0f0 66%, #5cc3d6 100%);
+    radial-gradient(520px 300px at 88% 40%, rgb(77 216 255 / 0.35), transparent 70%),
+    linear-gradient(115deg, #0a0c10, #0d1822 70%, #0f2a38);
 }
