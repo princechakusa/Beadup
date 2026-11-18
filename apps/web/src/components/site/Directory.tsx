@@ -6,9 +6,9 @@ import { IconStar } from "./Icons";
 
 /** Search by name or area, trade and country. A plain GET form: works without JavaScript. */
 export function DirectorySearch({ query, action = "/find", fixedTrade }: { query: DirectoryQuery; action?: string; fixedTrade?: boolean }) {
-  const field = "h-12 rounded-[16px] border border-white/10 bg-white/[0.04] px-4 text-[15px] text-paint outline-none focus:border-bead/60";
+  const field = "h-12 rounded-[16px] border border-[#0A2A33]/10 bg-[#eef6f7] px-4 text-left text-[15px] text-[#0A2A33] outline-none placeholder:text-[#5b6b73] focus:border-[#0A2A33]/40";
   return (
-    <form action={action} method="get" role="search" className="glass mt-8 grid gap-3 rounded-[24px] p-4 sm:grid-cols-[minmax(0,1fr)_200px_190px_auto]">
+    <form action={action} method="get" role="search" className="grid gap-3 rounded-[28px] bg-white p-3 text-left shadow-[0_10px_30px_rgba(10,60,80,0.22)] sm:grid-cols-[minmax(0,1fr)_200px_190px_auto]">
       <label className="sr-only" htmlFor="dir-q">Name or area</label>
       <input id="dir-q" name="q" defaultValue={query.q ?? ""} placeholder="Name or area, e.g. Soweto" maxLength={60} className={field} />
       {!fixedTrade && (
@@ -29,7 +29,7 @@ export function DirectorySearch({ query, action = "/find", fixedTrade }: { query
           <option key={c} value={c}>{COUNTRIES[c].name}</option>
         ))}
       </select>
-      <button type="submit" className="h-12 rounded-[16px] bg-bead px-6 font-semibold text-midnight">Search</button>
+      <button type="submit" className="h-12 rounded-full bg-[#0A2A33] px-7 font-semibold text-white">Search</button>
     </form>
   );
 }

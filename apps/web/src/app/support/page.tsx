@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { IconArrowRight, IconDoc, IconMail, IconTrash, IconUsers, IconWallet } from "@/components/site/Icons";
 import { FaqMicrodata } from "@/components/site/Structured";
 import { Reveal } from "@/components/site/Reveal";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { getPublicConfig, SUPPORT_EMAIL } from "@/lib/site";
 import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
@@ -78,16 +79,11 @@ export default async function Support() {
   ];
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
-        <p className="enter text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">Support</p>
-        <h1 className="enter d-1 text-gradient mt-3 max-w-3xl font-display text-[42px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-7xl">
-          How can we help?
-        </h1>
-        <p className="enter d-2 mt-5 max-w-xl text-lg leading-relaxed text-mist">
-          Answers for detailers and for clients who booked through a Beadup link. A real person reads every email.
-        </p>
-
-        <div className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <AquaHero tint="lilac" title="How can we help?">
+        Answers for detailers and for clients who booked through a Beadup link. A real person reads every email.
+      </AquaHero>
+      <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">
+        <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
             className="enter d-3 glass glass-edge group flex flex-col gap-5 rounded-[30px] p-8 transition-transform duration-500 ease-(--ease-spring) hover:-translate-y-1"

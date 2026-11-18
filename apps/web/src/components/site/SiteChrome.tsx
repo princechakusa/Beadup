@@ -40,7 +40,7 @@ export function SiteHeader() {
     <>
       <SkipLink />
       <header className="sticky top-0 z-40 px-3 pt-3 sm:px-5">
-        <div className="glass relative mx-auto flex h-16 w-full max-w-6xl items-center justify-between rounded-[22px] pl-4 pr-2.5 sm:pl-5">
+        <div className="glass relative mx-auto flex h-16 [background:linear-gradient(180deg,rgb(22_26_33/0.92),rgb(12_15_20/0.88))] w-full max-w-6xl items-center justify-between rounded-[22px] pl-4 pr-2.5 sm:pl-5">
           <Link href="/" aria-label="Beadup home" className="rounded-xl">
             <Wordmark />
           </Link>

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AppStoreButton } from "@/components/site/AppStoreButton";
 import { IconCheck } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { getPublicConfig, proPriceFor, visitorCountry } from "@/lib/site";
 import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
@@ -77,15 +78,9 @@ export default async function Pricing() {
 
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-6xl px-5 pt-14 text-center sm:px-8 sm:pt-20">
-        <p className="enter text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">Pricing</p>
-        <h1 className="enter d-1 text-gradient mx-auto mt-3 max-w-3xl font-display text-[42px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-7xl">
-          Simple pricing for busy pros
-        </h1>
-        <p className="enter d-2 mx-auto mt-5 max-w-xl text-lg leading-relaxed text-mist">
-          Start free with every feature. Upgrade in the app when you&apos;re booking more.
-        </p>
-      </section>
+      <AquaHero tint="gold" title="Simple pricing for busy pros">
+        Start free with every feature. Upgrade in the app when you&apos;re booking more.
+      </AquaHero>
 
       <section aria-label="Plans" className="mx-auto mt-14 grid w-full max-w-5xl gap-5 px-5 sm:px-8 md:grid-cols-2">
         <div className="enter d-3 glass flex flex-col gap-6 rounded-[32px] p-8 sm:p-10">

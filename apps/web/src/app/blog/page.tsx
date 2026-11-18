@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowRight } from "@/components/site/Icons";
 import { Reveal } from "@/components/site/Reveal";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { GUIDES } from "@/content/guides";
 import { appStoreMetadata, OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
@@ -21,16 +22,11 @@ export const metadata: Metadata = {
 export default function Blog() {
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
-        <div className="enter max-w-3xl">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-bead">Guides</p>
-          <h1 className="text-gradient mt-3 font-display text-[40px] font-extrabold leading-[1.05] tracking-[-0.04em] sm:text-6xl">
-            Run a tighter booking business
-          </h1>
-          <p className="mt-6 text-lg leading-relaxed text-mist">{DESCRIPTION}</p>
-        </div>
-
-        <Reveal className="mt-14 grid gap-5 md:grid-cols-2">
+      <AquaHero tint="mint" title="Run a tighter booking business">
+        {DESCRIPTION}
+      </AquaHero>
+      <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">
+        <Reveal className="mt-6 grid gap-5 md:grid-cols-2">
           {GUIDES.map((g) => (
             <Link
               key={g.slug}

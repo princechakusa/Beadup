@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
 import { AppBand } from "@/components/site/AppBand";
+import { AquaHero, heroChip } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES } from "@/content/trade-pages";
 import { visitorCountry } from "@/lib/site";
@@ -28,19 +29,24 @@ export default async function Find({ searchParams }: PageProps<"/find">) {
   const home = query.country ? null : await visitorCountry();
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-[1500px] px-5 pt-10 sm:px-8 sm:pt-16 lg:px-10">
-        <h1 className="text-gradient text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{TITLE}</h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-mist">
-          Real prices, real photos and real ratings. Pick a business and book a time in under a minute, no app needed.
-        </p>
-        <nav aria-label="Trades" className="mt-6 flex flex-wrap gap-2">
-          {TRADE_PAGES.map((p) => (
-            <Link key={p.slug} href={`/find/${p.slug}`} className="inline-flex h-9 items-center rounded-full border border-white/15 px-4 text-[14px] text-mist hover:text-paint">
-              {TRADES[p.trade].name}
-            </Link>
-          ))}
-        </nav>
-        <DirectorySearch query={query} />
+      <AquaHero
+        tint="sky"
+        title="Find a pro. Book with confidence."
+        below={
+          <div className="flex flex-col gap-6">
+            <DirectorySearch query={query} />
+            <nav aria-label="Trades" className="flex flex-wrap justify-center gap-3">
+              {TRADE_PAGES.map((p) => (
+                <Link key={p.slug} href={`/find/${p.slug}`} className={heroChip}>
+                  {TRADES[p.trade].name}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        }>
+        Real prices, real photos and real ratings. Pick a business and book a time in under a minute, no app needed.
+      </AquaHero>
+      <section className="mx-auto w-full max-w-[1500px] px-5 sm:px-8 lg:px-10">
         <DirectoryResults items={items} home={home} />
       </section>
       <AppBand className="mt-20" />

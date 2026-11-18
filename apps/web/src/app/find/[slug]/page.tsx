@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
 import { AppBand } from "@/components/site/AppBand";
+import { AquaHero } from "@/components/site/AquaHero";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES, tradePage } from "@/content/trade-pages";
 import { visitorCountry } from "@/lib/site";
@@ -43,16 +44,14 @@ export default async function FindTrade({ params, searchParams }: PageProps<"/fi
   const name = TRADES[p.trade].name;
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-[1500px] px-5 pt-10 sm:px-8 sm:pt-16 lg:px-10">
-        <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
-          <Link href="/find" className="hover:text-paint">Find a pro</Link> <span aria-hidden="true">/</span> {name}
-        </nav>
-        <h1 className="text-gradient mt-5 text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{heading(name)}</h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-mist">
-          {name} on Beadup, with prices, photos and ratings. Book a time online, no app needed.{" "}
-          <Link href={`/for/${p.slug}`} className="text-bead underline underline-offset-4">Run a {name.toLowerCase()} business?</Link>
-        </p>
-        <DirectorySearch query={query} action={`/find/${p.slug}`} fixedTrade />
+      <AquaHero
+        tint="sky"
+        title={heading(name)}
+        below={<DirectorySearch query={query} action={`/find/${p.slug}`} fixedTrade />}>
+        {name} on Beadup, with prices, photos and ratings. Book a time online, no app needed.{" "}
+        <Link href={`/for/${p.slug}`} className="font-semibold underline underline-offset-4">Run a {name.toLowerCase()} business?</Link>
+      </AquaHero>
+      <section className="mx-auto w-full max-w-[1500px] px-5 sm:px-8 lg:px-10">
         <DirectoryResults items={items} home={home} />
       </section>
       <AppBand className="mt-20" />
