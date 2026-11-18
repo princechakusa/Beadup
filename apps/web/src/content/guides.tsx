@@ -383,6 +383,220 @@ export const GUIDES: Guide[] = [
     ),
     faq: [["Can I offer regular weekly cleans?", "Yes. From the app you can book a client in every week, every 2 or every 4 weeks."]],
   },
+  {
+    slug: "best-app-for-mobile-car-detailers",
+    title: "The best app for mobile car detailers: what to look for",
+    description:
+      "What a good detailing app should do for a mobile detailer: quotes, online booking, deposits, reminders and a calendar, and how to pick one that fits a one-person business.",
+    answer:
+      "The best app for a mobile car detailer does five things on your phone: builds a quote from your own price list, gives clients a booking link, takes a deposit, keeps your calendar and clients, and reminds people before the job. Pick the one that does those without a monthly bill you have to earn back first.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 6,
+    toc: ["What a detailing app has to do","Quotes that match your price list","Online booking that clients actually finish","Deposits and getting paid","Calendar, clients and reminders","How Beadup fits"],
+    body: (
+      <>
+        <H2>What a detailing app has to do</H2>
+        <p>A mobile detailer works alone, from a van, between jobs. Software built for a shop with front-desk staff is the wrong shape. A good detailing app is something you can run one-handed from a driveway.</p>
+        <p>Look for these five jobs, in this order of how much money they save you:</p>
+        <ul>
+          <li>A quote you can send in minutes, not an evening of messages.</li>
+          <li>A booking link clients can use without downloading anything.</li>
+          <li>A deposit that holds the slot and cuts no-shows.</li>
+          <li>A calendar that stops double bookings and shows travel time.</li>
+          <li>Reminders and a client list, so repeat customers are one tap away.</li>
+        </ul>
+        <H2>Quotes that match your price list</H2>
+        <p>Detailers price by vehicle size and by add-ons like pet hair removal or an odor treatment. The app should store your prices once and build the quote from them, so you never type a price twice. See <A href="/ai-detailing-quote-calculator">how photo quotes work</A> for the fastest way to start a quote.</p>
+        <H2>Online booking that clients actually finish</H2>
+        <p>Clients will not install an app to book a wash. They will tap a link. The booking page should work in any browser, show your services and prices, offer only times you are free, and ask for the address once. Fewer steps means more finished bookings.</p>
+        <H2>Deposits and getting paid</H2>
+        <p>Ask for a deposit when the client books. The cleanest setup is one where the money goes straight to you, through your own payment link, so no platform sits between you and your cash. Read <A href="/booking-link-with-deposits">how deposits work on a booking link</A>.</p>
+        <H2>Calendar, clients and reminders</H2>
+        <p>A calendar that knows how long each job takes and blocks your drive time saves you from stacking two jobs on top of each other. A client list with past jobs turns a one-off wash into a regular. A reminder the day before cuts the empty driveway.</p>
+        <H2>How Beadup fits</H2>
+        <p>Beadup is built for exactly this: a one-person detailing business on an iPhone. You get your own booking link, quotes from your price list, deposits paid straight to you, a calendar, clients and money in one app, and a free plan to start. See the <A href="/car-detailing-booking-app">booking app for car detailers</A> or <A href="/pricing">pricing</A>.</p>
+
+      </>
+    ),
+    faq: [
+      ["What is the best app for mobile detailers?", "The best one is the one that covers quotes, a booking link, deposits, a calendar and reminders in one place, works on your phone and does not need your clients to install anything."],
+      ["Do I need software for a one-person detailing business?", "You can start with texts and a notes app, but quoting by message and chasing deposits by hand costs you jobs. A simple app pays for itself the first time it stops a no-show."],
+      ["Does Beadup work for detailers outside the US?", "Yes. Beadup works in the United States, Canada, the United Kingdom, Australia, New Zealand, the UAE, South Africa and Singapore, with prices in local currency."],
+    ],
+  },
+  {
+    slug: "auto-detailing-software",
+    title: "Auto detailing software: what you need and what you can skip",
+    description:
+      "A plain guide to auto detailing business software for solo and small detailers: the features that matter, the ones that do not, and how to start without a big monthly cost.",
+    answer:
+      "Auto detailing software should handle quoting, online booking, deposits, scheduling and your client list. Skip anything built for large shops, like inventory counters and multi-location reports, until you actually have a team.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 5,
+    toc: ["What detailing software is for","Features that earn their keep","Features you can skip for now","How to start without a big bill","Moving from messages to software"],
+    body: (
+      <>
+        <H2>What detailing software is for</H2>
+        <p>Detailing business software replaces the loose system most detailers start with: DMs, a calendar and a notes app. The goal is fewer messages per job and fewer no-shows.</p>
+        <H2>Features that earn their keep</H2>
+        <p>These pay you back quickly:</p>
+        <ul>
+          <li>Price list by vehicle size, with add-ons.</li>
+          <li>A booking link clients use in a browser.</li>
+          <li>Deposits collected before the day.</li>
+          <li>A calendar with job length and travel buffer.</li>
+          <li>Client list with past jobs and notes.</li>
+          <li>Receipts and a review request after the job.</li>
+        </ul>
+        <H2>Features you can skip for now</H2>
+        <p>Large-shop tools such as inventory counting, staff payroll, multi-location dashboards and marketing automation are real products, but a solo detailer will not touch them for months. Each extra feature is more to learn and often more to pay for.</p>
+        <H2>How to start without a big bill</H2>
+        <p>Start with a free plan, set up your services in one sitting and share the link in your Instagram bio and messages. Only pay when the bookings justify it. Beadup has a <A href="/pricing">free plan to start</A> and the price for Pro is shown in the App Store in your country.</p>
+        <H2>Moving from messages to software</H2>
+        <p>Do not try to move every client at once. Put the link in your bio and your replies. When someone asks for a price, send the link. Within a few weeks most new bookings come through it. Our <A href="/blog/instagram-booking-link-for-detailers">Instagram booking link guide</A> shows where to place it.</p>
+
+      </>
+    ),
+    faq: [
+      ["What software do mobile detailers use?", "Many use a mix of a booking app, a payment app and their phone calendar. An all-in-one detailing app keeps quotes, bookings, deposits and clients in one place."],
+      ["Is there free auto detailing software?", "Yes, some apps have a free plan with a monthly booking limit. Beadup offers a free plan to start and a Pro plan bought in the app."],
+      ["Do clients need to download anything?", "Not with Beadup. Clients book from your link in any browser."],
+    ],
+  },
+  {
+    slug: "detailing-scheduling-app",
+    title: "Detailing scheduling app: online booking for car detailers",
+    description:
+      "How online scheduling works for mobile car detailers: showing only open times, blocking travel, avoiding double bookings and letting clients book without calling.",
+    answer:
+      "A detailing scheduling app lets clients pick an open time on your booking link, blocks that time on your calendar, and keeps your travel time between jobs so you are never double booked. It should work in any browser so clients need nothing installed.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 5,
+    toc: ["Why scheduling is hard for mobile detailers","Open times only","Travel time between jobs","Days off and holidays","What clients see"],
+    body: (
+      <>
+        <H2>Why scheduling is hard for mobile detailers</H2>
+        <p>A shop has one location. You have a van and a route. A two-hour full detail across town plus a 40 minute drive is a three-hour block, not two. Scheduling tools built for shops do not account for that.</p>
+        <H2>Open times only</H2>
+        <p>Set your weekly hours once. The booking link then shows only the times you are free, so clients cannot ask for a slot you cannot do. Fewer back-and-forth messages, more finished bookings.</p>
+        <H2>Travel time between jobs</H2>
+        <p>Add a buffer between jobs so the app will not let two bookings sit back to back across town. Beadup lets you set travel time and checks it every time a booking is made.</p>
+        <H2>Days off and holidays</H2>
+        <p>Mark days off once and they disappear from the booking page. No more telling a client you are away after they have already picked a date.</p>
+        <H2>What clients see</H2>
+        <p>A clean page: pick a service, vehicle size and add-ons, pick a time, add the address, done. See a <A href="/car-detailing-booking-app">booking app for car detailers</A> in action or explore <A href="/for/car-detailers">how Beadup works for detailers</A>.</p>
+
+      </>
+    ),
+    faq: [
+      ["Can clients book a detailer online without calling?", "Yes. With a booking link they pick a service and an open time in a browser and the booking lands on your calendar."],
+      ["Can I stop double bookings?", "Yes. The app checks every booking against your calendar and your travel time, so two jobs cannot overlap."],
+      ["Can I take a break or a holiday?", "Yes. Mark days off and those dates vanish from your booking page."],
+    ],
+  },
+  {
+    slug: "detailing-quote-and-invoice-app",
+    title: "How to quote and invoice car detailing jobs from your phone",
+    description:
+      "A simple way for mobile detailers to send quotes and get paid: price by vehicle size, add extras, send a booking link, collect a deposit and the balance, and give a receipt.",
+    answer:
+      "Price each job from your own list by vehicle size and add-ons, send the client your booking link instead of a long message, collect a deposit when they book and the balance after the job, and send a receipt. A detailing app does all of it from your phone.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 5,
+    toc: ["Build the quote from your price list","Send a link, not a paragraph","Deposit first, balance after","Receipts that look professional","Keep a record"],
+    body: (
+      <>
+        <H2>Build the quote from your price list</H2>
+        <p>Write your prices down once: sedan, SUV, truck, plus add-ons. A quote is then just choosing the service and ticking extras. With photos you can <A href="/ai-detailing-quote-calculator">get a suggested quote from the car itself</A>, which you check and approve before it goes out.</p>
+        <H2>Send a link, not a paragraph</H2>
+        <p>Instead of typing a long message, send your booking link. The client sees the same prices, picks a time and confirms. You are not the middleman for every detail.</p>
+        <H2>Deposit first, balance after</H2>
+        <p>Take a deposit when the client books and the balance when the job is done. Keep it simple: the client pays you directly with your payment link or instructions. See <A href="/booking-link-with-deposits">how deposits work</A>.</p>
+        <H2>Receipts that look professional</H2>
+        <p>A clear receipt after the job shows what was done and what was paid. It reads as a real business and makes it easy to ask for a review.</p>
+        <H2>Keep a record</H2>
+        <p>Your jobs, clients and money belong in one place, not scattered across chats. At the end of the month you can see what you earned and what is still due.</p>
+
+      </>
+    ),
+    faq: [
+      ["How do I send a quote to a customer as a detailer?", "Send your booking link or a quote from your detailing app. The client sees your prices and confirms a time."],
+      ["Should I invoice or take a deposit?", "Take a deposit when the client books, then collect the balance after the job. That protects your time and keeps cash flow steady."],
+      ["Do I need a separate invoicing app?", "Not if your detailing app already tracks jobs, deposits and receipts."],
+    ],
+  },
+  {
+    slug: "free-detailing-booking-app",
+    title: "A free booking app for car detailers: what free really includes",
+    description:
+      "What to expect from a free detailing booking app: usually a monthly booking limit, then a paid plan. How to compare free plans and avoid paying for features you will not use.",
+    answer:
+      "Most free detailing booking apps give you a booking link and the basics with a monthly limit on bookings, then charge for unlimited use. Start free, see whether it saves you time, and only upgrade when your bookings outgrow the limit.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 4,
+    toc: ["How free plans usually work","What to check before you start","What you should never pay extra for","Beadup free plan"],
+    body: (
+      <>
+        <H2>How free plans usually work</H2>
+        <p>A free plan is a trial that never expires, with a cap. The cap is usually on bookings per month, sometimes on clients or features. That suits a new detailer: you pay nothing while you build your client list.</p>
+        <H2>What to check before you start</H2>
+        <p>Ask four questions before you commit:</p>
+        <ul>
+          <li>What exactly is capped, and at what number?</li>
+          <li>Can clients book without installing an app?</li>
+          <li>Does the money go straight to you, or through the platform?</li>
+          <li>Can you leave and take your client list with you?</li>
+        </ul>
+        <H2>What you should never pay extra for</H2>
+        <p>Your own booking link, your calendar and the ability to take a deposit are basics. Be wary of plans that lock these behind an expensive tier.</p>
+        <H2>Beadup free plan</H2>
+        <p>Beadup is free to start, with a monthly booking limit. Pro removes the limit and is bought inside the iPhone app, at the price shown in your country. There is no booking fee and Beadup does not take a cut of your deposits. See <A href="/pricing">pricing</A>.</p>
+
+      </>
+    ),
+    faq: [
+      ["Is there a free app for car detailers?", "Yes. Several apps have a free plan with a monthly booking limit. Beadup is free to start."],
+      ["What is the catch with a free plan?", "Usually a cap on bookings. You upgrade only if you need more."],
+      ["Does Beadup take a cut of deposits?", "No. Clients pay the deposit straight to you and Beadup takes no cut."],
+    ],
+  },
+  {
+    slug: "detailing-crm-client-list",
+    title: "A simple CRM for car detailers: keep your client list and get repeat jobs",
+    description:
+      "How mobile detailers can keep a client list, remember each car and bring customers back: what to record, when to follow up and a simple way to ask for reviews.",
+    answer:
+      "A detailing CRM is just a client list that remembers each customer, their car and their last job, so you can message them when they are due for the next one. Keep it in your booking app so it fills itself as people book.",
+    published: "2026-11-18",
+    updated: "2026-11-18",
+    readMin: 4,
+    toc: ["What a detailer should record","Remember the car, not just the name","Bring clients back at the right time","Ask for reviews","Keep it in one app"],
+    body: (
+      <>
+        <H2>What a detailer should record</H2>
+        <p>Keep it small: name, phone, address, the car, the services done and what they paid. Anything more rarely gets used.</p>
+        <H2>Remember the car, not just the name</H2>
+        <p>Clients love when you remember their black SUV and the pet hair. A note on the car saves you asking again and lets you quote faster next time.</p>
+        <H2>Bring clients back at the right time</H2>
+        <p>A full detail every few months and a maintenance wash in between is a natural rhythm. Beadup shows which clients are due back so you can send them your link.</p>
+        <H2>Ask for reviews</H2>
+        <p>After the job, send a review link. Reviews are what new clients read before they book. Read <A href="/blog/how-to-reduce-no-shows-mobile-detailing">how to reduce no-shows</A> for another way to protect your calendar.</p>
+        <H2>Keep it in one app</H2>
+        <p>If your client list lives in the same app as your bookings, it fills itself. You never copy a number from a chat into a spreadsheet. See <A href="/car-detailing-booking-app">the booking app for car detailers</A>.</p>
+
+      </>
+    ),
+    faq: [
+      ["Do detailers need a CRM?", "Not a heavy one. A simple client list with past jobs and notes is enough, and it should fill itself from your bookings."],
+      ["How do I get repeat detailing customers?", "Remember their car, follow up when they are due and make rebooking a single tap with your booking link."],
+      ["How do I get more reviews?", "Ask right after the job and send a direct review link."],
+    ],
+  },
 ];
 
 export function getGuide(slug: string) {
