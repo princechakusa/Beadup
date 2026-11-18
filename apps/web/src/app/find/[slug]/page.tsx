@@ -43,7 +43,7 @@ export default async function FindTrade({ params, searchParams }: PageProps<"/fi
   const name = TRADES[p.trade].name;
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-6xl px-5 pt-10 sm:px-8 sm:pt-16">
+      <section className="mx-auto w-full max-w-[1500px] px-5 pt-10 sm:px-8 sm:pt-16 lg:px-10">
         <nav aria-label="Breadcrumb" className="text-[13px] text-steel">
           <Link href="/find" className="hover:text-paint">Find a pro</Link> <span aria-hidden="true">/</span> {name}
         </nav>

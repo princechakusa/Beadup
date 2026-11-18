@@ -53,11 +53,11 @@ export function DirectoryResults({ items, home }: { items: DirectoryEntry[]; hom
   }
   const ordered = home ? [...items.filter((d) => d.country === home), ...items.filter((d) => d.country !== home)] : items;
   return (
-    <ul className="mt-8 grid gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
       {ordered.map((d) => (
         <li key={d.handle}>
-          <Link href={`/${d.handle}`} className="group flex h-full flex-col gap-2.5 rounded-[22px]">
-            <span className="relative block h-[200px] overflow-hidden rounded-[22px] border border-white/[0.08] bg-gradient-to-br from-[#232a35] to-[#11151b] transition-transform duration-300 ease-(--ease-spring) group-hover:-translate-y-0.5">
+          <Link href={`/${d.handle}`} className="group flex h-full flex-col gap-2 rounded-[22px]">
+            <span className="relative mb-2.5 block aspect-[3/2] w-full overflow-hidden rounded-[22px] border border-white/[0.08] bg-gradient-to-br from-[#232a35] to-[#11151b] transition-transform duration-300 ease-(--ease-spring) group-hover:-translate-y-0.5">
               {d.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={`/api/media/${d.handle}/avatar?v=${d.photo}`} alt="" loading="lazy" className="h-full w-full object-cover" />
@@ -84,9 +84,9 @@ export function DirectoryResults({ items, home }: { items: DirectoryEntry[]; hom
                 </>
               )}
             </span>
-            <span className="truncate font-display text-[18px] font-bold">{d.businessName}</span>
-            <span className="truncate text-[14px] text-steel">{d.serviceArea || COUNTRIES[d.country].name}</span>
-            <span className="mt-auto flex items-center justify-between pt-1">
+            <span className="truncate font-display text-[20px] font-bold leading-tight">{d.businessName}</span>
+            <span className="truncate text-[15px] text-steel">{d.serviceArea || COUNTRIES[d.country].name}</span>
+            <span className="mt-auto flex items-center justify-between pt-3">
               <span className="text-[14px] font-semibold text-gold">{d.fromCents !== null ? `from ${formatMoney(d.fromCents, d.country)}` : ""}</span>
               <span className="inline-flex h-9 items-center rounded-[12px] bg-bead px-4 text-[14px] font-bold text-bead-ink">Book</span>
             </span>

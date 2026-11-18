@@ -28,7 +28,7 @@ export default async function Find({ searchParams }: PageProps<"/find">) {
   const home = query.country ? null : await visitorCountry();
   return (
     <SitePage>
-      <section className="mx-auto w-full max-w-6xl px-5 pt-10 sm:px-8 sm:pt-16">
+      <section className="mx-auto w-full max-w-[1500px] px-5 pt-10 sm:px-8 sm:pt-16 lg:px-10">
         <h1 className="text-gradient text-balance font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-6xl">{TITLE}</h1>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-mist">
           Real prices, real photos and real ratings. Pick a business and book a time in under a minute, no app needed.
