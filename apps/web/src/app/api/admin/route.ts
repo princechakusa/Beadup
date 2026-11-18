@@ -23,6 +23,8 @@ const action = z.discriminatedUnion("type", [
   z.object({ type: z.literal("review.hide"), id: z.uuid(), hidden: z.boolean() }),
   // Free Pro months: launch offers ("first 20 get 3 months") and support goodwill.
   z.object({ type: z.literal("pro.grant"), detailerId: z.uuid(), months: z.number().int().min(1).max(12) }),
+  // Curated directory (/find): only approved, real businesses are listed.
+  z.object({ type: z.literal("directory.approve"), detailerId: z.uuid(), approved: z.boolean() }),
   z.object({ type: z.literal("deletion.close"), id: z.number().int().positive(), status: z.enum(["done", "no_account"]) }),
 ]);
 
@@ -46,6 +48,10 @@ export async function POST(request: Request): Promise<Response> {
       const { error } = await db.rpc("grant_bonus_month", { p_detailer_id: a.detailerId, p_reason: `admin:${admin}` });
       if (error) return Response.json({ ok: false }, { status: 400 });
     }
+  } else if (a.type === "directory.approve") {
+    const { error } = await db.from("detailers").update({ directory_approved: a.approved }).eq("id", a.detailerId);
+    if (error) return Response.json({ ok: false }, { status: 400 });
+    revalidateTag("directory", { expire: 0 });
   } else {
     const { error } = await db.from("deletion_requests").update({ status: a.status, processed_at: new Date().toISOString() }).eq("id", a.id);
     if (error) return Response.json({ ok: false }, { status: 400 });

@@ -98,6 +98,7 @@ export const en = {
   timeHeld: "Your time is held. Pay the {amount} deposit to secure it.",
   contactDeposit: "{name} will contact you about the deposit.",
   payDepositBtn: "Pay {amount} deposit",
+  payLinkHost: "Opens {host}. Beadup does not handle this payment. Only pay if you booked {name}.",
   questionsName: "Questions? {name}",
   waMsgBooked: "Hi {name}, I just booked {service} ({when}) on Beadup.",
   textBtn: "Text",

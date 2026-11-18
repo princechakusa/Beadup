@@ -340,6 +340,18 @@ function Dashboard({ data, onChange }: { data: AdminOverview; onChange: (d: Admi
                   </td>
                   <td className="px-5 py-3 text-right">
                     <div className="inline-flex gap-1.5">
+                      <SmallButton
+                        disabled={busy !== null}
+                        onClick={() =>
+                          act(
+                            `dir-${d.id}`,
+                            { type: "directory.approve", detailerId: d.id, approved: !d.inDirectory },
+                            d.inDirectory ? `${d.businessName} removed from Find a pro.` : `${d.businessName} added to Find a pro.`,
+                          )
+                        }
+                      >
+                        {d.inDirectory ? "Unlist" : "List in Find"}
+                      </SmallButton>
                       {[1, 3].map((m) => (
                         <SmallButton
                           key={m}

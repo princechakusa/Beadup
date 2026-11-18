@@ -90,6 +90,7 @@ export const es: Messages = {
   timeHeld: "Tu horario está reservado. Paga el depósito de {amount} para asegurarlo.",
   contactDeposit: "{name} se pondrá en contacto contigo sobre el depósito.",
   payDepositBtn: "Pagar depósito de {amount}",
+  payLinkHost: "Abre {host}. Beadup no gestiona este pago. Paga solo si reservaste con {name}.",
   questionsName: "¿Preguntas? {name}",
   waMsgBooked: "Hola {name}, acabo de reservar {service} ({when}) en Beadup.",
   textBtn: "Mensaje",

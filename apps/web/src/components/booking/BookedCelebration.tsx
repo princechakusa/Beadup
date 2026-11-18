@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { reportDepositSent } from "@/app/[handle]/actions";
-import { isPayOnDay } from "@/lib/pay-on-day";
+import { isPayOnDay, linkHost } from "@/lib/pay-on-day";
 import { WhatsAppIcon } from "@/components/booking/WhatsAppIcon";
 import { whatsappUrl } from "@/lib/countries";
 import { haptic, playBookedChime } from "@/lib/feedback";
@@ -157,6 +157,11 @@ export function BookedCelebration({
               >
                 {t("payDepositBtn", { amount: paid })}
               </a>
+            )}
+            {payment.link && (
+              <p className="mt-2 break-words text-[12px] leading-relaxed text-steel">
+                {t("payLinkHost", { host: linkHost(payment.link), name: businessName })}
+              </p>
             )}
             {!payment.link && !payment.note && (
               <p className="mt-3 text-[13px] text-steel">{t("contactDeposit", { name: businessName })}</p>

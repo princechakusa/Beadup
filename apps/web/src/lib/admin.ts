@@ -97,6 +97,7 @@ export type AdminOverview = {
     bookings: number;
     plan: "pro" | "free";
     bonusProUntil: string | null;
+    inDirectory: boolean;
   }[];
   reviews: { id: string; rating: number; body: string; hidden: boolean; createdAt: string; handle: string }[];
   deletionRequests: { id: number; email: string; note: string; createdAt: string }[];
@@ -154,7 +155,7 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
     db.from("detailer_accounts").select("detailer_id, plan, plan_renews_at, bonus_pro_until"),
     db
       .from("detailers")
-      .select("id, handle, business_name, country, created_at, is_published, bookings(count)")
+      .select("id, handle, business_name, country, created_at, is_published, directory_approved, bookings(count)")
       .order("created_at", { ascending: false })
       .limit(100),
     db
@@ -200,6 +201,7 @@ export async function loadOverview(admin: string): Promise<AdminOverview> {
         createdAt: d.created_at as string,
         published: d.is_published as boolean,
         bookings: b?.[0]?.count ?? 0,
+        inDirectory: d.directory_approved as boolean,
         plan: isPaid(a) || hasBonus(a) ? "pro" : "free",
         bonusProUntil: hasBonus(a) ? (a!.bonus_pro_until as string) : null,
       };

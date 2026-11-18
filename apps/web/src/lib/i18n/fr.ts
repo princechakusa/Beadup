@@ -90,6 +90,7 @@ export const fr: Messages = {
   timeHeld: "Votre créneau est réservé. Réglez l'acompte de {amount} pour le confirmer.",
   contactDeposit: "{name} vous contactera au sujet de l'acompte.",
   payDepositBtn: "Payer l'acompte de {amount}",
+  payLinkHost: "Ouvre {host}. Beadup ne gère pas ce paiement. Ne payez que si vous avez réservé chez {name}.",
   questionsName: "Des questions ? {name}",
   waMsgBooked: "Bonjour {name}, je viens de réserver {service} ({when}) sur Beadup.",
   textBtn: "SMS",

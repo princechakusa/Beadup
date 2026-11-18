@@ -66,7 +66,7 @@ export default function SignIn() {
     <View style={styles.root}>
       <LinearGradient colors={['rgba(77,216,255,0.18)', 'rgba(10,12,16,0)']} style={styles.aurora} />
       <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             <View style={styles.hero}>
               <LiquidBead size={112} />

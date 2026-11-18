@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TAB_BAR_SPACE } from '@/components/nav/GlassTabBar';
+import { useAndroidKeyboardHeight } from '@/lib/keyboard';
 import { colors, space } from '@/theme/tokens';
 
 import { Icon } from './Icon';
@@ -25,12 +26,14 @@ type Props = {
 /** Standard screen: small grey line over a big Sora title, pull to refresh. */
 export function Screen({ eyebrow, title, right, children, refreshing = false, onRefresh, tabs = true, offline = false }: Props) {
   const insets = useSafeAreaInsets();
+  const keyboard = useAndroidKeyboardHeight();
   return (
     <ScrollView
-      style={styles.root}
+      style={[styles.root, keyboard > 0 && { marginBottom: keyboard }]}
       // Keyboard: iOS scrolls the focused field above the keyboard, taps on
       // buttons work while it is open, and dragging the list down closes it
-      // (number pads have no return key). Android resizes the window.
+      // (number pads have no return key). Android is edge to edge, so the
+      // list is shrunk by the keyboard height (see useAndroidKeyboardHeight).
       automaticallyAdjustKeyboardInsets
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"

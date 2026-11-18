@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { isPayOnDay } from "@/lib/pay-on-day";
+import { isPayOnDay, linkHost } from "@/lib/pay-on-day";
 import { AddToCalendar, DepositSent } from "@/components/booking/BookedCelebration";
 import type { Detailer } from "@/lib/booking-types";
 import type { ClientBooking } from "@/lib/client-booking";
@@ -210,6 +210,11 @@ function Payment({ b, token, money, onDone }: { b: View; token: string; money: (
             >
               {t("payDepositBtn", { amount: money(b.depositCents) })}
             </a>
+          )}
+          {b.paymentLink && (
+            <p className="mt-2 break-words text-[12px] leading-relaxed text-steel">
+              {t("payLinkHost", { host: linkHost(b.paymentLink), name: b.businessName })}
+            </p>
           )}
           {(b.paymentLink || b.paymentNote) && (
             <DepositSent

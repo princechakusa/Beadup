@@ -555,7 +555,14 @@ export function normalizePaymentLink(input: string): { ok: true; link: string | 
   if (!t) return { ok: true, link: null };
   if (/^http:\/\//i.test(t)) return { ok: false, error: 'Use the https:// version of the link.' };
   const link = /^https:\/\//i.test(t) ? `https://${t.slice(8)}` : `https://${t}`;
-  if (link.length > 300 || !/^https:\/\/[^\s<>"]+\.[^\s<>"]+$/.test(link)) return { ok: false, error: 'That doesn’t look like a web link.' };
+  // Same rules as the database check (detailers_payment_link_check).
+  if (link.length > 300 || !/^https:\/\/[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,24}(\/[^\s<>"\\]*)?$/i.test(link)) {
+    return { ok: false, error: /^https:\/\/[^/]*@/.test(link) ? 'Remove the part before the @ sign. Clients must see the real website.' : 'That doesn’t look like a web link.' };
+  }
+  if (/^https:\/\/[^/]*xn--/i.test(link)) return { ok: false, error: 'Links with special look-alike characters are not allowed.' };
+  if (/^https:\/\/(www\.)?(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|ow\.ly|cutt\.ly|rb\.gy|shorturl\.at|tiny\.cc|buff\.ly|lnkd\.in|t\.ly|rebrand\.ly|s\.id)(\/|$)/i.test(link)) {
+    return { ok: false, error: 'Shortened links are not allowed. Paste the full payment link.' };
+  }
   try {
     new URL(link);
   } catch {

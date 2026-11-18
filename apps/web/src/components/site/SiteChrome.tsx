@@ -69,75 +69,37 @@ export function SiteHeader() {
   );
 }
 
+// Short on purpose (like Booksy's): one row of links, one legal line.
 const FOOTER = [
-  {
-    title: "Product",
-    links: [
-      { href: "/#features", label: "Features" },
-      { href: "/#how-it-works", label: "How it works" },
-      { href: "/pricing", label: "Pricing" },
-      { href: SAMPLE_PAGE, label: "Sample booking page" },
-      { href: "/car-detailing-booking-app", label: "Booking app for car detailers" },
-      { href: "/ai-detailing-quote-calculator", label: "AI photo quotes" },
-      { href: "/booking-link-with-deposits", label: "Booking link with deposits" },
-    ],
-  },
-  {
-    title: "Help",
-    links: [
-      { href: "/support", label: "Support" },
-      { href: "/#faq", label: "FAQ" },
-      { href: "/blog", label: "Guides" },
-      { href: "/delete-account", label: "Delete account" },
-    ],
-  },
-  {
-    title: "Who it's for",
-    links: [
-      { href: "/for/car-detailers", label: "Car detailers" },
-      { href: "/for/hair-salons", label: "Hair salons" },
-      { href: "/for/barbers", label: "Barbers" },
-      { href: "/for/nail-technicians", label: "Nails and beauty" },
-      { href: "/for/pet-groomers", label: "Pet groomers" },
-      { href: "/for/mobile-mechanics", label: "Mechanics" },
-      { href: "/for", label: "All businesses" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { href: "/privacy", label: "Privacy policy" },
-      { href: "/terms", label: "Terms of service" },
-      { href: "/refund-policy", label: "Refund policy" },
-    ],
-  },
+  { href: "/#features", label: "Features" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/for", label: "Who it's for" },
+  { href: "/find", label: "Find a pro" },
+  { href: "/blog", label: "Guides" },
+  { href: "/support", label: "Support" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/refund-policy", label: "Refunds" },
+  { href: "/delete-account", label: "Delete account" },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-28 border-t border-white/[0.06]">
+    <footer className="relative mt-20 border-t border-white/[0.06]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-bead/40 to-transparent" />
-      <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div className="flex flex-col gap-4">
-          <Wordmark />
-          <p className="max-w-xs text-[15px] leading-relaxed text-steel">
-            Quote, book and get paid. The booking link for appointment businesses, from detailers to salons, barbers and groomers.
-          </p>
-        </div>
-        {FOOTER.map((col) => (
-          <nav key={col.title} aria-label={col.title} className="flex flex-col gap-3">
-            <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-steel">{col.title}</h2>
-            {col.links.map((l) => (
-              <Link key={l.href} href={l.href} className="w-fit text-[15px] text-mist transition-colors hover:text-paint">
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        ))}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-start md:justify-between">
+        <Wordmark />
+        <nav aria-label="Footer" className="flex max-w-2xl flex-wrap gap-x-6 gap-y-2.5 md:justify-end">
+          {FOOTER.map((l) => (
+            <Link key={l.href} href={l.href} className="text-[14px] text-mist transition-colors hover:text-paint">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
       </div>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 border-t border-white/[0.05] px-5 py-6 text-[13px] text-steel sm:flex-row sm:justify-between sm:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-1.5 border-t border-white/[0.05] px-5 py-4 text-[12.5px] text-steel sm:flex-row sm:justify-between sm:px-8">
         <span>© 2026 Beadup. All rights reserved.</span>
-        <span>Made for solo pros in 8 countries. No ads. No tracking. We never sell your data.</span>
+        <span>No ads. No tracking. We never sell your data.</span>
       </div>
     </footer>
   );
