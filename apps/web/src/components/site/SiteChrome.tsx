@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { BeadLogo } from "@/components/BeadLogo";
 import { SAMPLE_PAGE } from "@/lib/site";
+import { AppStoreButton } from "./AppStoreButton";
 import { IconArrowRight } from "./Icons";
 import { MobileMenu } from "./MobileMenu";
 
@@ -69,36 +70,87 @@ export function SiteHeader() {
   );
 }
 
-// Short on purpose (like Booksy's): one row of links, one legal line.
-const FOOTER = [
-  { href: "/#features", label: "Features" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/for", label: "Who it's for" },
-  { href: "/find", label: "Find a pro" },
-  { href: "/blog", label: "Guides" },
-  { href: "/support", label: "Support" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/refund-policy", label: "Refunds" },
-  { href: "/delete-account", label: "Delete account" },
+// Four plain columns of links, like a store footer: no headings, generous spacing.
+const FOOTER_COLUMNS: { href: string; label: string }[][] = [
+  [
+    { href: "/#features", label: "Features" },
+    { href: "/#how-it-works", label: "How it works" },
+    { href: "/pricing", label: "Pricing" },
+    { href: SAMPLE_PAGE, label: "Sample booking page" },
+    { href: "/find", label: "Find a pro" },
+  ],
+  [
+    { href: "/for", label: "Who it's for" },
+    { href: "/blog", label: "Guides" },
+    { href: "/support", label: "Support" },
+    { href: "/#faq", label: "FAQ" },
+    { href: "/delete-account", label: "Delete account" },
+  ],
+  [
+    { href: "/for/car-detailers", label: "Car detailers" },
+    { href: "/for/hair-salons", label: "Hair salons" },
+    { href: "/for/barbers", label: "Barbers" },
+    { href: "/for/nail-technicians", label: "Nails and beauty" },
+    { href: "/for/pet-groomers", label: "Pet groomers" },
+  ],
+  [
+    { href: "/privacy", label: "Privacy policy" },
+    { href: "/terms", label: "Terms of service" },
+    { href: "/refund-policy", label: "Refund policy" },
+  ],
+];
+
+const SOCIALS = [
+  {
+    label: "Beadup on Instagram",
+    href: "https://www.instagram.com/beadupapp/",
+    path: "M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm5.5-2.2a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z",
+  },
+  {
+    label: "Beadup on Pinterest",
+    href: "https://www.pinterest.com/beadupapp/",
+    path: "M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.1-.8 3.300-.2 1 .5 1.800 1.500 1.800 1.800 0 3.200-1.900 3.200-4.600 0-2.400-1.700-4.100-4.200-4.100-2.800 0-4.500 2.100-4.500 4.300 0 .9.300 1.800.7 2.300.1.100.1.200.1.300l-.3 1.100c0 .2-.1.200-.3.100-1.300-.6-2.100-2.500-2.100-4 0-3.300 2.400-6.300 6.900-6.300 3.600 0 6.400 2.600 6.400 6 0 3.600-2.300 6.500-5.400 6.500-1.100 0-2.100-.6-2.400-1.200l-.7 2.500c-.2.900-.9 2.100-1.300 2.800A10 10 0 1 0 12 2z",
+  },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-20 border-t border-white/[0.06]">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-bead/40 to-transparent" />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-start md:justify-between">
-        <Wordmark />
-        <nav aria-label="Footer" className="flex max-w-2xl flex-wrap gap-x-6 gap-y-2.5 md:justify-end">
-          {FOOTER.map((l) => (
-            <Link key={l.href} href={l.href} className="text-[14px] text-mist transition-colors hover:text-paint">
-              {l.label}
-            </Link>
+    <footer className="relative mt-24 bg-gunmetal">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-16 sm:px-8">
+        <Link href="/" aria-label="Beadup home" className="inline-block rounded-xl">
+          <Wordmark size={34} />
+        </Link>
+        <nav aria-label="Footer" className="mt-12 grid grid-cols-2 gap-x-8 gap-y-9 pl-1 sm:pl-5 lg:grid-cols-4">
+          {FOOTER_COLUMNS.map((col, i) => (
+            <ul key={i} className="flex flex-col gap-6 sm:gap-9">
+              {col.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-[16px] text-paint/90 transition-colors hover:text-bead">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           ))}
         </nav>
-      </div>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-1.5 border-t border-white/[0.05] px-5 py-4 text-[12.5px] text-steel sm:flex-row sm:justify-between sm:px-8">
-        <span>© 2026 Beadup. All rights reserved.</span>
+        <div className="mt-14 flex flex-col gap-6 border-t border-white/[0.1] pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-5">
+            <ul className="flex items-center gap-5">
+              {SOCIALS.map((s) => (
+                <li key={s.href}>
+                  <a href={s.href} aria-label={s.label} rel="noopener" className="text-paint transition-colors hover:text-bead">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d={s.path} fillRule="evenodd" />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <span aria-hidden="true" className="h-9 w-px bg-white/[0.12]" />
+            <span className="text-[13px] text-steel">© 2026 Beadup</span>
+          </div>
+          <AppStoreButton size="md" />
+        </div>
       </div>
     </footer>
   );
