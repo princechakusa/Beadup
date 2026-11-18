@@ -51,7 +51,7 @@ export default async function Terms() {
           the business shows after booking (for example their own payment link or bank transfer details).
         </li>
         <li>
-          The booking page shows the price and a suggested deposit (currently 30% of the price). Deposits, balances,
+          The booking page shows the price and a deposit set by the business (30% of the price by default). Deposits, balances,
           cancellations and refunds are agreed between the client and the business.
         </li>
         <li>Beadup does not take a percentage of businesses&apos; payments.</li>
@@ -63,7 +63,7 @@ export default async function Terms() {
           accept Stripe&apos;s terms, and Stripe may verify their identity or hold payouts under its own policies.
         </li>
         <li>
-          Clients pay a deposit when booking (currently 30% of the price) and the balance after the job, plus a booking fee
+          Clients pay a deposit when booking (set by the business, 30% of the price by default) and the balance after the job, plus a booking fee
           that covers card processing. The amounts are shown before payment.
         </li>
         <li>Beadup does not take a percentage of businesses&apos; payments.</li>

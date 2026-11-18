@@ -539,6 +539,26 @@ export function usePaymentsMode(): PaymentsMode {
 
 export type PaymentDetails = { link: string | null; note: string | null };
 
+/** Allowed deposit percents (same list as the database check). */
+export const DEPOSIT_PERCENTS = [10, 15, 20, 25, 30, 35, 40, 45, 50] as const;
+
+export async function fetchDepositPercent(): Promise<number> {
+  if (!supabase) return 30;
+  const { data, error } = await db().from('detailers').select('deposit_percent').maybeSingle();
+  if (error) throw error;
+  return data?.deposit_percent ?? 30;
+}
+
+export async function saveDepositPercent(percent: number): Promise<void> {
+  if (!supabase) return;
+  if (!(DEPOSIT_PERCENTS as readonly number[]).includes(percent)) throw new Error('invalid percent');
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('signed out');
+  const { error } = await db().from('detailers').update({ deposit_percent: percent }).eq('id', user.user.id);
+  if (error) throw error;
+  await refreshBookingPage();
+}
+
 export async function fetchPaymentDetails(): Promise<PaymentDetails> {
   if (!supabase) return fixtures.paymentDetails;
   const { data, error } = await db().from('detailers').select('payment_link, payment_note').maybeSingle();

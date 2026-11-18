@@ -1,7 +1,7 @@
 -- Booking creation, pricing and rate limit tests. Run: npx supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(20);
 -- These tests cover the Stripe path (unpaid holds); external mode has its own file.
 update public.plan_config set value = '"stripe"' where key = 'payments_mode';
 
@@ -20,6 +20,10 @@ select 'cccccccc-0000-4000-8000-000000000000', wd, '10:00' from generate_series(
 -- Pricing matches apps/web/src/lib/pricing.ts.
 select is(public.deposit_cents(21000), 6300, 'deposit is 30%');
 select is(public.deposit_cents(5), 2, 'deposit rounds half up');
+select is(public.deposit_cents(21000, 30), public.deposit_cents(21000), 'percent version matches the 30% default');
+select is(public.deposit_cents(21000, 10), 2100, 'a 10% deposit');
+select is(public.deposit_cents(5, 50), 3, 'a 50% deposit rounds half up');
+select throws_ok($$ update public.detailers set deposit_percent = 100 where id = 'cccccccc-0000-4000-8000-000000000000' $$, '23514', null, '100% deposits are refused');
 select is(public.booking_fee_cents(6300), 220, 'booking fee covers 2.9% + 30c');
 select is(public.booking_fee_cents(0), 0, 'no fee on zero');
 select is_empty(

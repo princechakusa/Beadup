@@ -46,7 +46,7 @@ export const es: Messages = {
 
   reviewTitle: "Revisa y reserva",
   total: "Total",
-  deposit30: "Depósito (30 %)",
+  depositPct: "Depósito ({pct} %)",
   bookingFee: "Cargo por reserva",
   payAfter: "Pagas {amount} después del servicio",
   externalNote: "Después de reservar, pagarás el depósito de {amount} directamente a {name}. Beadup nunca toma tu tarjeta. Los depósitos, cambios y reembolsos los gestiona {name}.",

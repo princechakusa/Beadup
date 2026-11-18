@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
+import { AppBand } from "@/components/site/AppBand";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES, tradePage } from "@/content/trade-pages";
+import { visitorCountry } from "@/lib/site";
 import { directoryQuery, getDirectory } from "@/lib/directory";
 import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
 import { TRADES } from "@/lib/trades";
@@ -37,6 +39,7 @@ export default async function FindTrade({ params, searchParams }: PageProps<"/fi
   if (!p) notFound();
   const query = { ...directoryQuery(await searchParams), trade: p.trade };
   const items = await getDirectory(query);
+  const home = query.country ? null : await visitorCountry();
   const name = TRADES[p.trade].name;
   return (
     <SitePage>
@@ -50,8 +53,9 @@ export default async function FindTrade({ params, searchParams }: PageProps<"/fi
           <Link href={`/for/${p.slug}`} className="text-bead underline underline-offset-4">Run a {name.toLowerCase()} business?</Link>
         </p>
         <DirectorySearch query={query} action={`/find/${p.slug}`} fixedTrade />
-        <DirectoryResults items={items} />
+        <DirectoryResults items={items} home={home} />
       </section>
+      <AppBand className="mt-20" />
     </SitePage>
   );
 }

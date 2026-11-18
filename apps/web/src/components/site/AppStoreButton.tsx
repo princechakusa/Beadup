@@ -11,6 +11,9 @@ const APP_STORE_PROVIDER_TOKEN = "129220014";
 const appId = APP_STORE_URL && /\/id(\d+)/.exec(APP_STORE_URL)?.[1];
 const TRACKED_URL = appId ? `https://apps.apple.com/app/apple-store/id${appId}?pt=${APP_STORE_PROVIDER_TOKEN}&ct=website&mt=8` : APP_STORE_URL;
 
+/** The link the QR code and button open (null until the app is live). */
+export const APP_DOWNLOAD_URL = TRACKED_URL ?? APP_STORE_URL;
+
 export function AppStoreButton({ size = "lg", className = "" }: { size?: "md" | "lg"; className?: string }) {
   const h = size === "lg" ? "h-[60px] px-6" : "h-12 px-5";
   const body = (

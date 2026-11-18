@@ -162,10 +162,10 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
     const base = !service ? 0 : tier ? service.priceCents[tier] : Math.min(service.priceCents.sedan, service.priceCents.suv, service.priceCents.truck);
     const extras = detailer.addOns.filter((a) => addOns.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
     const total = base + extras;
-    const deposit = depositCents(total);
+    const deposit = depositCents(total, detailer.depositPercent);
     const fee = external ? 0 : bookingFeeCents(deposit);
     return { base, extras, total, deposit, fee, dueToday: deposit + fee };
-  }, [service, tier, addOns, detailer.addOns, external]);
+  }, [service, tier, addOns, detailer.addOns, detailer.depositPercent, external]);
 
   const canContinue =
     (step === 0 && !!serviceId) || (step === 1 && !!tier) || (step === 2 && !!dayKey && !!slot) || step === 3 || step === 4;
@@ -635,7 +635,7 @@ export function BookingFlow({ detailer, smsEnabled }: { detailer: Detailer; smsE
                     ))}
                   <Row label={t("total")} value={money(totals.total)} strong />
                   <div className="my-4 h-px bg-white/[0.06]" />
-                  <Row label={t("deposit30")} value={money(totals.deposit)} />
+                  <Row label={t("depositPct", { pct: detailer.depositPercent })} value={money(totals.deposit)} />
                   {!external && <Row label={t("bookingFee")} value={money(totals.fee)} muted />}
                   <Row label={t("payAfter", { amount: money(totals.total - totals.deposit) })} value="" muted />
                 </div>

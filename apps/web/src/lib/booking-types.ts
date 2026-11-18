@@ -28,6 +28,8 @@ export const detailerSchema = z.object({
     .regex(/^https:\/\/[^\s<>"]+$/)
     .nullable()
     .default(null),
+  /** Deposit as a percent of the price (10 to 50, set by the business). */
+  depositPercent: z.number().int().min(10).max(50).default(30),
   /** Plain-text payment instructions, e.g. "Zelle: 512-555-0101". */
   paymentNote: z.string().max(200).nullable().default(null),
   services: z.array(

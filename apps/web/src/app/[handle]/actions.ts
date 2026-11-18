@@ -179,7 +179,7 @@ export async function createBooking(raw: BookingInput): Promise<BookingResult> {
     const service = detailer.services.find((s) => s.id === input.serviceId);
     if (!service) return { ok: false, error: "invalid" };
     const extras = detailer.addOns.filter((a) => input.addOnIds.includes(a.id)).reduce((n, a) => n + a.priceCents, 0);
-    const deposit = depositCents(service.priceCents[input.vehicleSize] + extras);
+    const deposit = depositCents(service.priceCents[input.vehicleSize] + extras, detailer.depositPercent);
     const external = detailer.payments === "external";
     return { ok: true, bookingId: "demo", depositCents: deposit, bookingFeeCents: external ? 0 : bookingFeeCents(deposit), payments: detailer.payments };
   }

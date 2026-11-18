@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DirectoryResults, DirectorySearch } from "@/components/site/Directory";
+import { AppBand } from "@/components/site/AppBand";
 import { SitePage } from "@/components/site/SiteChrome";
 import { TRADE_PAGES } from "@/content/trade-pages";
+import { visitorCountry } from "@/lib/site";
 import { directoryQuery, getDirectory } from "@/lib/directory";
 import { TRADES } from "@/lib/trades";
 import { OG_IMAGES, TWITTER_CARD } from "@/lib/seo";
@@ -23,6 +25,7 @@ export const metadata: Metadata = {
 export default async function Find({ searchParams }: PageProps<"/find">) {
   const query = directoryQuery(await searchParams);
   const items = await getDirectory(query);
+  const home = query.country ? null : await visitorCountry();
   return (
     <SitePage>
       <section className="mx-auto w-full max-w-6xl px-5 pt-10 sm:px-8 sm:pt-16">
@@ -38,8 +41,9 @@ export default async function Find({ searchParams }: PageProps<"/find">) {
           ))}
         </nav>
         <DirectorySearch query={query} />
-        <DirectoryResults items={items} />
+        <DirectoryResults items={items} home={home} />
       </section>
+      <AppBand className="mt-20" />
     </SitePage>
   );
 }

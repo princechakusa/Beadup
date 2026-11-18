@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 
 import { BackButton } from '@/components/nav/BackButton';
+import { DepositPercent } from '@/components/payments/DepositPercent';
 import { PaymentDetailsForm } from '@/components/payments/PaymentDetailsForm';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -15,6 +16,7 @@ export default function PaymentSettings() {
       <Text variant="body" tone="steel">
         {t('pm_sub')}
       </Text>
+      <DepositPercent />
       {details.data ? (
         <PaymentDetailsForm initial={details.data} onSaved={() => router.back()} />
       ) : (

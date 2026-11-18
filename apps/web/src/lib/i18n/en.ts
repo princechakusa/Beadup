@@ -52,7 +52,7 @@ export const en = {
   // Review
   reviewTitle: "Review and book",
   total: "Total",
-  deposit30: "Deposit (30%)",
+  depositPct: "Deposit ({pct}%)",
   bookingFee: "Booking fee",
   payAfter: "Pay {amount} after the job",
   externalNote: "After you book, you'll pay the {amount} deposit to {name} directly. Beadup never takes your card. Deposits, changes and refunds are handled by {name}.",

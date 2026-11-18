@@ -1,7 +1,7 @@
 -- Teams: each person has their own calendar; "anyone" gets the first free person.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(14);
 update public.plan_config set value = '"external"' where key = 'payments_mode';
 
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, created_at, updated_at) values
@@ -53,6 +53,9 @@ select throws_ok($$ update public.bookings set staff_id = 'a8a8a8a8-0000-4000-80
                     where staff_id = 'a8a8a8a8-0000-4000-8000-0000000000f1' $$, '23P01', null, 'reassigning onto a busy person is refused');
 select lives_ok($$ delete from public.staff_members where name = 'Thabo' $$, 'removing a person with bookings works (bookings kept, unassigned)');
 reset role;
+
+insert into public.staff_members (detailer_id, name) select 'a8a8a8a8-0000-4000-8000-000000000000', 'P' || g from generate_series(1, 23) g;
+select throws_ok($$ insert into public.staff_members (detailer_id, name) values ('a8a8a8a8-0000-4000-8000-000000000000', 'One too many') $$, '23514', null, 'a team is capped at 25 people');
 
 select * from finish();
 rollback;

@@ -46,7 +46,7 @@ export const pt: Messages = {
 
   reviewTitle: "Revise e reserve",
   total: "Total",
-  deposit30: "Sinal (30%)",
+  depositPct: "Sinal ({pct}%)",
   bookingFee: "Taxa de reserva",
   payAfter: "Pague {amount} após o serviço",
   externalNote: "Depois de reservar, você pagará o sinal de {amount} diretamente a {name}. A Beadup nunca recebe seu cartão. Sinais, alterações e reembolsos são tratados por {name}.",

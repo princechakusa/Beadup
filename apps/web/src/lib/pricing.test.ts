@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { bookingFeeCents, depositCents } from "./pricing";
 
+describe("depositCents with a chosen percent", () => {
+  it("matches the database (half up)", () => {
+    expect(depositCents(21000, 10)).toBe(2100);
+    expect(depositCents(5, 50)).toBe(3);
+    expect(depositCents(21000, 30)).toBe(depositCents(21000));
+  });
+});
+
 describe("depositCents", () => {
   it("is 30% of the total (half-up on the last cent)", () => {
     expect(depositCents(0)).toBe(0);

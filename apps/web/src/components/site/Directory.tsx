@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COUNTRIES, COUNTRY_CODES, formatMoney } from "@/lib/countries";
 import type { DirectoryEntry, DirectoryQuery } from "@/lib/directory";
 import { TRADE_IDS, TRADES } from "@/lib/trades";
+import { IconStar } from "./Icons";
 
 /** Search by name or area, trade and country. A plain GET form: works without JavaScript. */
 export function DirectorySearch({ query, action = "/find", fixedTrade }: { query: DirectoryQuery; action?: string; fixedTrade?: boolean }) {
@@ -33,8 +34,15 @@ export function DirectorySearch({ query, action = "/find", fixedTrade }: { query
   );
 }
 
-/** Result cards: photo, name, trade, area, rating and lowest price, linking to the booking page. */
-export function DirectoryResults({ items }: { items: DirectoryEntry[] }) {
+function initials(name: string) {
+  return name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "B";
+}
+
+/**
+ * Photo-first cards (design option A): big photo, trade tag, rating, name, place, lowest price.
+ * `home` is the visitor's country: those businesses come first, everyone else follows (nobody is hidden).
+ */
+export function DirectoryResults({ items, home }: { items: DirectoryEntry[]; home?: string | null }) {
   if (items.length === 0) {
     return (
       <p className="glass mt-8 rounded-[24px] p-8 text-center text-steel">
@@ -43,32 +51,44 @@ export function DirectoryResults({ items }: { items: DirectoryEntry[] }) {
       </p>
     );
   }
+  const ordered = home ? [...items.filter((d) => d.country === home), ...items.filter((d) => d.country !== home)] : items;
   return (
-    <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((d) => (
+    <ul className="mt-8 grid gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
+      {ordered.map((d) => (
         <li key={d.handle}>
-          <Link href={`/${d.handle}`} className="glass group flex h-full gap-4 rounded-[24px] p-5 transition-colors hover:bg-white/[0.05]">
-            {d.photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/media/${d.handle}/avatar?v=${d.photo}`} alt="" width={64} height={64} loading="lazy" className="h-16 w-16 shrink-0 rounded-[18px] object-cover ring-1 ring-white/10" />
-            ) : (
-              <span aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-b from-white to-[#cfd8e4] font-display text-xl font-extrabold text-midnight">
-                {d.businessName.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "B"}
+          <Link href={`/${d.handle}`} className="group flex h-full flex-col gap-2.5 rounded-[22px]">
+            <span className="relative block h-[200px] overflow-hidden rounded-[22px] border border-white/[0.08] bg-gradient-to-br from-[#232a35] to-[#11151b] transition-transform duration-300 ease-(--ease-spring) group-hover:-translate-y-0.5">
+              {d.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/api/media/${d.handle}/avatar?v=${d.photo}`} alt="" loading="lazy" className="h-full w-full object-cover" />
+              ) : (
+                <span aria-hidden="true" className="flex h-full w-full items-center justify-center bg-[radial-gradient(120px_90px_at_70%_30%,rgba(77,216,255,0.25),transparent)] font-display text-4xl font-extrabold text-paint/70">
+                  {initials(d.businessName)}
+                </span>
+              )}
+              <span className="absolute bottom-3 left-3 inline-flex h-7 items-center rounded-full border border-white/[0.12] bg-midnight/70 px-3 text-[12px] font-semibold">
+                {TRADES[d.trade].name}
               </span>
-            )}
-            <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="truncate font-display text-[17px] font-bold">{d.businessName}</span>
-              <span className="truncate text-[13px] text-steel">
-                {[TRADES[d.trade].name, d.serviceArea || COUNTRIES[d.country].name].filter(Boolean).join(" · ")}
-              </span>
-              <span className="mt-auto flex items-center gap-3 pt-1 text-[13px]">
-                {d.rating !== null ? (
-                  <span className="font-semibold text-gold">★ {d.rating.toFixed(1)} <span className="font-normal text-steel">({d.reviewCount})</span></span>
-                ) : (
-                  <span className="text-steel">New</span>
-                )}
-                {d.fromCents !== null && <span className="text-mist">from {formatMoney(d.fromCents, d.country)}</span>}
-              </span>
+            </span>
+            <span className="flex items-center gap-1.5 text-[14px]">
+              {d.rating !== null ? (
+                <>
+                  <span className="font-semibold">{d.rating.toFixed(1)}</span>
+                  <IconStar size={14} className="fill-gold text-gold" />
+                  <span className="text-steel">({d.reviewCount} {d.reviewCount === 1 ? "review" : "reviews"})</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold">New</span>
+                  <span className="text-steel">no reviews yet</span>
+                </>
+              )}
+            </span>
+            <span className="truncate font-display text-[18px] font-bold">{d.businessName}</span>
+            <span className="truncate text-[14px] text-steel">{d.serviceArea || COUNTRIES[d.country].name}</span>
+            <span className="mt-auto flex items-center justify-between pt-1">
+              <span className="text-[14px] font-semibold text-gold">{d.fromCents !== null ? `from ${formatMoney(d.fromCents, d.country)}` : ""}</span>
+              <span className="inline-flex h-9 items-center rounded-[12px] bg-bead px-4 text-[14px] font-bold text-bead-ink">Book</span>
             </span>
           </Link>
         </li>

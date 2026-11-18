@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
+import { Qr } from "@/components/site/AppBand";
+import { APP_DOWNLOAD_URL, APP_STORE_URL, AppStoreButton, IphoneNote } from "@/components/site/AppStoreButton";
 import {
   IconArrowRight,
   IconBell,
@@ -582,6 +583,12 @@ function FinalCta({ free }: { free: number }) {
           <div className="mt-2 flex flex-col items-center gap-4">
             <AppStoreButton />
             <IphoneNote />
+            {APP_DOWNLOAD_URL && (
+              <div className="mt-2 hidden flex-col items-center gap-2 rounded-[22px] bg-white p-3.5 lg:flex">
+                <Qr value={APP_DOWNLOAD_URL} />
+                <span className="text-[13px] font-semibold text-midnight">Scan to download for iPhone</span>
+              </div>
+            )}
           </div>
         </div>
       </Reveal>

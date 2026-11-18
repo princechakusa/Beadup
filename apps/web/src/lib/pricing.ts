@@ -4,13 +4,15 @@
 // Rate 2.9% is encoded as the 971/1000 factor in bookingFeeCents.
 const PROCESSOR_FIXED_CENTS = 30;
 
-export const DEPOSIT_RATE = 0.3;
+export const DEPOSIT_DEFAULT_PERCENT = 30;
+/** What a business may choose (see the deposit_percent check in the database). */
+export const DEPOSIT_PERCENTS = [10, 15, 20, 25, 30, 35, 40, 45, 50] as const;
 
 // Integer math only, mirrored exactly by public.deposit_cents() and
 // public.booking_fee_cents() in Postgres, so the estimate shown here always
 // equals what the server charges.
-export function depositCents(totalCents: number): number {
-  return Math.floor((totalCents * 3 + 5) / 10); // 30%, half up
+export function depositCents(totalCents: number, percent: number = DEPOSIT_DEFAULT_PERCENT): number {
+  return Math.floor((totalCents * percent + 50) / 100); // half up
 }
 
 /**

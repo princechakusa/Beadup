@@ -46,7 +46,7 @@ export const fr: Messages = {
 
   reviewTitle: "Vérifiez et réservez",
   total: "Total",
-  deposit30: "Acompte (30 %)",
+  depositPct: "Acompte ({pct} %)",
   bookingFee: "Frais de réservation",
   payAfter: "Vous payez {amount} après la prestation",
   externalNote: "Après la réservation, vous réglerez l'acompte de {amount} directement à {name}. Beadup ne prend jamais votre carte. Les acomptes, modifications et remboursements sont gérés par {name}.",
