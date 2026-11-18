@@ -25,6 +25,8 @@ function Beads() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/hero/all-trades.webp" alt="" fetchPriority="high" className="absolute inset-y-0 right-0 h-full w-full object-cover object-[60%_center] lg:w-[78%]" />
       <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/75 to-midnight/0" />
+      {/* Phones: the text sits over the photo, so darken it for legibility. */}
+      <div className="absolute inset-0 bg-midnight/55 lg:hidden" />
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-midnight/80 to-transparent" />
       {/* fade into the page below */}
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-midnight" />
