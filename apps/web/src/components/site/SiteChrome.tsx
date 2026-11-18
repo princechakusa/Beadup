@@ -157,6 +157,8 @@ export function SiteFooter() {
                 </li>
               ))}
             </ul>
+            <span aria-hidden="true" className="h-9 w-px bg-white/[0.12]" />
+            <span className="text-[13px] text-steel">© 2026 Beadup. All rights reserved.</span>
           </div>
           <AppStoreButton size="md" />
         </div>
