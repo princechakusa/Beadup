@@ -54,7 +54,7 @@ select throws_ok($$ update public.bookings set staff_id = 'a8a8a8a8-0000-4000-80
 select lives_ok($$ delete from public.staff_members where name = 'Thabo' $$, 'removing a person with bookings works (bookings kept, unassigned)');
 reset role;
 
-insert into public.staff_members (detailer_id, name) select 'a8a8a8a8-0000-4000-8000-000000000000', 'P' || g from generate_series(1, 23) g;
+insert into public.staff_members (detailer_id, name) select 'a8a8a8a8-0000-4000-8000-000000000000', 'P' || g from generate_series(1, 24) g;
 select throws_ok($$ insert into public.staff_members (detailer_id, name) values ('a8a8a8a8-0000-4000-8000-000000000000', 'One too many') $$, '23514', null, 'a team is capped at 25 people');
 
 select * from finish();
